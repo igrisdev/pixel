@@ -12,7 +12,9 @@ function SearchContent() {
   const router = useRouter();
   const initialQuery = searchParams.get("query") || "";
 
-  const { students, projects } = useStore();
+  // Consumimos 'proyectos' con el nuevo modelo
+  const { students, proyectos } = useStore();
+
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [filterType, setFilterType] = useState<
     "TODO" | "ESTUDIANTE" | "EGRESADO" | "PROYECTO"
@@ -43,19 +45,32 @@ function SearchContent() {
     return (
       s.name.toLowerCase().includes(termLower) ||
       s.role.toLowerCase().includes(termLower) ||
-      s.tech.some((t) => t.toLowerCase().includes(termLower))
+      (s.tech && s.tech.some((t) => t.toLowerCase().includes(termLower)))
     );
   });
 
-  // Filtrado de proyectos
-  const filteredProjects = projects.filter((p) => {
+  // Filtrado de proyectos (¡Actualizado al nuevo modelo relacional!)
+  const filteredProjects = proyectos.filter((p) => {
     if (filterType === "ESTUDIANTE" || filterType === "EGRESADO") return false;
 
-    return (
-      p.title.toLowerCase().includes(termLower) ||
-      p.type.toLowerCase().includes(termLower) ||
-      p.tech.some((t) => t.toLowerCase().includes(termLower))
-    );
+    // 1. Buscamos en los datos del Proyecto Macro
+    const matchMacro =
+      p.titulo.toLowerCase().includes(termLower) ||
+      p.objetivo.toLowerCase().includes(termLower);
+
+    // 2. Buscamos profundamente en los Productos Derivados
+    const matchProductos = p.productos?.some((prod) => {
+      return (
+        prod.titulo.toLowerCase().includes(termLower) ||
+        prod.descripcion.toLowerCase().includes(termLower) ||
+        prod.tipo_categoria.toLowerCase().includes(termLower) ||
+        (prod.tecnologias &&
+          prod.tecnologias.some((t) => t.toLowerCase().includes(termLower)))
+      );
+    });
+
+    // Si coincide con el macro o con alguno de sus productos, lo mostramos
+    return matchMacro || matchProductos;
   });
 
   return (
@@ -73,7 +88,7 @@ function SearchContent() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Ej. React, Python, Frontend..."
+                placeholder="Ej. React, Python, Frontend, Agro..."
                 className="w-full py-3 px-4 outline-none text-[#334155] font-medium bg-white border-2 border-transparent focus:border-[#F37021]"
               />
               {searchTerm && (
@@ -132,8 +147,8 @@ function SearchContent() {
               Proyectos ({filteredProjects.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {filteredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+              {filteredProjects.map((proyecto) => (
+                <ProjectCard key={proyecto.id} project={proyecto} />
               ))}
             </div>
           </div>

@@ -11,7 +11,7 @@ import gsap from "gsap"; // Importamos GSAP nativamente desde npm
 
 export default function HomePage() {
   const router = useRouter();
-  const { students, projects } = useStore();
+  const { students, proyectos: projects } = useStore();
   const [searchInput, setSearchInput] = useState("");
 
   // Referencias para GSAP
