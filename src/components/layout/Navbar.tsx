@@ -27,13 +27,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo (Redirige al inicio) */}
           <Link href="/" className="flex items-center cursor-pointer group">
-            <div className="w-8 h-8 mr-3 flex flex-col items-center justify-center">
-              <div className="w-4 h-4 bg-[#2D5A27] mb-1 pixel-border group-hover:scale-105 transition-transform"></div>
-              <div className="w-6 h-4 bg-[#F37021] pixel-border group-hover:scale-105 transition-transform"></div>
-            </div>
-            <span className="pixel-font text-[#2D5A27] text-sm md:text-base mt-1">
-              PIXEL<span className="text-[#F37021]">PORTAFOLIO</span>
-            </span>
+            <img src="pixel_normal.svg" alt="logo" className="h-10" />
           </Link>
 
           {/* Links Centrales */}
@@ -50,12 +44,12 @@ export default function Navbar() {
             >
               Explorar
             </Link>
-            <Link
+            {/* <Link
               href="#"
               className="text-[#334155] font-semibold hover:text-[#2D5A27] transition"
             >
               Semillero
-            </Link>
+            </Link> */}
           </div>
 
           {/* Menú de Usuario / Login */}

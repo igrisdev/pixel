@@ -4,8 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-//   Github,
-//   Linkedin,
+  //   Github,
+  //   Linkedin,
   ChevronRight,
   MapPin,
   Mail,
@@ -26,13 +26,16 @@ export default function Footer() {
           {/* Columna 1: Branding */}
           <div>
             <div className="flex items-center mb-6">
-              <div className="w-6 h-6 mr-3 flex flex-col items-center justify-center">
-                <div className="w-3 h-3 bg-[#2D5A27] mb-1"></div>
-                <div className="w-4 h-3 bg-[#F37021]"></div>
-              </div>
-              <h2 className="pixel-font text-lg text-white">
-                PIXEL<span className="text-[#F37021]">PORTAFOLIO</span>
-              </h2>
+              <Link
+                href="/"
+                className="flex items-center cursor-pointer group text-white "
+              >
+                <img
+                  src="pixel_big.svg"
+                  alt="logo"
+                  className="h-16 text-white"
+                />
+              </Link>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
               Catálogo tecnológico diseñado para la visibilización de
