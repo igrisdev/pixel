@@ -3,15 +3,7 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
-import {
-//   Github,
-//   Linkedin,
-  ExternalLink,
-  Download,
-  Code,
-  MapPin,
-  Trophy,
-} from "lucide-react";
+import { ExternalLink, Download, Code, MapPin, Trophy } from "lucide-react";
 
 export default function ProfilePage() {
   const { id } = useParams();
@@ -37,13 +29,14 @@ export default function ProfilePage() {
   }
 
   // Extendemos los datos con el mock del diseño original
+  // Agregamos fallbacks seguros (|| []) para evitar errores de TypeScript
   const mockProfile = {
     ...student,
     email:
       student.email_personal ||
       student.name.split(" ")[0].toLowerCase() + "@unimayor.edu.co",
     bio: "Apasionado por la tecnología y la investigación aplicada. Investigador en el semillero Pixel participando activamente en el desarrollo de soluciones de software.",
-    skillsHard: student.tech.concat(["Git", "Scrum", "API REST"]),
+    skillsHard: (student.tech || []).concat(["Git", "Scrum", "API REST"]),
     skillsSoft: [
       "Liderazgo técnico",
       "Resolución de problemas",
@@ -57,7 +50,7 @@ export default function ProfilePage() {
         type: "DESARROLLO",
         role: student.role,
         date: "Mar 2024 - Nov 2024",
-        tech: student.tech,
+        tech: student.tech || [], // Respaldo por si student.tech no existe
         isProjectHead: true,
       },
       {
@@ -92,7 +85,11 @@ export default function ProfilePage() {
                 className="w-32 h-32 border-4 border-[#1E293B] mb-4 object-cover"
               />
               <span
-                className={`text-[10px] font-mono px-2 py-1 border border-[#1E293B] mb-3 ${mockProfile.status === "EGRESADO" ? "bg-[#2D5A27] text-white" : "bg-gray-100 text-[#334155]"}`}
+                className={`text-[10px] font-mono px-2 py-1 border border-[#1E293B] mb-3 ${
+                  mockProfile.status === "EGRESADO"
+                    ? "bg-[#2D5A27] text-white"
+                    : "bg-gray-100 text-[#334155]"
+                }`}
               >
                 {mockProfile.status}
               </span>
@@ -218,9 +215,11 @@ export default function ProfilePage() {
                       <p className="text-[#2D5A27] font-semibold text-sm mb-3">
                         {part.role}
                       </p>
-                      {part.type === "DESARROLLO" && (
+
+                      {/* Aquí aplicamos el Optional Chaining (?.) */}
+                      {part.type === "DESARROLLO" && part.tech && (
                         <div className="flex flex-wrap gap-2 mt-3">
-                          {part.tech.map((t) => (
+                          {part.tech?.map((t: string) => (
                             <span
                               key={t}
                               className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center text-[#334155]"
