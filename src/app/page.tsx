@@ -7,6 +7,7 @@ import { useStore } from "@/store/useStore";
 import StudentCard from "@/components/ui/StudentCard";
 import ProjectCard from "@/components/ui/ProjectCard";
 import EscalatorCard from "@/components/ui/EscalatorCard";
+import gsap from "gsap"; // Importamos GSAP nativamente desde npm
 
 export default function HomePage() {
   const router = useRouter();
@@ -16,7 +17,6 @@ export default function HomePage() {
   // Referencias para GSAP
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
-  const [gsapLoaded, setGsapLoaded] = useState(false);
 
   // Asegurarnos de que solo renderizamos talento activo
   const activeStudents = students.filter((s) => !s.vetado);
@@ -38,9 +38,8 @@ export default function HomePage() {
 
   // Efecto GSAP - Animación Escalera
   useEffect(() => {
-    if (typeof window !== "undefined" && window.gsap && escalatorRef.current) {
-      setGsapLoaded(true);
-      const tl = window.gsap.timeline({ repeat: -1 });
+    if (escalatorRef.current) {
+      const tl = gsap.timeline({ repeat: -1 });
       tl.to(escalatorRef.current, {
         yPercent: -50,
         ease: "none",
@@ -54,14 +53,14 @@ export default function HomePage() {
 
   // Efecto GSAP - Contadores
   useEffect(() => {
-    if (typeof window !== "undefined" && window.gsap && metricsRef.current) {
+    if (metricsRef.current) {
       const targets = metricsRef.current.querySelectorAll(".counter");
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             targets.forEach((target) => {
               const endValue = target.getAttribute("data-value");
-              window.gsap.fromTo(
+              gsap.fromTo(
                 target,
                 { innerHTML: 0 },
                 {
