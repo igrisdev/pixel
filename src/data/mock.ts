@@ -1,9 +1,12 @@
-import { Student, Project, Competency } from "../types";
+import { Student, Proyecto, Competency } from "@/types";
 
 export const INITIAL_STUDENTS: Student[] = [
   {
     id: 1,
     name: "Johan Alvarez",
+    email_institucional: "johan@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Ingeniería Informática",
     role: "Arquitecto de Software",
     status: "ESTUDIANTE",
     tech: ["Node.js", "Docker", "MySQL"],
@@ -16,6 +19,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 2,
     name: "Isabella Velasco",
+    email_institucional: "ivelasco@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Ingeniería Informática",
     role: "Frontend Developer",
     status: "ESTUDIANTE",
     tech: ["React", "Next.js", "Tailwind"],
@@ -28,6 +34,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 3,
     name: "Carlos Ruiz",
+    email_institucional: "cruiz@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Tecnología en Desarrollo de Software",
     role: "Ingeniero de Datos",
     status: "EGRESADO",
     tech: ["Python", "Pandas", "AWS"],
@@ -40,6 +49,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 4,
     name: "Ana Gómez",
+    email_institucional: "agomez@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Diseño Visual",
     role: "Diseñadora UX/UI",
     status: "ESTUDIANTE",
     tech: ["Figma", "CSS", "GSAP"],
@@ -52,6 +64,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 5,
     name: "David Luna",
+    email_institucional: "dluna@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Tecnología en Desarrollo de Software",
     role: "Desarrollador Mobile",
     status: "EGRESADO",
     tech: ["Flutter", "Dart", "Firebase"],
@@ -64,6 +79,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 6,
     name: "Sofía Castro",
+    email_institucional: "scastro@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Ingeniería Informática",
     role: "Analista QA",
     status: "ESTUDIANTE",
     tech: ["Selenium", "Jest", "Cypress"],
@@ -76,6 +94,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 7,
     name: "Miguel Rojas",
+    email_institucional: "mrojas@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Ingeniería Informática",
     role: "DevOps Engineer",
     status: "EGRESADO",
     tech: ["Linux", "Jenkins", "Kubernetes"],
@@ -88,6 +109,9 @@ export const INITIAL_STUDENTS: Student[] = [
   {
     id: 8,
     name: "Laura Díaz",
+    email_institucional: "ldiaz@unimayor.edu.co",
+    password_hash: "est123",
+    carrera: "Tecnología en Desarrollo de Software",
     role: "Fullstack Developer",
     status: "ESTUDIANTE",
     tech: ["Vue.js", "Laravel", "PHP"],
@@ -99,63 +123,102 @@ export const INITIAL_STUDENTS: Student[] = [
   },
 ];
 
-export const INITIAL_PROJECTS: Project[] = [
+// Reemplazamos INITIAL_PROJECTS por INITIAL_PROYECTOS (Jerárquico)
+export const INITIAL_PROYECTOS: Proyecto[] = [
   {
     id: 10,
-    title: "Pixel Core Engine",
-    type: "Desarrollo Tecnológico",
-    tech: ["Docker", "Express", "Next.js", "MySQL"],
-    img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
-    date: "Mar 2024 - Nov 2024",
-    objective:
+    titulo: "Pixel Core Engine",
+    objetivo:
       "Desarrollar una plataforma web centralizada para la gestión, estructuración y visibilización de competencias y proyectos del semillero.",
-    description:
-      "Una arquitectura limpia basada en contenedores Docker y microservicios. Implementa JWT para autenticación, Next.js para el renderizado del lado del servidor (SEO-friendly) y MySQL para la integridad relacional de los datos.",
-    awards:
+    premios_distinciones:
       "Mención de honor en Encuentro Regional de Semilleros RedCOLSI 2024",
-    repoUrl: "https://github.com/pixel/core-engine",
-    demoUrl: "https://pixel-demo.com",
-    team: [
+    fecha_inicio: "2024-03-01",
+    fecha_fin: "2024-11-30",
+    creado_por: 1, // Creado por Johan
+    img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+    productos: [
       {
-        studentId: 1,
-        name: "Johan Alvarez",
-        role: "Arquitecto de Software",
-        img: "https://ui-avatars.com/api/?name=Johan+Alvarez&background=1E293B&color=fff",
-      },
-      {
-        studentId: 2,
-        name: "Isabella Velasco",
-        role: "Frontend Developer",
-        img: "https://ui-avatars.com/api/?name=Isabella+Velasco&background=2D5A27&color=fff",
+        id: 101,
+        id_proyecto: 10,
+        titulo: "Plataforma Web Core Engine",
+        descripcion:
+          "Una arquitectura limpia basada en contenedores Docker y microservicios. Implementa JWT para autenticación, Next.js para el renderizado del lado del servidor y MySQL.",
+        tipo_categoria: "DESARROLLO",
+        tecnologias: ["Docker", "Express", "Next.js", "MySQL"],
+        url_repositorio: "https://github.com/pixel/core-engine",
+        url_demo: "https://pixel-demo.com",
+        participaciones: [
+          {
+            id: 1001,
+            id_integrante: 1,
+            id_producto: 101,
+            rol_en_producto: "Arquitecto de Software",
+            fecha_inicio_rol: "2024-03-01",
+            fecha_fin_rol: "2024-11-30",
+            integrante_nombre: "Johan Alvarez",
+            integrante_img:
+              "https://ui-avatars.com/api/?name=Johan+Alvarez&background=1E293B&color=fff&size=150",
+          },
+          {
+            id: 1002,
+            id_integrante: 2,
+            id_producto: 101,
+            rol_en_producto: "Frontend Developer",
+            fecha_inicio_rol: "2024-03-01",
+            fecha_fin_rol: "2024-11-30",
+            integrante_nombre: "Isabella Velasco",
+            integrante_img:
+              "https://ui-avatars.com/api/?name=Isabella+Velasco&background=2D5A27&color=fff&size=150",
+          },
+        ],
       },
     ],
   },
   {
     id: 11,
-    title: "AgroTech Sensor AI",
-    type: "Investigación Aplicada",
-    tech: ["Python", "IoT", "React", "TensorFlow"],
-    img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
-    date: "Ago 2023 - May 2024",
-    objective:
+    titulo: "AgroTech Sensor AI",
+    objetivo:
       "Implementar un sistema de monitoreo inteligente para predecir enfermedades en cultivos mediante sensores IoT y Machine Learning.",
-    description:
-      "El sistema recopila datos de humedad y temperatura del suelo en tiempo real. Utiliza un modelo predictivo en Python (TensorFlow) para alertar a los agricultores a través de un panel en React.",
-    awards: null,
-    repoUrl: "https://github.com/pixel/agrotech",
-    demoUrl: null,
-    team: [
+    premios_distinciones: null,
+    fecha_inicio: "2023-08-01",
+    fecha_fin: "2024-05-30",
+    creado_por: 3, // Creado por Carlos
+    img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
+    productos: [
       {
-        studentId: 3,
-        name: "Carlos Ruiz",
-        role: "Ingeniero de Datos",
-        img: "https://ui-avatars.com/api/?name=Carlos+Ruiz&background=F37021&color=fff",
-      },
-      {
-        studentId: 8,
-        name: "Laura Díaz",
-        role: "Fullstack Developer",
-        img: "https://ui-avatars.com/api/?name=Laura+Diaz&background=2D5A27&color=fff",
+        id: 102,
+        id_proyecto: 11,
+        titulo: "Sistema Predictivo IoT",
+        descripcion:
+          "El sistema recopila datos de humedad y temperatura del suelo en tiempo real. Utiliza un modelo predictivo en Python (TensorFlow) para alertar a los agricultores.",
+        tipo_categoria: "DESARROLLO",
+        tecnologias: ["Python", "IoT", "React", "TensorFlow"],
+        url_repositorio: "https://github.com/pixel/agrotech",
+        url_demo: null,
+        participaciones: [
+          {
+            id: 1003,
+            id_integrante: 3,
+            id_producto: 102,
+            rol_en_producto: "Ingeniero de Datos",
+            fecha_inicio_rol: "2023-08-01",
+            fecha_fin_rol: "2024-05-30",
+            integrante_nombre: "Carlos Ruiz",
+            integrante_img:
+              "https://ui-avatars.com/api/?name=Carlos+Ruiz&background=F37021&color=fff&size=150",
+          },
+          {
+            id: 1004,
+            id_integrante: 8,
+            id_producto: 102,
+            rol_en_producto: "Fullstack Developer",
+            fecha_inicio_rol: "2023-10-01",
+            fecha_fin_rol: "2024-05-30",
+            integrante_nombre: "Laura Díaz",
+            integrante_img:
+              "https://ui-avatars.com/api/?name=Laura+Diaz&background=2D5A27&color=fff&size=150",
+          },
+        ],
       },
     ],
   },
