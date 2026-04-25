@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { Student, Project, Competency } from "@/types";
+import { Student, Proyecto, Competency } from "@/types";
 import {
   INITIAL_STUDENTS,
-  INITIAL_PROJECTS,
+  INITIAL_PROYECTOS,
   INITIAL_COMPETENCIES,
 } from "@/data/mock";
 
@@ -18,18 +18,20 @@ export interface CurrentUser {
 interface StoreState {
   // --- ESTADO DE DATOS ---
   students: Student[];
-  projects: Project[];
+  proyectos: Proyecto[]; // <- Actualizado
   competencies: Competency[];
 
   // --- ACCIONES GENERALES ---
   setStudents: (students: Student[]) => void;
-  setProjects: (projects: Project[]) => void;
+  setProyectos: (proyectos: Proyecto[]) => void; // <- Actualizado
   setCompetencies: (competencies: Competency[]) => void;
 
-  // --- ACCIONES CRUD ---
-  addProject: (project: Project) => void;
-  updateProject: (id: number, project: Partial<Project>) => void;
-  deleteProject: (id: number) => void;
+  // --- ACCIONES CRUD PROYECTOS ---
+  addProyecto: (proyecto: Proyecto) => void;
+  updateProyecto: (id: number, proyecto: Partial<Proyecto>) => void;
+  deleteProyecto: (id: number) => void;
+
+  // --- ACCIONES CRUD ESTUDIANTES ---
   updateStudent: (id: number, student: Partial<Student>) => void;
 
   // --- ESTADO DE AUTENTICACIÓN ---
@@ -44,29 +46,29 @@ interface StoreState {
 export const useStore = create<StoreState>((set, get) => ({
   // 1. Inicializamos con la data mockeada de la Fase 1
   students: INITIAL_STUDENTS,
-  projects: INITIAL_PROJECTS,
+  proyectos: INITIAL_PROYECTOS, // <- Actualizado
   competencies: INITIAL_COMPETENCIES,
 
   setStudents: (students) => set({ students }),
-  setProjects: (projects) => set({ projects }),
+  setProyectos: (proyectos) => set({ proyectos }),
   setCompetencies: (competencies) => set({ competencies }),
 
-  // 2. Acciones CRUD (Afectarán a toda la página instantáneamente)
-  addProject: (project) =>
+  // 2. Acciones CRUD
+  addProyecto: (proyecto) =>
     set((state) => ({
-      projects: [project, ...state.projects],
+      proyectos: [proyecto, ...state.proyectos],
     })),
 
-  updateProject: (id, updatedData) =>
+  updateProyecto: (id, updatedData) =>
     set((state) => ({
-      projects: state.projects.map((p) =>
+      proyectos: state.proyectos.map((p) =>
         p.id === id ? { ...p, ...updatedData } : p,
       ),
     })),
 
-  deleteProject: (id) =>
+  deleteProyecto: (id) =>
     set((state) => ({
-      projects: state.projects.filter((p) => p.id !== id),
+      proyectos: state.proyectos.filter((p) => p.id !== id),
     })),
 
   updateStudent: (id, updatedData) =>
