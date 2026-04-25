@@ -3,19 +3,25 @@
 import React, { useState } from "react";
 import { Edit, Trash2, Plus, X } from "lucide-react";
 import { useStore } from "@/store/useStore";
-import { Student } from "@/types";
+import { Student } from "@/types"; // Asegúrate de que apunte donde tienes tus tipos
 
 export default function AdminUsuariosCRUD() {
   const { students, setStudents } = useStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+
+  // Actualizamos el formData con los campos acordados
   const [formData, setFormData] = useState<{
     name: string;
-    role: string;
+    email_institucional: string;
+    password_hash: string;
+    carrera: string;
     status: "ESTUDIANTE" | "EGRESADO";
   }>({
     name: "",
-    role: "",
+    email_institucional: "",
+    password_hash: "",
+    carrera: "",
     status: "ESTUDIANTE",
   });
 
@@ -26,9 +32,14 @@ export default function AdminUsuariosCRUD() {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const nextId =
+      students.length > 0 ? Math.max(...students.map((s) => s.id)) + 1 : 1;
+
     const newStudent: Student = {
-      id: Date.now(),
+      id: nextId,
       ...formData,
+      role: "Integrante", // Un rol genérico inicial para el UI público
       tech: [],
       img: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1E293B&color=fff`,
       vetado: false,
@@ -36,16 +47,19 @@ export default function AdminUsuariosCRUD() {
       url_cv: "",
       enlaces: [],
     };
+
     setStudents([...students, newStudent]);
     setIsAdding(false);
-    setFormData({ name: "", role: "", status: "ESTUDIANTE" });
+    resetForm();
   };
 
   const startEdit = (student: Student) => {
     setEditId(student.id);
     setFormData({
       name: student.name,
-      role: student.role,
+      email_institucional: student.email_institucional || "",
+      password_hash: student.password_hash || "",
+      carrera: student.carrera || "",
       status: student.status,
     });
   };
@@ -56,13 +70,32 @@ export default function AdminUsuariosCRUD() {
       students.map((s) => (s.id === editId ? { ...s, ...formData } : s)),
     );
     setEditId(null);
-    setFormData({ name: "", role: "", status: "ESTUDIANTE" });
+    resetForm();
   };
 
   const handleDelete = (id: number) => {
     if (window.confirm("¿Eliminar usuario del sistema?"))
       setStudents(students.filter((s) => s.id !== id));
   };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email_institucional: "",
+      password_hash: "",
+      carrera: "",
+      status: "ESTUDIANTE",
+    });
+  };
+
+  // Opciones de carreras (puedes ajustarlas según las de UNIMAYOR)
+  const opcionesCarreras = [
+    "Ingeniería Informática",
+    "Tecnología en Desarrollo de Software",
+    "Diseño Visual",
+    "Administración de Empresas",
+    "Otra",
+  ];
 
   return (
     <div className="bg-white pixel-border p-6 shadow-sm overflow-x-auto">
@@ -74,6 +107,7 @@ export default function AdminUsuariosCRUD() {
           onClick={() => {
             setIsAdding(!isAdding);
             setEditId(null);
+            if (!isAdding) resetForm();
           }}
           className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] hover:bg-[#1f3f1b] flex items-center font-bold text-sm"
         >
@@ -89,56 +123,107 @@ export default function AdminUsuariosCRUD() {
       {(isAdding || editId) && (
         <form
           onSubmit={editId ? handleUpdate : handleAdd}
-          className="mb-6 p-4 bg-[#F8F9FA] border-2 border-[#1E293B] flex flex-wrap gap-4 items-end min-w-[600px]"
+          className="mb-6 p-6 bg-[#F8F9FA] border-2 border-[#1E293B] flex flex-col gap-4 min-w-[600px]"
         >
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-mono mb-1">Nombre</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021]"
-            />
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-xs font-mono mb-1 text-gray-600">
+                Nombre Completo
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                placeholder="Ej. Isabella Velasco"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-mono mb-1 text-gray-600">
+                Carrera
+              </label>
+              <select
+                required
+                value={formData.carrera}
+                onChange={(e) =>
+                  setFormData({ ...formData, carrera: e.target.value })
+                }
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+              >
+                <option value="" disabled>
+                  Seleccionar carrera...
+                </option>
+                {opcionesCarreras.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="w-40">
+              <label className="block text-xs font-mono mb-1 text-gray-600">
+                Estado
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    status: e.target.value as "ESTUDIANTE" | "EGRESADO",
+                  })
+                }
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+              >
+                <option value="ESTUDIANTE">ESTUDIANTE</option>
+                <option value="EGRESADO">EGRESADO</option>
+              </select>
+            </div>
           </div>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-mono mb-1">
-              Rol Principal
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-              className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021]"
-            />
-          </div>
-          <div className="w-40">
-            <label className="block text-xs font-mono mb-1">Estado</label>
-            <select
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  status: e.target.value as "ESTUDIANTE" | "EGRESADO",
-                })
-              }
-              className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021]"
+
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <label className="block text-xs font-mono mb-1 text-gray-600">
+                Correo Institucional
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email_institucional}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    email_institucional: e.target.value,
+                  })
+                }
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                placeholder="ejemplo@unimayor.edu.co"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-mono mb-1 text-gray-600">
+                Contraseña (Temporal)
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.password_hash}
+                onChange={(e) =>
+                  setFormData({ ...formData, password_hash: e.target.value })
+                }
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                placeholder="Ej. pixel2026"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-[#F37021] text-white px-8 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] h-[44px]"
             >
-              <option value="ESTUDIANTE">ESTUDIANTE</option>
-              <option value="EGRESADO">EGRESADO</option>
-            </select>
+              {editId ? "Actualizar" : "Crear"}
+            </button>
           </div>
-          <button
-            type="submit"
-            className="bg-[#F37021] text-white px-6 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015]"
-          >
-            {editId ? "Actualizar" : "Crear"}
-          </button>
         </form>
       )}
 
@@ -146,7 +231,8 @@ export default function AdminUsuariosCRUD() {
         <thead className="bg-[#F8F9FA] border-b-2 border-[#1E293B]">
           <tr>
             <th className="p-3 font-mono">NOMBRE</th>
-            <th className="p-3 font-mono">ROL</th>
+            {/* Cambiamos la columna ROL por CARRERA */}
+            <th className="p-3 font-mono">CARRERA</th>
             <th className="p-3 font-mono">ESTADO</th>
             <th className="p-3 font-mono">VETADO</th>
             <th className="p-3 font-mono text-right">ACCIONES</th>
@@ -164,9 +250,17 @@ export default function AdminUsuariosCRUD() {
                   className="w-8 h-8 mr-3 border border-[#1E293B] object-cover"
                   alt=""
                 />
-                {s.name}
+                <div>
+                  <div className="text-[#1E293B]">{s.name}</div>
+                  <div className="text-xs text-gray-500 font-mono">
+                    {s.email_institucional}
+                  </div>
+                </div>
               </td>
-              <td className="p-3 text-gray-600">{s.role}</td>
+              {/* Mostramos la carrera en lugar del rol */}
+              <td className="p-3 text-gray-600">
+                {s.carrera || "No registrada"}
+              </td>
               <td className="p-3">
                 <span
                   className={`px-2 py-1 text-[10px] font-mono border border-[#1E293B] ${s.status === "EGRESADO" ? "bg-[#2D5A27] text-white" : "bg-gray-100"}`}

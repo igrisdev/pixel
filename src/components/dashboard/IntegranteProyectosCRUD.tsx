@@ -1,265 +1,922 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  X,
+  Folder,
+  FileCode,
+  MapPin,
+  FileText,
+  ChevronDown,
+  Users,
+  UserPlus,
+} from "lucide-react";
 import { useStore } from "@/store/useStore";
-import { Project } from "@/types";
+import {
+  Proyecto,
+  ProductoAcademico,
+  TipoCategoria,
+  Participacion,
+} from "@/types";
 
 export default function IntegranteProyectosCRUD() {
-  const { projects, currentUser, addProject, updateProject, deleteProject } =
-    useStore();
-  const [isAdding, setIsAdding] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const {
+    proyectos,
+    students,
+    currentUser,
+    addProyecto,
+    updateProyecto,
+    deleteProyecto,
+  } = useStore();
 
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "Desarrollo Tecnológico",
-    objective: "",
-    description: "",
-    repoUrl: "",
-    demoUrl: "",
+  // --- ESTADOS: PROYECTO MACRO ---
+  const [isAddingProj, setIsAddingProj] = useState(false);
+  const [editProjId, setEditProjId] = useState<number | null>(null);
+  const [projFormData, setProjFormData] = useState({
+    titulo: "",
+    objetivo: "",
+    premios_distinciones: "",
+    fecha_inicio: "",
+    fecha_fin: "",
+    img: "",
   });
 
-  const myProjects = projects.filter((p) =>
-    p.team.some((t) => t.studentId === currentUser?.id),
+  // --- ESTADOS: PRODUCTOS ACADÉMICOS ---
+  const [activeFormProjectId, setActiveFormProjectId] = useState<number | null>(
+    null,
+  );
+  const [editProdId, setEditProdId] = useState<number | null>(null);
+  const [prodFormData, setProdFormData] = useState({
+    titulo: "",
+    descripcion: "",
+    tipo_categoria: "DESARROLLO" as TipoCategoria,
+    tecnologias_string: "",
+    url_repositorio: "",
+    url_demo: "",
+    fuente_publicacion: "",
+    url_documento: "",
+    localidad: "",
+  });
+
+  // --- ESTADOS: GESTIÓN DE EQUIPO ---
+  const [managingTeamProdId, setManagingTeamProdId] = useState<number | null>(
+    null,
+  );
+  const [teamForm, setTeamForm] = useState({ studentId: "", role: "" });
+
+  // Filtrar proyectos del usuario actual
+  const misProyectos = proyectos.filter(
+    (p) => p.creado_por === currentUser?.id,
   );
 
-  const handleSave = (e: React.FormEvent) => {
+  // ------------------------------------------------------------------------
+  // LÓGICA: PROYECTOS MACRO
+  // ------------------------------------------------------------------------
+  const handleSaveProject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editId) {
-      updateProject(editId, formData);
-      setEditId(null);
+    if (editProjId) {
+      updateProyecto(editProjId, projFormData);
+      setEditProjId(null);
     } else if (currentUser) {
-      const newProj: Project = {
-        id: Date.now(),
-        ...formData,
-        awards: null,
-        tech: ["En proceso..."],
-        img: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
-        date: new Date().getFullYear().toString(),
-        team: [
+      const nextId =
+        proyectos.length > 0 ? Math.max(...proyectos.map((p) => p.id)) + 1 : 1;
+      const newProj: Proyecto = {
+        id: nextId,
+        ...projFormData,
+        creado_por: currentUser.id,
+        productos: [],
+      };
+      addProyecto(newProj);
+      setIsAddingProj(false);
+    }
+    setProjFormData({
+      titulo: "",
+      objetivo: "",
+      premios_distinciones: "",
+      fecha_inicio: "",
+      fecha_fin: "",
+      img: "",
+    });
+  };
+
+  const handleDeleteProject = (id: number) => {
+    if (
+      window.confirm(
+        "ATENCIÓN: ¿Eliminar todo el proyecto y sus productos derivados?",
+      )
+    )
+      deleteProyecto(id);
+  };
+
+  const handleEditProjectClick = (p: Proyecto) => {
+    setProjFormData({
+      titulo: p.titulo,
+      objetivo: p.objetivo,
+      premios_distinciones: p.premios_distinciones || "",
+      fecha_inicio: p.fecha_inicio,
+      fecha_fin: p.fecha_fin || "",
+      img: p.img,
+    });
+    setEditProjId(p.id);
+    setIsAddingProj(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // ------------------------------------------------------------------------
+  // LÓGICA: PRODUCTOS ACADÉMICOS
+  // ------------------------------------------------------------------------
+  const handleEditProductClick = (
+    projectId: number,
+    prod: ProductoAcademico,
+  ) => {
+    setProdFormData({
+      titulo: prod.titulo,
+      descripcion: prod.descripcion,
+      tipo_categoria: prod.tipo_categoria,
+      tecnologias_string: prod.tecnologias?.join(", ") || "",
+      url_repositorio: prod.url_repositorio || "",
+      url_demo: prod.url_demo || "",
+      fuente_publicacion: prod.fuente_publicacion || "",
+      url_documento: prod.url_documento || "",
+      localidad: prod.localidad || "",
+    });
+    setEditProdId(prod.id);
+    setActiveFormProjectId(projectId);
+    setManagingTeamProdId(null);
+  };
+
+  const handleSaveProduct = (e: React.FormEvent, projectId: number) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    const project = proyectos.find((p) => p.id === projectId);
+    if (!project) return;
+
+    const baseProductData = {
+      titulo: prodFormData.titulo,
+      descripcion: prodFormData.descripcion,
+      tipo_categoria: prodFormData.tipo_categoria,
+      tecnologias: prodFormData.tecnologias_string
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      url_repositorio: prodFormData.url_repositorio,
+      url_demo: prodFormData.url_demo,
+      fuente_publicacion: prodFormData.fuente_publicacion,
+      url_documento: prodFormData.url_documento,
+      localidad: prodFormData.localidad,
+    };
+
+    if (editProdId) {
+      // ACTUALIZAR PRODUCTO EXISTENTE
+      const updatedProductos = (project.productos || []).map((p) =>
+        p.id === editProdId ? { ...p, ...baseProductData } : p,
+      );
+      updateProyecto(projectId, { productos: updatedProductos });
+    } else {
+      // CREAR NUEVO PRODUCTO
+      const allProds = proyectos.flatMap((p) => p.productos || []);
+      const nextProdId =
+        allProds.length > 0 ? Math.max(...allProds.map((p) => p.id)) + 1 : 1;
+      const allParts = allProds.flatMap((p) => p.participaciones || []);
+      const nextPartId =
+        allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
+      const userDetails = students.find((s) => s.id === currentUser.id);
+
+      const newProduct: ProductoAcademico = {
+        id: nextProdId,
+        id_proyecto: projectId,
+        ...baseProductData,
+        participaciones: [
           {
-            studentId: currentUser.id,
-            name: currentUser.name,
-            role: "Líder Creador",
-            img: `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=1E293B&color=fff`,
+            id: nextPartId,
+            id_integrante: currentUser.id,
+            id_producto: nextProdId,
+            rol_en_producto: "Autor/Desarrollador Principal",
+            fecha_inicio_rol: project.fecha_inicio,
+            fecha_fin_rol: project.fecha_fin,
+            integrante_nombre: currentUser.name,
+            integrante_img: userDetails?.img || "",
           },
         ],
       };
-      addProject(newProj);
-      setIsAdding(false);
+      updateProyecto(projectId, {
+        productos: [...(project.productos || []), newProduct],
+      });
     }
-    setFormData({
-      title: "",
-      type: "Desarrollo Tecnológico",
-      objective: "",
-      description: "",
-      repoUrl: "",
-      demoUrl: "",
+
+    setActiveFormProjectId(null);
+    setEditProdId(null);
+    setProdFormData({
+      titulo: "",
+      descripcion: "",
+      tipo_categoria: "DESARROLLO",
+      tecnologias_string: "",
+      url_repositorio: "",
+      url_demo: "",
+      fuente_publicacion: "",
+      url_documento: "",
+      localidad: "",
     });
   };
 
-  const startEdit = (proj: Project) => {
-    setEditId(proj.id);
-    setFormData({
-      title: proj.title,
-      type: proj.type,
-      objective: proj.objective,
-      description: proj.description,
-      repoUrl: proj.repoUrl || "",
-      demoUrl: proj.demoUrl || "",
-    });
+  const handleDeleteProduct = (projectId: number, productId: number) => {
+    if (window.confirm("¿Eliminar este producto académico?")) {
+      const project = proyectos.find((p) => p.id === projectId);
+      if (project) {
+        updateProyecto(projectId, {
+          productos: (project.productos || []).filter(
+            (p) => p.id !== productId,
+          ),
+        });
+      }
+    }
   };
 
-  const handleDelete = (id: number) => {
-    if (
-      window.confirm(
-        "¿Seguro que deseas eliminar este proyecto de tu portafolio?",
-      )
-    )
-      deleteProject(id);
+  // ------------------------------------------------------------------------
+  // LÓGICA: PARTICIPACIONES (EQUIPO)
+  // ------------------------------------------------------------------------
+  const handleAddTeamMember = (
+    e: React.FormEvent,
+    projectId: number,
+    productId: number,
+  ) => {
+    e.preventDefault();
+    if (!teamForm.studentId || !teamForm.role) return;
+
+    const project = proyectos.find((p) => p.id === projectId);
+    const product = project?.productos?.find((p) => p.id === productId);
+    const studentToAdd = students.find(
+      (s) => s.id === Number(teamForm.studentId),
+    );
+    if (!project || !product || !studentToAdd) return;
+
+    const allParts = proyectos
+      .flatMap((p) => p.productos || [])
+      .flatMap((p) => p.participaciones || []);
+    const nextPartId =
+      allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
+
+    const newParticipacion: Participacion = {
+      id: nextPartId,
+      id_integrante: studentToAdd.id,
+      id_producto: productId,
+      rol_en_producto: teamForm.role,
+      fecha_inicio_rol: project.fecha_inicio, // Hereda fecha del proyecto
+      fecha_fin_rol: project.fecha_fin,
+      integrante_nombre: studentToAdd.name,
+      integrante_img: studentToAdd.img,
+    };
+
+    const updatedProductos = (project.productos || []).map((p) => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          participaciones: [...(p.participaciones || []), newParticipacion],
+        };
+      }
+      return p;
+    });
+
+    updateProyecto(projectId, { productos: updatedProductos });
+    setTeamForm({ studentId: "", role: "" });
+  };
+
+  const handleRemoveTeamMember = (
+    projectId: number,
+    productId: number,
+    participacionId: number,
+  ) => {
+    const project = proyectos.find((p) => p.id === projectId);
+    if (!project) return;
+
+    const updatedProductos = (project.productos || []).map((p) => {
+      if (p.id === productId) {
+        return {
+          ...p,
+          participaciones: (p.participaciones || []).filter(
+            (part) => part.id !== participacionId,
+          ),
+        };
+      }
+      return p;
+    });
+    updateProyecto(projectId, { productos: updatedProductos });
   };
 
   return (
     <div className="bg-white pixel-border p-6 md:p-8 shadow-sm">
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-8 border-b-2 border-gray-100 pb-4">
-        <h2 className="text-xl md:text-2xl font-bold text-[#1E293B]">
-          Proyectos Publicados
+        <h2 className="text-xl md:text-2xl font-bold text-[#1E293B] flex items-center">
+          <Folder className="w-6 h-6 mr-3 text-[#F37021]" /> Mis Proyectos y
+          Productos
         </h2>
         <button
           onClick={() => {
-            setIsAdding(!isAdding);
-            setEditId(null);
+            setIsAddingProj(!isAddingProj);
+            setEditProjId(null);
           }}
           className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-2.5 text-sm font-bold border-2 border-[#1E293B] flex items-center transition"
         >
-          {isAdding || editId ? (
+          {isAddingProj || editProjId ? (
             <X className="w-4 h-4 mr-2" />
           ) : (
             <Plus className="w-4 h-4 mr-2" />
           )}
-          {isAdding || editId ? "CANCELAR" : "NUEVO PROYECTO"}
+          {isAddingProj || editProjId ? "CANCELAR" : "NUEVO PROYECTO MACRO"}
         </button>
       </div>
 
-      {(isAdding || editId) && (
+      {/* FORMULARIO DE PROYECTO MACRO */}
+      {(isAddingProj || editProjId) && (
         <form
-          onSubmit={handleSave}
-          className="mb-10 p-6 md:p-8 bg-[#F8F9FA] border-2 border-dashed border-[#F37021] space-y-5"
+          onSubmit={handleSaveProject}
+          className="mb-10 p-6 md:p-8 bg-[#F8F9FA] border-2 border-[#1E293B] space-y-5 relative"
         >
-          <h3 className="font-bold text-lg text-[#F37021] mb-2">
-            {editId ? "Editando Proyecto" : "Formulario de Nuevo Proyecto"}
+          {editProjId && (
+            <div className="absolute top-0 right-0 bg-[#F37021] text-white text-[10px] font-mono px-3 py-1 font-bold">
+              MODO EDICIÓN
+            </div>
+          )}
+          <h3 className="font-bold text-lg text-[#1E293B] mb-2">
+            {editProjId
+              ? "Editando Proyecto Macro"
+              : "Datos del Nuevo Proyecto Macro"}
           </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-xs font-mono text-gray-500 mb-1">
-                TÍTULO DEL PROYECTO
+                TÍTULO GENERAL
               </label>
               <input
                 type="text"
                 required
-                value={formData.title}
+                value={projFormData.titulo}
                 onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
+                  setProjFormData({ ...projFormData, titulo: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] outline-none p-3 font-medium text-[#1E293B]"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 font-medium"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-mono text-gray-500 mb-1">
+                OBJETIVO PRINCIPAL
+              </label>
+              <textarea
+                required
+                value={projFormData.objetivo}
+                onChange={(e) =>
+                  setProjFormData({ ...projFormData, objetivo: e.target.value })
+                }
+                rows={2}
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
               />
             </div>
             <div>
               <label className="block text-xs font-mono text-gray-500 mb-1">
-                TIPO DE INVESTIGACIÓN
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] outline-none p-3 font-medium text-[#1E293B] bg-white"
-              >
-                <option>Desarrollo Tecnológico</option>
-                <option>Investigación Aplicada</option>
-                <option>Responsabilidad Social</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-mono text-gray-500 mb-1">
-              OBJETIVO PRINCIPAL
-            </label>
-            <textarea
-              required
-              value={formData.objective}
-              onChange={(e) =>
-                setFormData({ ...formData, objective: e.target.value })
-              }
-              rows={2}
-              className="w-full border-2 border-gray-300 focus:border-[#F37021] outline-none p-3"
-              placeholder="El objetivo de este software es..."
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-mono text-gray-500 mb-1">
-              DESCRIPCIÓN TÉCNICA Y ARQUITECTURA
-            </label>
-            <textarea
-              required
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              rows={4}
-              className="w-full border-2 border-gray-300 focus:border-[#F37021] outline-none p-3"
-              placeholder="Construido utilizando Node.js en el backend y React..."
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                URL REPOSITORIO (Opcional)
+                FECHA INICIO
               </label>
               <input
-                type="url"
-                value={formData.repoUrl}
+                type="date"
+                required
+                value={projFormData.fecha_inicio}
                 onChange={(e) =>
-                  setFormData({ ...formData, repoUrl: e.target.value })
+                  setProjFormData({
+                    ...projFormData,
+                    fecha_inicio: e.target.value,
+                  })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] outline-none p-3"
-                placeholder="https://github.com/..."
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
               />
             </div>
             <div>
               <label className="block text-xs font-mono text-gray-500 mb-1">
-                URL DEMO (Opcional)
+                FECHA FIN (Opcional si sigue activo)
+              </label>
+              <input
+                type="date"
+                value={projFormData.fecha_fin}
+                onChange={(e) =>
+                  setProjFormData({
+                    ...projFormData,
+                    fecha_fin: e.target.value,
+                  })
+                }
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-mono text-gray-500 mb-1">
+                PREMIOS O DISTINCIONES
+              </label>
+              <input
+                type="text"
+                value={projFormData.premios_distinciones}
+                onChange={(e) =>
+                  setProjFormData({
+                    ...projFormData,
+                    premios_distinciones: e.target.value,
+                  })
+                }
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-mono text-gray-500 mb-1">
+                URL IMAGEN DE PORTADA
               </label>
               <input
                 type="url"
-                value={formData.demoUrl}
+                value={projFormData.img}
                 onChange={(e) =>
-                  setFormData({ ...formData, demoUrl: e.target.value })
+                  setProjFormData({ ...projFormData, img: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] outline-none p-3"
-                placeholder="https://mi-app.com"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#F37021] hover:bg-[#e06015] text-white py-4 font-bold border-2 border-[#1E293B] text-lg mt-4 transition pixel-border-accent"
+            className="w-full bg-[#F37021] hover:bg-[#e06015] text-white py-4 font-bold border-2 border-[#1E293B] mt-4 transition pixel-border-accent"
           >
-            {editId ? "GUARDAR ACTUALIZACIÓN" : "PUBLICAR EN EL CATÁLOGO"}
+            {editProjId
+              ? "GUARDAR CAMBIOS DEL PROYECTO"
+              : "CREAR PROYECTO MACRO"}
           </button>
         </form>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {myProjects.map((p) => (
-          <div
-            key={p.id}
-            className="border-2 border-gray-200 flex flex-col group hover:border-[#F37021] transition relative bg-[#F8F9FA] overflow-hidden"
-          >
-            <div className="absolute top-3 right-3 flex space-x-2 z-10 opacity-0 group-hover:opacity-100 transition">
-              <button
-                onClick={() => startEdit(p)}
-                className="bg-white p-2 border-2 border-[#1E293B] text-gray-700 hover:text-[#F37021] transition shadow-sm"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleDelete(p.id)}
-                className="bg-white p-2 border-2 border-[#1E293B] text-red-600 hover:bg-red-600 hover:text-white transition shadow-sm"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="h-40 w-full overflow-hidden border-b-2 border-gray-200 relative bg-gray-300">
-              <img
-                src={p.img}
-                alt=""
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-              />
-              <div className="absolute top-3 left-3 bg-[#1E293B] text-white text-[10px] font-mono px-2 py-1">
-                {p.type}
+      {/* LISTADO DE PROYECTOS Y SUS PRODUCTOS */}
+      <div className="space-y-12">
+        {misProyectos.map((p) => (
+          <div key={p.id} className="border-4 border-[#1E293B] overflow-hidden">
+            {/* Cabecera del Proyecto Macro */}
+            <div className="bg-[#F8F9FA] p-6 border-b-2 border-gray-200 flex flex-col md:flex-row justify-between md:items-start gap-4">
+              <div>
+                <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 mb-3 inline-block border border-[#1E293B]">
+                  PROYECTO MACRO
+                </span>
+                <h3 className="text-2xl font-bold text-[#1E293B] mb-2">
+                  {p.titulo}
+                </h3>
+                <p className="text-sm text-gray-600 max-w-3xl">{p.objetivo}</p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => handleEditProjectClick(p)}
+                  className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition"
+                  title="Editar Proyecto"
+                >
+                  <Edit className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteProject(p.id)}
+                  className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition"
+                  title="Eliminar todo el proyecto"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
               </div>
             </div>
-            <div className="p-6 flex-1 flex flex-col">
-              <h3 className="font-bold text-[#1E293B] text-xl mb-2 group-hover:text-[#F37021] transition">
-                {p.title}
-              </h3>
-              <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-                {p.objective}
-              </p>
-              <div className="mt-auto flex items-center text-xs font-mono text-gray-400">
-                Actualizado: {p.date}
+
+            {/* Sub-sección: Productos Académicos */}
+            <div className="p-6 bg-white">
+              <div className="flex justify-between items-center mb-6">
+                <h4 className="font-bold text-gray-700 flex items-center">
+                  <ChevronDown className="w-5 h-5 mr-1" /> Entregables y
+                  Productos ({p.productos?.length || 0})
+                </h4>
+                <button
+                  onClick={() => {
+                    setActiveFormProjectId(
+                      activeFormProjectId === p.id && !editProdId ? null : p.id,
+                    );
+                    setEditProdId(null);
+                    setProdFormData({
+                      titulo: "",
+                      descripcion: "",
+                      tipo_categoria: "DESARROLLO",
+                      tecnologias_string: "",
+                      url_repositorio: "",
+                      url_demo: "",
+                      fuente_publicacion: "",
+                      url_documento: "",
+                      localidad: "",
+                    });
+                    setManagingTeamProdId(null);
+                  }}
+                  className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition"
+                >
+                  + AÑADIR PRODUCTO
+                </button>
+              </div>
+
+              {/* Formulario anidado para Producto (Crear o Editar) */}
+              {activeFormProjectId === p.id && (
+                <form
+                  onSubmit={(e) => handleSaveProduct(e, p.id)}
+                  className="mb-8 p-6 bg-gray-50 border-2 border-dashed border-[#F37021] space-y-4 relative"
+                >
+                  {editProdId && (
+                    <div className="absolute top-0 right-0 bg-[#F37021] text-white text-[10px] font-mono px-3 py-1 font-bold">
+                      MODO EDICIÓN
+                    </div>
+                  )}
+                  <h5 className="font-bold text-[#F37021] mb-2">
+                    {editProdId
+                      ? "Editando Producto"
+                      : `Añadir Nuevo Producto a ${p.titulo}`}
+                  </h5>
+
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <label className="block text-xs font-mono text-gray-500 mb-1">
+                        TÍTULO DEL PRODUCTO
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={prodFormData.titulo}
+                        onChange={(e) =>
+                          setProdFormData({
+                            ...prodFormData,
+                            titulo: e.target.value,
+                          })
+                        }
+                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021]"
+                      />
+                    </div>
+                    <div className="w-full md:w-64">
+                      <label className="block text-xs font-mono text-gray-500 mb-1">
+                        CATEGORÍA
+                      </label>
+                      <select
+                        value={prodFormData.tipo_categoria}
+                        onChange={(e) =>
+                          setProdFormData({
+                            ...prodFormData,
+                            tipo_categoria: e.target.value as TipoCategoria,
+                          })
+                        }
+                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white"
+                        disabled={!!editProdId}
+                      >
+                        <option value="DESARROLLO">
+                          Software / Desarrollo
+                        </option>
+                        <option value="ESCRITO">Artículo / Memoria</option>
+                        <option value="EVENTO">Evento</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-gray-500 mb-1">
+                      DESCRIPCIÓN BREVE
+                    </label>
+                    <textarea
+                      required
+                      value={prodFormData.descripcion}
+                      onChange={(e) =>
+                        setProdFormData({
+                          ...prodFormData,
+                          descripcion: e.target.value,
+                        })
+                      }
+                      rows={2}
+                      className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021]"
+                    />
+                  </div>
+
+                  {/* Campos dinámicos según Categoría */}
+                  <div className="p-4 border border-gray-200 bg-white">
+                    {prodFormData.tipo_categoria === "DESARROLLO" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                            <FileCode className="w-3 h-3 mr-1" /> TECNOLOGÍAS
+                            (Separadas por coma)
+                          </label>
+                          <input
+                            type="text"
+                            value={prodFormData.tecnologias_string}
+                            onChange={(e) =>
+                              setProdFormData({
+                                ...prodFormData,
+                                tecnologias_string: e.target.value,
+                              })
+                            }
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-gray-500 mb-1">
+                            URL REPOSITORIO
+                          </label>
+                          <input
+                            type="url"
+                            value={prodFormData.url_repositorio}
+                            onChange={(e) =>
+                              setProdFormData({
+                                ...prodFormData,
+                                url_repositorio: e.target.value,
+                              })
+                            }
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-gray-500 mb-1">
+                            URL DEMO
+                          </label>
+                          <input
+                            type="url"
+                            value={prodFormData.url_demo}
+                            onChange={(e) =>
+                              setProdFormData({
+                                ...prodFormData,
+                                url_demo: e.target.value,
+                              })
+                            }
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {prodFormData.tipo_categoria === "ESCRITO" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                            <FileText className="w-3 h-3 mr-1" /> FUENTE DE
+                            PUBLICACIÓN
+                          </label>
+                          <input
+                            type="text"
+                            value={prodFormData.fuente_publicacion}
+                            onChange={(e) =>
+                              setProdFormData({
+                                ...prodFormData,
+                                fuente_publicacion: e.target.value,
+                              })
+                            }
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-gray-500 mb-1">
+                            URL DEL DOCUMENTO
+                          </label>
+                          <input
+                            type="url"
+                            value={prodFormData.url_documento}
+                            onChange={(e) =>
+                              setProdFormData({
+                                ...prodFormData,
+                                url_documento: e.target.value,
+                              })
+                            }
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {prodFormData.tipo_categoria === "EVENTO" && (
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                          <MapPin className="w-3 h-3 mr-1" /> CIUDAD / LOCALIDAD
+                          DEL EVENTO
+                        </label>
+                        <input
+                          type="text"
+                          value={prodFormData.localidad}
+                          onChange={(e) =>
+                            setProdFormData({
+                              ...prodFormData,
+                              localidad: e.target.value,
+                            })
+                          }
+                          className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      type="submit"
+                      className="bg-[#1E293B] text-white px-6 py-3 font-bold hover:bg-[#2D5A27] transition flex-1"
+                    >
+                      {editProdId
+                        ? "GUARDAR CAMBIOS DEL PRODUCTO"
+                        : "GUARDAR NUEVO PRODUCTO"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveFormProjectId(null)}
+                      className="bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 transition"
+                    >
+                      CANCELAR
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Grid de Productos Creados */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(p.productos || []).map((prod) => {
+                  const membersIds = (prod.participaciones || []).map(
+                    (part) => part.id_integrante,
+                  );
+                  const availableStudents = students.filter(
+                    (s) => !membersIds.includes(s.id) && s.role !== "ADMIN",
+                  );
+
+                  return (
+                    <div
+                      key={prod.id}
+                      className="border border-gray-200 p-4 relative group hover:border-[#1E293B] transition flex flex-col"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div
+                          className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.tipo_categoria === "DESARROLLO" ? "bg-blue-600" : prod.tipo_categoria === "ESCRITO" ? "bg-purple-600" : "bg-[#F37021]"}`}
+                        >
+                          {prod.tipo_categoria}
+                        </div>
+                        {/* Acciones del Producto */}
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                          <button
+                            onClick={() =>
+                              setManagingTeamProdId(
+                                managingTeamProdId === prod.id ? null : prod.id,
+                              )
+                            }
+                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-[#2D5A27] hover:text-white transition"
+                            title="Gestionar Equipo"
+                          >
+                            <Users className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEditProductClick(p.id, prod)}
+                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition"
+                            title="Editar Producto"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(p.id, prod.id)}
+                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-red-600 hover:text-white transition"
+                            title="Eliminar Producto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <h5 className="font-bold text-[#1E293B] mb-1">
+                        {prod.titulo}
+                      </h5>
+                      <p className="text-xs text-gray-500 line-clamp-2 mb-3 flex-1">
+                        {prod.descripcion}
+                      </p>
+
+                      {/* Resumen del equipo en la tarjeta */}
+                      <div className="flex -space-x-2 mt-auto pt-3 border-t border-gray-100">
+                        {(prod.participaciones || []).map((part) => (
+                          <img
+                            key={part.id}
+                            src={part.integrante_img}
+                            alt={part.integrante_nombre}
+                            title={`${part.integrante_nombre} - ${part.rol_en_producto}`}
+                            className="w-6 h-6 border border-white bg-gray-200 object-cover"
+                          />
+                        ))}
+                      </div>
+
+                      {/* PANEL DESPLEGABLE: GESTIÓN DE EQUIPO */}
+                      {managingTeamProdId === prod.id && (
+                        <div className="mt-4 pt-4 border-t-2 border-dashed border-gray-200 bg-gray-50 p-3 -mx-4 -mb-4">
+                          <h6 className="text-xs font-bold text-[#1E293B] mb-3 flex items-center">
+                            <Users className="w-3 h-3 mr-1" /> Equipo del
+                            Producto
+                          </h6>
+
+                          {/* Lista actual */}
+                          <ul className="space-y-2 mb-4">
+                            {(prod.participaciones || []).map((part) => (
+                              <li
+                                key={part.id}
+                                className="flex justify-between items-center bg-white border border-gray-200 p-2 text-xs"
+                              >
+                                <div className="flex items-center">
+                                  <img
+                                    src={part.integrante_img}
+                                    alt=""
+                                    className="w-5 h-5 mr-2 object-cover border border-gray-300"
+                                  />
+                                  <span className="font-medium mr-1">
+                                    {part.integrante_nombre}
+                                  </span>
+                                  <span className="text-gray-400">
+                                    ({part.rol_en_producto})
+                                  </span>
+                                </div>
+                                {part.id_integrante !== currentUser?.id && (
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveTeamMember(
+                                        p.id,
+                                        prod.id,
+                                        part.id,
+                                      )
+                                    }
+                                    className="text-red-400 hover:text-red-600"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+
+                          {/* Formulario para añadir compañero */}
+                          {availableStudents.length > 0 ? (
+                            <form
+                              onSubmit={(e) =>
+                                handleAddTeamMember(e, p.id, prod.id)
+                              }
+                              className="flex flex-col gap-2"
+                            >
+                              <select
+                                value={teamForm.studentId}
+                                onChange={(e) =>
+                                  setTeamForm({
+                                    ...teamForm,
+                                    studentId: e.target.value,
+                                  })
+                                }
+                                className="text-xs border border-gray-300 p-2 bg-white"
+                                required
+                              >
+                                <option value="">
+                                  Seleccionar compañero...
+                                </option>
+                                {availableStudents.map((s) => (
+                                  <option key={s.id} value={s.id}>
+                                    {s.name} ({s.carrera})
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Rol (Ej. Analista QA)"
+                                  value={teamForm.role}
+                                  onChange={(e) =>
+                                    setTeamForm({
+                                      ...teamForm,
+                                      role: e.target.value,
+                                    })
+                                  }
+                                  className="text-xs border border-gray-300 p-2 flex-1"
+                                  required
+                                />
+                                <button
+                                  type="submit"
+                                  className="bg-[#2D5A27] text-white px-3 py-2 text-xs font-bold hover:bg-[#1f3f1b] flex items-center"
+                                >
+                                  <UserPlus className="w-3 h-3 mr-1" /> AÑADIR
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <p className="text-xs text-gray-400 italic">
+                              No hay más estudiantes disponibles para añadir.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {(!p.productos || p.productos.length === 0) &&
+                  activeFormProjectId !== p.id && (
+                    <div className="col-span-2 p-6 border-2 border-dashed border-gray-300 text-center text-gray-500 text-sm">
+                      Aún no has registrado ningún producto (software, escrito o
+                      evento) para este proyecto.
+                    </div>
+                  )}
               </div>
             </div>
           </div>
         ))}
-        {myProjects.length === 0 && (
-          <div className="col-span-1 md:col-span-2 text-center py-16 border-2 border-dashed border-gray-300 bg-gray-50">
+        {misProyectos.length === 0 && (
+          <div className="text-center py-16 border-2 border-dashed border-gray-300 bg-gray-50">
             <p className="text-gray-500 font-medium">
-              Aún no has publicado ningún proyecto o investigación.
+              Aún no has creado ningún Proyecto Macro.
             </p>
           </div>
         )}

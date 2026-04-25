@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Save, CheckCircle, Plus, Trash2 } from "lucide-react";
+import {
+  Save,
+  CheckCircle,
+  Plus,
+  Trash2,
+  Lock,
+  Image as ImageIcon,
+} from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 export default function IntegrantePerfilCRUD() {
@@ -16,6 +23,8 @@ export default function IntegrantePerfilCRUD() {
     role: user.role || "",
     email_personal: user.email_personal || "",
     url_cv: user.url_cv || "",
+    img: user.img || "", // <-- Nuevo campo de imagen (url_foto)
+    password_hash: user.password_hash || "",
   });
 
   const [enlaces, setEnlaces] = useState<
@@ -36,7 +45,9 @@ export default function IntegrantePerfilCRUD() {
   const addEnlace = (e: React.FormEvent) => {
     e.preventDefault();
     if (newEnlace.url.trim()) {
-      setEnlaces([...enlaces, { id: Date.now(), ...newEnlace }]);
+      const nextId =
+        enlaces.length > 0 ? Math.max(...enlaces.map((en) => en.id)) + 1 : 1;
+      setEnlaces([...enlaces, { id: nextId, ...newEnlace }]);
       setNewEnlace({ plataforma: "GitHub", url: "" });
     }
   };
@@ -51,7 +62,62 @@ export default function IntegrantePerfilCRUD() {
         <h2 className="text-xl font-bold text-[#1E293B] mb-6">
           Información Básica
         </h2>
+
+        {/* Información Institucional (Solo lectura) */}
+        <div className="mb-6 p-4 bg-gray-50 border-2 border-gray-200">
+          <p className="text-xs font-mono text-gray-500 mb-2">
+            DATOS INSTITUCIONALES
+          </p>
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+              <span className="text-sm font-semibold text-gray-600">
+                Correo:
+              </span>
+              <span className="text-sm font-mono text-[#1E293B]">
+                {user.email_institucional}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold text-gray-600">
+                Carrera:
+              </span>
+              <span className="text-sm font-mono text-[#1E293B]">
+                {user.carrera}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSaveProfile} className="space-y-5">
+          {/* FOTO DE PERFIL CON PREVISUALIZACIÓN */}
+          <div className="flex gap-4 items-center p-4 border-2 border-gray-200 bg-[#F8F9FA]">
+            <img
+              src={
+                formData.img ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1E293B&color=fff`
+              }
+              alt="Perfil"
+              className="w-16 h-16 border-2 border-[#1E293B] object-cover bg-white"
+              onError={(e) =>
+                (e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || "User")}&background=1E293B&color=fff`)
+              }
+            />
+            <div className="flex-1">
+              <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                <ImageIcon className="w-3 h-3 mr-1" /> URL DE FOTO DE PERFIL
+              </label>
+              <input
+                type="url"
+                value={formData.img}
+                onChange={(e) =>
+                  setFormData({ ...formData, img: e.target.value })
+                }
+                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-mono text-gray-500 mb-1">
               NOMBRE COMPLETO
@@ -68,7 +134,7 @@ export default function IntegrantePerfilCRUD() {
           </div>
           <div>
             <label className="block text-xs font-mono text-gray-500 mb-1">
-              ROL PRINCIPAL / ESPECIALIDAD
+              ROL PRINCIPAL / ESPECIALIDAD (Ej. Frontend Developer)
             </label>
             <input
               type="text"
@@ -82,7 +148,7 @@ export default function IntegrantePerfilCRUD() {
           </div>
           <div>
             <label className="block text-xs font-mono text-gray-500 mb-1">
-              EMAIL PROFESIONAL
+              EMAIL DE CONTACTO PERSONAL
             </label>
             <input
               type="email"
@@ -109,6 +175,22 @@ export default function IntegrantePerfilCRUD() {
             />
           </div>
 
+          <div className="pt-4 border-t-2 border-dashed border-gray-200">
+            <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+              <Lock className="w-3 h-3 mr-1" /> CAMBIAR CONTRASEÑA
+            </label>
+            <input
+              type="password"
+              value={formData.password_hash}
+              onChange={(e) =>
+                setFormData({ ...formData, password_hash: e.target.value })
+              }
+              placeholder="Escribe tu nueva contraseña..."
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium"
+              required
+            />
+          </div>
+
           <button
             type="submit"
             className="w-full bg-[#F37021] text-white font-bold py-4 pixel-border-accent hover:bg-[#e06015] transition flex justify-center items-center mt-6"
@@ -127,7 +209,7 @@ export default function IntegrantePerfilCRUD() {
       </div>
 
       {/* Col 2: Enlaces */}
-      <div className="bg-white pixel-border p-8 shadow-sm">
+      <div className="bg-white pixel-border p-8 shadow-sm h-fit">
         <h2 className="text-xl font-bold text-[#1E293B] mb-2">
           Mis Enlaces Profesionales
         </h2>
