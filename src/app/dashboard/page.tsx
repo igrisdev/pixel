@@ -3,31 +3,29 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
-import {
-  LogOut,
-  User,
-  Folder,
-  Settings,
-  ShieldAlert,
-  BookOpen,
-} from "lucide-react";
+import { LogOut, User, Folder, Settings, BookOpen } from "lucide-react";
+
+// Importamos los componentes CRUD
+import AdminUsuariosCRUD from "@/components/dashboard/AdminUsuariosCRUD";
+import AdminCompetenciasCRUD from "@/components/dashboard/AdminCompetenciasCRUD";
+import AdminAuditoriaCRUD from "@/components/dashboard/AdminAuditoriaCRUD";
+import IntegrantePerfilCRUD from "@/components/dashboard/IntegrantePerfilCRUD";
+import IntegranteProyectosCRUD from "@/components/dashboard/IntegranteProyectosCRUD";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { currentUser, logout } = useStore();
   const [activeTab, setActiveTab] = useState("");
 
-  // Protección de ruta
   useEffect(() => {
     if (!currentUser) {
       router.push("/login");
     } else {
-      // Establecer pestaña por defecto según rol
       setActiveTab(currentUser.role === "ADMIN" ? "usuarios" : "perfil");
     }
   }, [currentUser, router]);
 
-  if (!currentUser) return null; // Previene renderizado parpadeante
+  if (!currentUser) return null;
 
   const handleLogout = () => {
     logout();
@@ -37,7 +35,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row">
       {/* SIDEBAR */}
-      <aside className="w-full md:w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021]">
+      <aside className="w-full md:w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021] md:min-h-screen sticky top-0 md:h-screen overflow-y-auto">
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-bold mb-1">
             Panel <span className="text-[#F37021]">Pixel</span>
@@ -91,7 +89,7 @@ export default function DashboardPage() {
           )}
         </nav>
 
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-gray-700 mt-auto">
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center bg-transparent border-2 border-gray-600 hover:border-red-500 hover:text-red-500 text-gray-300 font-bold py-3 transition"
@@ -101,32 +99,36 @@ export default function DashboardPage() {
         </div>
       </aside>
 
-      {/* ÁREA PRINCIPAL (Donde inyectaremos los componentes CRUD) */}
-      <main className="flex-1 p-6 md:p-12 overflow-y-auto">
+      {/* ÁREA PRINCIPAL (Inyecta el componente dinámicamente) */}
+      <main className="flex-1 p-4 md:p-10 overflow-x-hidden">
         <header className="mb-8 border-b-2 border-gray-200 pb-4">
-          <h1 className="text-3xl font-bold text-[#1E293B] capitalize">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#1E293B] capitalize">
             {activeTab.replace("_", " ")}
           </h1>
         </header>
 
-        <div className="bg-white pixel-border p-8 min-h-[50vh] flex items-center justify-center text-center">
-          <div>
-            <ShieldAlert className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-[#334155] mb-2">
-              Área en Construcción
-            </h2>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Aquí se inyectará el componente de React correspondiente a{" "}
-              <strong>{activeTab}</strong> en el siguiente paso.
-            </p>
-          </div>
-        </div>
+        {/* Renderizado Condicional del Componente CRUD correcto */}
+        {currentUser.role === "ADMIN" && activeTab === "usuarios" && (
+          <AdminUsuariosCRUD />
+        )}
+        {currentUser.role === "ADMIN" && activeTab === "competencias" && (
+          <AdminCompetenciasCRUD />
+        )}
+        {currentUser.role === "ADMIN" && activeTab === "proyectos_admin" && (
+          <AdminAuditoriaCRUD />
+        )}
+
+        {currentUser.role === "INTEGRANTE" && activeTab === "perfil" && (
+          <IntegrantePerfilCRUD />
+        )}
+        {currentUser.role === "INTEGRANTE" && activeTab === "mis_proyectos" && (
+          <IntegranteProyectosCRUD />
+        )}
       </main>
     </div>
   );
 }
 
-// Componente utilitario para los botones del Sidebar
 function SidebarBtn({
   active,
   onClick,
@@ -148,7 +150,7 @@ function SidebarBtn({
       }`}
     >
       <span className="mr-3">{icon}</span>
-      {label}
+      <span className="truncate">{label}</span>
     </button>
   );
 }
