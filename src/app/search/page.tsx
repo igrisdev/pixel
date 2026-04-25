@@ -44,7 +44,7 @@ function SearchContent() {
 
     return (
       s.name.toLowerCase().includes(termLower) ||
-      s.role.toLowerCase().includes(termLower) ||
+      (s.role && s.role.toLowerCase().includes(termLower)) || // <-- ¡CORREGIDO AQUÍ!
       (s.tech && s.tech.some((t) => t.toLowerCase().includes(termLower)))
     );
   });
