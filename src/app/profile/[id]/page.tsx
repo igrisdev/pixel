@@ -5,6 +5,18 @@ import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { ExternalLink, Download, Code, MapPin, Trophy } from "lucide-react";
 
+type ParticipationMock = {
+  id: number;
+  title: string;
+  type: string;
+  role: string;
+  date: string;
+  tech?: string[];
+  source?: string;
+  location?: string;
+  isProjectHead: boolean;
+};
+
 export default function ProfilePage() {
   const { id } = useParams();
   const router = useRouter();
@@ -43,6 +55,7 @@ export default function ProfilePage() {
       "Trabajo colaborativo",
       "Redacción científica",
     ],
+    // Le asignamos el tipo como un arreglo de ParticipationMock
     participations: [
       {
         id: 100,
@@ -50,7 +63,7 @@ export default function ProfilePage() {
         type: "DESARROLLO",
         role: student.role,
         date: "Mar 2024 - Nov 2024",
-        tech: student.tech || [], // Respaldo por si student.tech no existe
+        tech: student.tech || [],
         isProjectHead: true,
       },
       {
@@ -62,9 +75,17 @@ export default function ProfilePage() {
         source: "Revista Ingeniería UNIMAYOR",
         isProjectHead: false,
       },
-    ],
+      {
+        id: 102,
+        title: "Encuentro Regional RedCOLSI",
+        type: "EVENTO",
+        role: "Ponente",
+        date: "Oct 2024",
+        location: "Universidad del Cauca, Popayán",
+        isProjectHead: false,
+      },
+    ] as ParticipationMock[],
   };
-
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <button
