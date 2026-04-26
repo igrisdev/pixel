@@ -11,8 +11,8 @@ import {
   BookOpen,
   CheckSquare,
   FolderPlus,
-  Menu, // NUEVO: Ícono de menú hamburguesa
-  X, // NUEVO: Ícono para cerrar
+  Menu,
+  X,
 } from "lucide-react";
 
 // Importamos los componentes CRUD
@@ -28,7 +28,6 @@ export default function DashboardPage() {
   const { currentUser, logout } = useStore();
   const [activeTab, setActiveTab] = useState("");
 
-  // NUEVO: Estado para controlar si el menú móvil está abierto o cerrado
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -46,7 +45,6 @@ export default function DashboardPage() {
     router.push("/");
   };
 
-  // Función para cambiar de pestaña y cerrar el menú en móviles automáticamente
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
@@ -80,9 +78,9 @@ export default function DashboardPage() {
       )}
 
       {/* SIDEBAR / BARRA LATERAL */}
-      {/* Se adapta dinámicamente: Oculta en móviles (-translate-x-full) pero visible en MD (translate-x-0) */}
+      {/* CORRECCIÓN: md:top-[66px] md:h-[calc(100vh-66px)] md:z-40 */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-50 h-screen w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021] overflow-y-auto transition-transform duration-300 ease-in-out ${
+        className={`fixed md:sticky top-0 md:top-[66px] left-0 z-50 md:z-40 h-screen md:h-[calc(100vh-66px)] w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021] overflow-y-auto transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen
             ? "translate-x-0"
             : "-translate-x-full md:translate-x-0"
@@ -181,7 +179,7 @@ export default function DashboardPage() {
         </div>
       </aside>
 
-      {/* ÁREA PRINCIPAL (Inyecta el componente dinámicamente) */}
+      {/* ÁREA PRINCIPAL */}
       <main className="flex-1 p-4 md:p-8 lg:p-10 overflow-x-hidden w-full">
         <header className="mb-6 md:mb-8 border-b-2 border-gray-200 pb-4">
           <h1 className="text-2xl md:text-3xl font-bold text-[#1E293B] capitalize">
@@ -189,7 +187,6 @@ export default function DashboardPage() {
           </h1>
         </header>
 
-        {/* Renderizado Condicional del Componente CRUD correcto */}
         {currentUser.role === "ADMIN" && activeTab === "usuarios" && (
           <AdminUsuariosCRUD />
         )}
@@ -205,7 +202,6 @@ export default function DashboardPage() {
         {currentUser.role === "INTEGRANTE" && activeTab === "perfil" && (
           <IntegrantePerfilCRUD />
         )}
-        {/* Habilitamos 'mis_proyectos' para AMBOS roles */}
         {activeTab === "mis_proyectos" && <IntegranteProyectosCRUD />}
       </main>
     </div>
