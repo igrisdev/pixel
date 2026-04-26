@@ -1,57 +1,120 @@
 "use client";
 
-import React from "react";
-import { Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { Trash2, Search, Eye } from "lucide-react";
+import Link from "next/link";
 import { useStore } from "@/store/useStore";
+import BadgeEstado from "@/components/ui/BadgeEstado";
 
 export default function AdminAuditoriaCRUD() {
-  const { projects, deleteProject } = useStore();
+  const { proyectos, deleteProyecto } = useStore();
+
+  // Estados para darle poder a la auditoría
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterEstado, setFilterEstado] = useState<
+    "TODOS" | "ACTIVO" | "PENDIENTE" | "RECHAZADO"
+  >("TODOS");
 
   const handleDelete = (id: number) => {
     if (
       window.confirm(
-        "ATENCIÓN: ¿Eliminar este proyecto del sistema de forma permanente? Esta acción no se puede deshacer.",
+        "ATENCIÓN: ¿Eliminar este proyecto macro del sistema de forma permanente? Esta acción no se puede deshacer.",
       )
     ) {
-      deleteProject(id);
+      deleteProyecto(id);
     }
   };
 
+  // Lógica de filtrado
+  const proyectosFiltrados = proyectos.filter((p) => {
+    const coincideBusqueda = p.titulo
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const coincideEstado =
+      filterEstado === "TODOS" || p.estado_aprobacion === filterEstado;
+    return coincideBusqueda && coincideEstado;
+  });
+
   return (
     <div className="bg-white pixel-border p-6 shadow-sm">
-      <h2 className="text-xl font-bold text-[#1E293B] mb-6">
-        Auditoría Global de Proyectos
-      </h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 className="text-xl font-bold text-[#1E293B]">
+          Auditoría Global de Proyectos ({proyectos.length})
+        </h2>
+
+        {/* BUSCADOR Y FILTROS */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar proyecto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 text-sm focus:border-[#F37021] outline-none"
+            />
+          </div>
+          <select
+            value={filterEstado}
+            onChange={(e) => setFilterEstado(e.target.value as any)}
+            className="border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:border-[#F37021]"
+          >
+            <option value="TODOS">Todos los estados</option>
+            <option value="ACTIVO">Solo Activos</option>
+            <option value="PENDIENTE">Solo Pendientes</option>
+            <option value="RECHAZADO">Solo Rechazados</option>
+          </select>
+        </div>
+      </div>
+
       <div className="space-y-4">
-        {projects.map((p) => (
+        {proyectosFiltrados.map((p) => (
           <div
             key={p.id}
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-2 border-gray-200 p-4 bg-[#F8F9FA] hover:border-[#F37021] transition gap-4"
           >
             <div className="flex items-center gap-4">
               <img
-                src={p.img}
-                alt={p.title}
-                className="w-16 h-16 object-cover border border-[#1E293B] hidden sm:block"
+                src={p.img || undefined}
+                alt={p.titulo}
+                className="w-16 h-16 object-cover border border-[#1E293B] hidden sm:block bg-gray-200"
               />
               <div>
-                <h3 className="font-bold text-[#1E293B] text-lg">{p.title}</h3>
+                <h3 className="font-bold text-[#1E293B] text-lg flex items-center gap-2">
+                  {p.titulo}
+                  <BadgeEstado estado={p.estado_aprobacion} />
+                </h3>
                 <p className="text-xs text-gray-500 font-mono mt-1 bg-white px-2 py-1 inline-block border border-gray-200">
-                  {p.type} | {p.date}
+                  ID: {p.id} | Fecha inicio: {p.fecha_inicio} | Productos:{" "}
+                  {p.productos?.length || 0}
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => handleDelete(p.id)}
-              className="text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-4 py-2 border-2 border-red-200 hover:border-red-600 transition font-bold text-xs flex items-center"
-            >
-              <Trash2 className="w-4 h-4 mr-2" /> ELIMINAR PROYECTO
-            </button>
+
+            {/* ACCIONES DE AUDITORÍA */}
+            <div className="flex gap-2 w-full sm:w-auto">
+              {/* NUEVO BOTÓN: Ver Detalles */}
+              <Link
+                href={`/project/${p.id}`}
+                className="flex-1 sm:flex-none text-[#1E293B] bg-white hover:bg-[#1E293B] hover:text-white px-4 py-2 border-2 border-[#1E293B] transition font-bold text-xs flex items-center justify-center"
+              >
+                <Eye className="w-4 h-4 mr-2" /> VER DETALLES
+              </Link>
+
+              {/* Botón de Eliminar */}
+              <button
+                onClick={() => handleDelete(p.id)}
+                className="flex-1 sm:flex-none text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-4 py-2 border-2 border-red-200 hover:border-red-600 transition font-bold text-xs flex items-center justify-center"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> ELIMINAR
+              </button>
+            </div>
           </div>
         ))}
-        {projects.length === 0 && (
-          <p className="text-gray-500 italic p-4 text-center">
-            No hay proyectos registrados en el catálogo.
+
+        {proyectosFiltrados.length === 0 && (
+          <p className="text-gray-500 italic p-8 text-center border-2 border-dashed border-gray-300">
+            No se encontraron proyectos que coincidan con la búsqueda.
           </p>
         )}
       </div>

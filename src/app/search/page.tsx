@@ -52,6 +52,7 @@ function SearchContent() {
   // Filtrado de proyectos (¡Actualizado al nuevo modelo relacional!)
   const filteredProjects = proyectos.filter((p) => {
     if (filterType === "ESTUDIANTE" || filterType === "EGRESADO") return false;
+    if (p.estado_aprobacion !== "ACTIVO") return false;
 
     // 1. Buscamos en los datos del Proyecto Macro
     const matchMacro =
@@ -60,6 +61,8 @@ function SearchContent() {
 
     // 2. Buscamos profundamente en los Productos Derivados
     const matchProductos = p.productos?.some((prod) => {
+      if (prod.estado_aprobacion !== "ACTIVO") return false;
+
       return (
         prod.titulo.toLowerCase().includes(termLower) ||
         prod.descripcion.toLowerCase().includes(termLower) ||

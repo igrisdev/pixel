@@ -26,7 +26,7 @@ export default function ProjectCard({ project }: { project: Proyecto }) {
     >
       <div className="h-48 relative overflow-hidden bg-[#1E293B]">
         <img
-          src={project.img}
+          src={project.img || undefined}
           alt={project.titulo}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90"
         />
@@ -68,7 +68,7 @@ export default function ProjectCard({ project }: { project: Proyecto }) {
               {uniqueTeam.slice(0, 4).map((member, i) => (
                 <img
                   key={i}
-                  src={member.integrante_img}
+                  src={member.integrante_img || undefined}
                   alt={member.integrante_nombre}
                   className="w-8 h-8 rounded-none border border-[#1E293B] bg-white object-cover"
                   title={member.integrante_nombre}

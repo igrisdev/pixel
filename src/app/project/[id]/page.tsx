@@ -14,34 +14,56 @@ import {
   LayoutDashboard,
   FileText,
   MapPin,
+  AlertCircle,
 } from "lucide-react";
 
 export default function ProjectPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { proyectos: projects } = useStore();
+
+  // Consumimos currentUser para saber si tiene permisos especiales
+  const { proyectos: projects, currentUser } = useStore();
 
   const proyecto = projects.find((p) => p.id === Number(id));
 
-  if (!proyecto) {
+  // REGLA DE ORO: Si no está activo, solo el ADMIN o el CREADOR pueden verlo.
+  const esDueñoOAdmin =
+    currentUser?.role === "ADMIN" || proyecto?.creado_por === currentUser?.id;
+
+  if (
+    !proyecto ||
+    (proyecto.estado_aprobacion !== "ACTIVO" && !esDueñoOAdmin)
+  ) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold text-[#1E293B] mb-4">
-          Proyecto no encontrado
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#F8F9FA]">
+        <AlertCircle className="w-16 h-16 text-[#F37021] mb-4" />
+        <h1 className="text-3xl md:text-4xl font-bold text-[#1E293B] mb-2">
+          Proyecto no disponible
         </h1>
+        <p className="text-gray-500 mb-6 text-center max-w-md">
+          Este proyecto no existe o se encuentra actualmente en estado de
+          revisión por los administradores.
+        </p>
         <button
-          onClick={() => router.back()}
-          className="text-[#F37021] hover:underline font-bold"
+          onClick={() => router.push("/")}
+          className="bg-[#1E293B] text-white px-6 py-2 font-bold hover:bg-[#F37021] transition pixel-border"
         >
-          Volver atrás
+          Volver al Inicio
         </button>
       </div>
     );
   }
 
-  // Extraemos todos los miembros únicos de todos los productos
+  // Filtramos los productos para que el público solo vea los ACTIVOS.
+  // El creador/Admin podrá verlos todos.
+  const productosVisibles =
+    proyecto.productos?.filter(
+      (prod) => prod.estado_aprobacion === "ACTIVO" || esDueñoOAdmin,
+    ) || [];
+
+  // Extraemos todos los miembros únicos solo de los productos VISIBLES
   const todosLosIntegrantes =
-    proyecto.productos?.flatMap((p) => p.participaciones || []) || [];
+    productosVisibles.flatMap((p) => p.participaciones || []) || [];
   const uniqueTeam = Array.from(
     new Map(todosLosIntegrantes.map((p) => [p.id_integrante, p])).values(),
   );
@@ -55,11 +77,20 @@ export default function ProjectPage() {
         &larr; VOLVER AL CATÁLOGO
       </button>
 
+      {/* AVISO PARA EL DUEÑO/ADMIN SI EL PROYECTO ESTÁ PENDIENTE O RECHAZADO */}
+      {proyecto.estado_aprobacion !== "ACTIVO" && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-8 font-medium">
+          ⚠️ Estás viendo este proyecto porque eres el creador o administrador.
+          Actualmente su estado es:{" "}
+          <strong>{proyecto.estado_aprobacion}</strong>.
+        </div>
+      )}
+
       {/* CABECERA DEL PROYECTO MACRO */}
       <div className="bg-white pixel-border overflow-hidden mb-12">
         <div className="w-full h-64 md:h-96 relative border-b-4 border-[#1E293B]">
           <img
-            src={proyecto.img}
+            src={proyecto.img || undefined}
             alt={proyecto.titulo}
             className="w-full h-full object-cover"
           />
@@ -104,10 +135,10 @@ export default function ProjectPage() {
           {/* PRODUCTOS ACADÉMICOS DERIVADOS */}
           <section>
             <h3 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
-              Productos Derivados ({proyecto.productos?.length || 0})
+              Productos Derivados ({productosVisibles.length})
             </h3>
             <div className="space-y-6">
-              {proyecto.productos?.map((producto) => (
+              {productosVisibles.map((producto) => (
                 <div
                   key={producto.id}
                   className="bg-[#F8F9FA] border-2 border-gray-200 p-6 hover:border-[#F37021] transition relative"
@@ -125,8 +156,14 @@ export default function ProjectPage() {
                     {producto.tipo_categoria}
                   </div>
 
-                  <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24">
+                  <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24 flex items-center gap-2">
                     {producto.titulo}
+                    {/* Badge de pendiente para el producto (solo lo ve el dueño/admin) */}
+                    {producto.estado_aprobacion !== "ACTIVO" && (
+                      <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded border border-yellow-300 uppercase tracking-wide">
+                        {producto.estado_aprobacion}
+                      </span>
+                    )}
                   </h4>
                   <p className="text-sm text-[#334155] mb-4 leading-relaxed">
                     {producto.descripcion}
@@ -154,8 +191,6 @@ export default function ProjectPage() {
                             className="text-xs bg-[#1E293B] text-white px-3 py-2 flex items-center hover:bg-gray-800"
                           >
                             Ver Código
-                            {/* <Github className="w-4 h-4 mr-2" />
-                             */}
                           </a>
                         )}
                         {producto.url_demo && (
@@ -204,9 +239,9 @@ export default function ProjectPage() {
                           className="flex items-center bg-white border border-gray-200 px-2 py-1 text-xs"
                         >
                           <img
-                            src={part.integrante_img}
+                            src={part.integrante_img || undefined}
                             alt=""
-                            className="w-4 h-4 mr-2 border border-gray-400"
+                            className="w-4 h-4 mr-2 border border-gray-400 object-cover"
                           />
                           <span className="font-semibold mr-1">
                             {part.integrante_nombre}
@@ -225,37 +260,39 @@ export default function ProjectPage() {
         </div>
 
         {/* BARRA LATERAL: EQUIPO DE INVESTIGACIÓN TOTAL */}
-        <div className="lg:col-span-1 space-y-8">
-          <section className="bg-white pixel-border p-6">
-            <h3 className="text-lg font-bold text-[#1E293B] mb-6 flex items-center border-b border-gray-100 pb-3">
-              <Users className="w-5 h-5 mr-2 text-[#F37021]" /> Equipo del
-              Proyecto
-            </h3>
-            <div className="space-y-3">
-              {uniqueTeam.map((member, i) => (
-                <Link
-                  href={`/profile/${member.id_integrante}`}
-                  key={i}
-                  className="bg-[#F8F9FA] border border-transparent p-3 flex items-center cursor-pointer hover:border-[#1E293B] hover:bg-white transition group block"
-                >
-                  <img
-                    src={member.integrante_img}
-                    alt={member.integrante_nombre}
-                    className="w-10 h-10 border border-[#1E293B] mr-3 object-cover"
-                  />
-                  <div>
-                    <h4 className="font-bold text-sm text-[#1E293B] group-hover:text-[#F37021]">
-                      {member.integrante_nombre}
-                    </h4>
-                    <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                      Ver perfil &rarr;
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        </div>
+        {uniqueTeam.length > 0 && (
+          <div className="lg:col-span-1 space-y-8">
+            <section className="bg-white pixel-border p-6">
+              <h3 className="text-lg font-bold text-[#1E293B] mb-6 flex items-center border-b border-gray-100 pb-3">
+                <Users className="w-5 h-5 mr-2 text-[#F37021]" /> Equipo del
+                Proyecto
+              </h3>
+              <div className="space-y-3">
+                {uniqueTeam.map((member, i) => (
+                  <Link
+                    href={`/profile/${member.id_integrante}`}
+                    key={i}
+                    className="bg-[#F8F9FA] border border-transparent p-3 flex items-center cursor-pointer hover:border-[#1E293B] hover:bg-white transition group block"
+                  >
+                    <img
+                      src={member.integrante_img || undefined}
+                      alt={member.integrante_nombre}
+                      className="w-10 h-10 border border-[#1E293B] mr-3 object-cover bg-gray-200"
+                    />
+                    <div>
+                      <h4 className="font-bold text-sm text-[#1E293B] group-hover:text-[#F37021]">
+                        {member.integrante_nombre}
+                      </h4>
+                      <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                        Ver perfil &rarr;
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     </main>
   );

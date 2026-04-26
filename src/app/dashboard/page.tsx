@@ -3,9 +3,18 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
-import { LogOut, User, Folder, Settings, BookOpen } from "lucide-react";
+import {
+  LogOut,
+  User,
+  Folder,
+  Settings,
+  BookOpen,
+  CheckSquare,
+  FolderPlus,
+} from "lucide-react";
 
 // Importamos los componentes CRUD
+import AdminAprobaciones from "@/components/dashboard/AdminAprobaciones";
 import AdminUsuariosCRUD from "@/components/dashboard/AdminUsuariosCRUD";
 import AdminCompetenciasCRUD from "@/components/dashboard/AdminCompetenciasCRUD";
 import AdminAuditoriaCRUD from "@/components/dashboard/AdminAuditoriaCRUD";
@@ -58,11 +67,20 @@ export default function DashboardPage() {
                 icon={<User className="w-5 h-5" />}
                 label="Gestión de Usuarios"
               />
+
+              {/* NUEVO: Bandeja de aprobaciones (Para el Paso D) */}
+              <SidebarBtn
+                active={activeTab === "aprobaciones"}
+                onClick={() => setActiveTab("aprobaciones")}
+                icon={<CheckSquare className="w-5 h-5 text-yellow-400" />}
+                label="Aprobaciones Pendientes"
+              />
+
               <SidebarBtn
                 active={activeTab === "proyectos_admin"}
                 onClick={() => setActiveTab("proyectos_admin")}
                 icon={<Folder className="w-5 h-5" />}
-                label="Auditoría Proyectos"
+                label="Auditoría Global"
               />
               <SidebarBtn
                 active={activeTab === "competencias"}
@@ -70,6 +88,19 @@ export default function DashboardPage() {
                 icon={<BookOpen className="w-5 h-5" />}
                 label="Catálogo Competencias"
               />
+
+              <div className="pt-4 mt-4 border-t border-gray-700">
+                <p className="text-[10px] text-gray-500 font-mono mb-2 px-2">
+                  ÁREA PERSONAL
+                </p>
+                {/* NUEVO: Mis Proyectos para el Admin (Paso C) */}
+                <SidebarBtn
+                  active={activeTab === "mis_proyectos"}
+                  onClick={() => setActiveTab("mis_proyectos")}
+                  icon={<FolderPlus className="w-5 h-5" />}
+                  label="Mis Proyectos"
+                />
+              </div>
             </>
           ) : (
             <>
@@ -106,7 +137,6 @@ export default function DashboardPage() {
             {activeTab.replace("_", " ")}
           </h1>
         </header>
-
         {/* Renderizado Condicional del Componente CRUD correcto */}
         {currentUser.role === "ADMIN" && activeTab === "usuarios" && (
           <AdminUsuariosCRUD />
@@ -117,13 +147,15 @@ export default function DashboardPage() {
         {currentUser.role === "ADMIN" && activeTab === "proyectos_admin" && (
           <AdminAuditoriaCRUD />
         )}
-
+        {/* 👇 AQUI VA EL NUEVO COMPONENTE 👇 */}
+        {currentUser.role === "ADMIN" && activeTab === "aprobaciones" && (
+          <AdminAprobaciones />
+        )}
         {currentUser.role === "INTEGRANTE" && activeTab === "perfil" && (
           <IntegrantePerfilCRUD />
         )}
-        {currentUser.role === "INTEGRANTE" && activeTab === "mis_proyectos" && (
-          <IntegranteProyectosCRUD />
-        )}
+        {/* Habilitamos 'mis_proyectos' para AMBOS roles */}
+        {activeTab === "mis_proyectos" && <IntegranteProyectosCRUD />}{" "}
       </main>
     </div>
   );

@@ -21,6 +21,7 @@ import {
   TipoCategoria,
   Participacion,
 } from "@/types";
+import BadgeEstado from "@/components/ui/BadgeEstado"; // <-- NUEVO: Importamos el Badge
 
 export default function IntegranteProyectosCRUD() {
   const {
@@ -83,12 +84,15 @@ export default function IntegranteProyectosCRUD() {
     } else if (currentUser) {
       const nextId =
         proyectos.length > 0 ? Math.max(...proyectos.map((p) => p.id)) + 1 : 1;
+
       const newProj: Proyecto = {
         id: nextId,
         ...projFormData,
         creado_por: currentUser.id,
+        estado_aprobacion: "PENDIENTE", // <-- NUEVO: Nace pendiente por defecto
         productos: [],
       };
+
       addProyecto(newProj);
       setIsAddingProj(false);
     }
@@ -107,8 +111,9 @@ export default function IntegranteProyectosCRUD() {
       window.confirm(
         "ATENCIÓN: ¿Eliminar todo el proyecto y sus productos derivados?",
       )
-    )
+    ) {
       deleteProyecto(id);
+    }
   };
 
   const handleEditProjectClick = (p: Proyecto) => {
@@ -170,9 +175,15 @@ export default function IntegranteProyectosCRUD() {
     };
 
     if (editProdId) {
-      // ACTUALIZAR PRODUCTO EXISTENTE
+      // ACTUALIZAR PRODUCTO EXISTENTE (Podrías devolverlo a PENDIENTE si lo editan, por ahora lo dejamos como está o forzamos pendiente)
       const updatedProductos = (project.productos || []).map((p) =>
-        p.id === editProdId ? { ...p, ...baseProductData } : p,
+        p.id === editProdId
+          ? {
+              ...p,
+              ...baseProductData,
+              estado_aprobacion: "PENDIENTE" as const,
+            }
+          : p,
       );
       updateProyecto(projectId, { productos: updatedProductos });
     } else {
@@ -189,6 +200,7 @@ export default function IntegranteProyectosCRUD() {
         id: nextProdId,
         id_proyecto: projectId,
         ...baseProductData,
+        estado_aprobacion: "PENDIENTE", // <-- NUEVO: Nace pendiente por defecto
         participaciones: [
           {
             id: nextPartId,
@@ -264,7 +276,7 @@ export default function IntegranteProyectosCRUD() {
       id_integrante: studentToAdd.id,
       id_producto: productId,
       rol_en_producto: teamForm.role,
-      fecha_inicio_rol: project.fecha_inicio, // Hereda fecha del proyecto
+      fecha_inicio_rol: project.fecha_inicio,
       fecha_fin_rol: project.fecha_fin,
       integrante_nombre: studentToAdd.name,
       integrante_img: studentToAdd.img,
@@ -458,9 +470,14 @@ export default function IntegranteProyectosCRUD() {
             {/* Cabecera del Proyecto Macro */}
             <div className="bg-[#F8F9FA] p-6 border-b-2 border-gray-200 flex flex-col md:flex-row justify-between md:items-start gap-4">
               <div>
-                <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 mb-3 inline-block border border-[#1E293B]">
-                  PROYECTO MACRO
-                </span>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
+                    PROYECTO MACRO
+                  </span>
+                  {/* <-- NUEVO: Badge de Estado del Proyecto --> */}
+                  <BadgeEstado estado={p.estado_aprobacion} />
+                </div>
+
                 <h3 className="text-2xl font-bold text-[#1E293B] mb-2">
                   {p.titulo}
                 </h3>
@@ -739,12 +756,17 @@ export default function IntegranteProyectosCRUD() {
                       key={prod.id}
                       className="border border-gray-200 p-4 relative group hover:border-[#1E293B] transition flex flex-col"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <div
-                          className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.tipo_categoria === "DESARROLLO" ? "bg-blue-600" : prod.tipo_categoria === "ESCRITO" ? "bg-purple-600" : "bg-[#F37021]"}`}
-                        >
-                          {prod.tipo_categoria}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.tipo_categoria === "DESARROLLO" ? "bg-blue-600" : prod.tipo_categoria === "ESCRITO" ? "bg-purple-600" : "bg-[#F37021]"}`}
+                          >
+                            {prod.tipo_categoria}
+                          </div>
+                          {/* <-- NUEVO: Badge de Estado del Producto --> */}
+                          <BadgeEstado estado={prod.estado_aprobacion} />
                         </div>
+
                         {/* Acciones del Producto */}
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                           <button
@@ -787,7 +809,7 @@ export default function IntegranteProyectosCRUD() {
                         {(prod.participaciones || []).map((part) => (
                           <img
                             key={part.id}
-                            src={part.integrante_img}
+                            src={part.integrante_img || undefined}
                             alt={part.integrante_nombre}
                             title={`${part.integrante_nombre} - ${part.rol_en_producto}`}
                             className="w-6 h-6 border border-white bg-gray-200 object-cover"
@@ -802,8 +824,6 @@ export default function IntegranteProyectosCRUD() {
                             <Users className="w-3 h-3 mr-1" /> Equipo del
                             Producto
                           </h6>
-
-                          {/* Lista actual */}
                           <ul className="space-y-2 mb-4">
                             {(prod.participaciones || []).map((part) => (
                               <li
@@ -812,7 +832,7 @@ export default function IntegranteProyectosCRUD() {
                               >
                                 <div className="flex items-center">
                                   <img
-                                    src={part.integrante_img}
+                                    src={part.integrante_img || undefined}
                                     alt=""
                                     className="w-5 h-5 mr-2 object-cover border border-gray-300"
                                   />
@@ -841,7 +861,6 @@ export default function IntegranteProyectosCRUD() {
                             ))}
                           </ul>
 
-                          {/* Formulario para añadir compañero */}
                           {availableStudents.length > 0 ? (
                             <form
                               onSubmit={(e) =>
