@@ -11,7 +11,7 @@ import gsap from "gsap"; // Importamos GSAP nativamente desde npm
 
 export default function HomePage() {
   const router = useRouter();
-  const { students, proyectos: projects } = useStore();
+  const { students, proyectos } = useStore();
   const [searchInput, setSearchInput] = useState("");
 
   // Referencias para GSAP
@@ -20,6 +20,10 @@ export default function HomePage() {
 
   // Asegurarnos de que solo renderizamos talento activo
   const activeStudents = students.filter((s) => !s.vetado);
+
+  const proyectosActivos = proyectos.filter(
+    (p) => p.estado_aprobacion === "ACTIVO",
+  );
 
   // Lógica de Búsqueda
   const handleSearchSubmit = () => {
@@ -212,7 +216,8 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {projects.map((project) => (
+            {/* AQUÍ ESTAMOS USANDO proyectosActivos */}
+            {proyectosActivos.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
@@ -243,7 +248,7 @@ export default function HomePage() {
             <div>
               <div
                 className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                data-value={projects.length}
+                data-value={proyectosActivos.length} // <-- ACTUALIZADO AQUÍ
               >
                 0
               </div>
