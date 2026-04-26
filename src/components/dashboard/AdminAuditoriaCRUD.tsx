@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trash2, Search, Eye } from "lucide-react";
+import { Trash2, Search, Eye, Edit3 } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@/store/useStore";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 
 export default function AdminAuditoriaCRUD() {
-  const { proyectos, deleteProyecto } = useStore();
+  // Añadimos updateProyecto para poder modificar el estado
+  const { proyectos, deleteProyecto, updateProyecto } = useStore();
 
   // Estados para darle poder a la auditoría
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +23,20 @@ export default function AdminAuditoriaCRUD() {
       )
     ) {
       deleteProyecto(id);
+    }
+  };
+
+  // NUEVA FUNCIÓN: Cambiar el estado directamente
+  const handleCambiarEstado = (
+    id: number,
+    nuevoEstado: "ACTIVO" | "PENDIENTE" | "RECHAZADO",
+  ) => {
+    if (
+      window.confirm(
+        `¿Estás seguro de cambiar el estado de este proyecto a ${nuevoEstado}?`,
+      )
+    ) {
+      updateProyecto(id, { estado_aprobacion: nuevoEstado });
     }
   };
 
@@ -57,7 +72,7 @@ export default function AdminAuditoriaCRUD() {
           <select
             value={filterEstado}
             onChange={(e) => setFilterEstado(e.target.value as any)}
-            className="border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:border-[#F37021]"
+            className="border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:border-[#F37021] cursor-pointer"
           >
             <option value="TODOS">Todos los estados</option>
             <option value="ACTIVO">Solo Activos</option>
@@ -71,16 +86,16 @@ export default function AdminAuditoriaCRUD() {
         {proyectosFiltrados.map((p) => (
           <div
             key={p.id}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-2 border-gray-200 p-4 bg-[#F8F9FA] hover:border-[#F37021] transition gap-4"
+            className="flex flex-col xl:flex-row justify-between items-start xl:items-center border-2 border-gray-200 p-4 bg-[#F8F9FA] hover:border-[#F37021] transition gap-4"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full xl:w-auto">
               <img
                 src={p.img || undefined}
                 alt={p.titulo}
                 className="w-16 h-16 object-cover border border-[#1E293B] hidden sm:block bg-gray-200"
               />
-              <div>
-                <h3 className="font-bold text-[#1E293B] text-lg flex items-center gap-2">
+              <div className="flex-1">
+                <h3 className="font-bold text-[#1E293B] text-lg flex items-center gap-2 flex-wrap">
                   {p.titulo}
                   <BadgeEstado estado={p.estado_aprobacion} />
                 </h3>
@@ -92,16 +107,32 @@ export default function AdminAuditoriaCRUD() {
             </div>
 
             {/* ACCIONES DE AUDITORÍA */}
-            <div className="flex gap-2 w-full sm:w-auto">
-              {/* NUEVO BOTÓN: Ver Detalles */}
+            <div className="flex gap-2 w-full xl:w-auto flex-wrap">
+              {/* NUEVO: Select rápido para cambiar el estado */}
+              <div className="flex-1 sm:flex-none border-2 border-gray-300 bg-white hover:border-[#F37021] transition flex items-center px-2">
+                <Edit3 className="w-4 h-4 text-gray-500 mr-2" />
+                <select
+                  value={p.estado_aprobacion}
+                  onChange={(e) =>
+                    handleCambiarEstado(p.id, e.target.value as any)
+                  }
+                  className="w-full text-xs font-bold text-[#1E293B] py-2 outline-none bg-transparent cursor-pointer"
+                >
+                  <option value="ACTIVO">Hacer ACTIVO</option>
+                  <option value="PENDIENTE">Pasar a PENDIENTE</option>
+                  <option value="RECHAZADO">Marcar RECHAZADO</option>
+                </select>
+              </div>
+
+              {/* Botón: Ver Detalles */}
               <Link
                 href={`/project/${p.id}`}
                 className="flex-1 sm:flex-none text-[#1E293B] bg-white hover:bg-[#1E293B] hover:text-white px-4 py-2 border-2 border-[#1E293B] transition font-bold text-xs flex items-center justify-center"
               >
-                <Eye className="w-4 h-4 mr-2" /> VER DETALLES
+                <Eye className="w-4 h-4 mr-2" /> DETALLES
               </Link>
 
-              {/* Botón de Eliminar */}
+              {/* Botón: Eliminar */}
               <button
                 onClick={() => handleDelete(p.id)}
                 className="flex-1 sm:flex-none text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-4 py-2 border-2 border-red-200 hover:border-red-600 transition font-bold text-xs flex items-center justify-center"

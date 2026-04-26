@@ -9,24 +9,21 @@ import {
   Users,
   Code,
   ExternalLink,
-  // Github,
   Trophy,
   LayoutDashboard,
   FileText,
-  MapPin,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 
 export default function ProjectPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  // Consumimos currentUser para saber si tiene permisos especiales
   const { proyectos: projects, currentUser } = useStore();
 
   const proyecto = projects.find((p) => p.id === Number(id));
 
-  // REGLA DE ORO: Si no está activo, solo el ADMIN o el CREADOR pueden verlo.
   const esDueñoOAdmin =
     currentUser?.role === "ADMIN" || proyecto?.creado_por === currentUser?.id;
 
@@ -54,14 +51,8 @@ export default function ProjectPage() {
     );
   }
 
-  // Filtramos los productos para que el público solo vea los ACTIVOS.
-  // El creador/Admin podrá verlos todos.
-  const productosVisibles =
-    proyecto.productos?.filter(
-      (prod) => prod.estado_aprobacion === "ACTIVO" || esDueñoOAdmin,
-    ) || [];
+  const productosVisibles = proyecto.productos || [];
 
-  // Extraemos todos los miembros únicos solo de los productos VISIBLES
   const todosLosIntegrantes =
     productosVisibles.flatMap((p) => p.participaciones || []) || [];
   const uniqueTeam = Array.from(
@@ -77,22 +68,19 @@ export default function ProjectPage() {
         &larr; VOLVER AL CATÁLOGO
       </button>
 
-      {/* AVISO PARA EL DUEÑO/ADMIN SI EL PROYECTO ESTÁ PENDIENTE O RECHAZADO */}
       {proyecto.estado_aprobacion !== "ACTIVO" && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-8 font-medium">
-          ⚠️ Estás viendo este proyecto porque eres el creador o administrador.
-          Actualmente su estado es:{" "}
+          ⚠️ Este proyecto macro se encuentra actualmente en estado:{" "}
           <strong>{proyecto.estado_aprobacion}</strong>.
         </div>
       )}
 
-      {/* CABECERA DEL PROYECTO MACRO */}
       <div className="bg-white pixel-border overflow-hidden mb-12">
         <div className="w-full h-64 md:h-96 relative border-b-4 border-[#1E293B]">
           <img
             src={proyecto.img || undefined}
             alt={proyecto.titulo}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover bg-gray-200"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1E293B] via-[#1e293b90] to-transparent opacity-90"></div>
 
@@ -122,7 +110,6 @@ export default function ProjectPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-12">
-          {/* OBJETIVO GENERAL */}
           <section>
             <h3 className="text-2xl font-bold text-[#2D5A27] mb-4">
               Objetivo General
@@ -132,134 +119,153 @@ export default function ProjectPage() {
             </p>
           </section>
 
-          {/* PRODUCTOS ACADÉMICOS DERIVADOS */}
           <section>
             <h3 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
               Productos Derivados ({productosVisibles.length})
             </h3>
             <div className="space-y-6">
-              {productosVisibles.map((producto) => (
-                <div
-                  key={producto.id}
-                  className="bg-[#F8F9FA] border-2 border-gray-200 p-6 hover:border-[#F37021] transition relative"
-                >
-                  {/* Etiqueta del Tipo de Producto */}
+              {productosVisibles.map((producto) => {
+                // REGLA ESTRICTA: Solo hay links si el producto está ACTIVO
+                const linksActivos = producto.estado_aprobacion === "ACTIVO";
+
+                return (
                   <div
-                    className={`absolute top-0 right-0 text-[10px] font-mono font-bold px-3 py-1 border-b-2 border-l-2 border-gray-200 text-white ${
-                      producto.tipo_categoria === "DESARROLLO"
-                        ? "bg-blue-600"
-                        : producto.tipo_categoria === "ESCRITO"
-                          ? "bg-purple-600"
-                          : "bg-[#F37021]"
-                    }`}
+                    key={producto.id}
+                    className="bg-[#F8F9FA] border-2 border-gray-200 p-6 hover:border-[#F37021] transition relative"
                   >
-                    {producto.tipo_categoria}
-                  </div>
+                    <div
+                      className={`absolute top-0 right-0 text-[10px] font-mono font-bold px-3 py-1 border-b-2 border-l-2 border-gray-200 text-white ${
+                        producto.tipo_categoria === "DESARROLLO"
+                          ? "bg-blue-600"
+                          : producto.tipo_categoria === "ESCRITO"
+                            ? "bg-purple-600"
+                            : "bg-[#F37021]"
+                      }`}
+                    >
+                      {producto.tipo_categoria}
+                    </div>
 
-                  <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24 flex items-center gap-2">
-                    {producto.titulo}
-                    {/* Badge de pendiente para el producto (solo lo ve el dueño/admin) */}
-                    {producto.estado_aprobacion !== "ACTIVO" && (
-                      <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded border border-yellow-300 uppercase tracking-wide">
-                        {producto.estado_aprobacion}
-                      </span>
+                    <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24 flex items-center gap-2">
+                      {producto.titulo}
+                      {producto.estado_aprobacion !== "ACTIVO" && (
+                        <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded border border-yellow-300 uppercase tracking-wide">
+                          PENDIENTE
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-sm text-[#334155] mb-4 leading-relaxed">
+                      {producto.descripcion}
+                    </p>
+
+                    {producto.tipo_categoria === "DESARROLLO" && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {producto.tecnologias?.map((t) => (
+                            <span
+                              key={t}
+                              className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center font-mono text-[#334155]"
+                            >
+                              <Code className="w-3 h-3 mr-1" /> {t}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="flex gap-3">
+                          {producto.url_repositorio &&
+                            (linksActivos ? (
+                              <a
+                                href={producto.url_repositorio}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs bg-[#1E293B] text-white px-3 py-2 flex items-center hover:bg-gray-800 transition"
+                              >
+                                Ver Código
+                              </a>
+                            ) : (
+                              <span className="text-xs bg-gray-200 text-gray-500 px-3 py-2 flex items-center cursor-not-allowed border border-gray-300">
+                                <Lock className="w-3 h-3 mr-1.5" /> Código no
+                                disponible
+                              </span>
+                            ))}
+
+                          {producto.url_demo &&
+                            (linksActivos ? (
+                              <a
+                                href={producto.url_demo}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs bg-[#F37021] text-white px-3 py-2 flex items-center hover:bg-[#e06015] transition"
+                              >
+                                <LayoutDashboard className="w-4 h-4 mr-2" /> Ver
+                                Demo
+                              </a>
+                            ) : (
+                              <span className="text-xs bg-gray-200 text-gray-500 px-3 py-2 flex items-center cursor-not-allowed border border-gray-300">
+                                <Lock className="w-3 h-3 mr-1.5" /> Demo no
+                                disponible
+                              </span>
+                            ))}
+                        </div>
+                      </div>
                     )}
-                  </h4>
-                  <p className="text-sm text-[#334155] mb-4 leading-relaxed">
-                    {producto.descripcion}
-                  </p>
 
-                  {/* Renderizado Condicional según Tipo */}
-                  {producto.tipo_categoria === "DESARROLLO" && (
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {producto.tecnologias?.map((t) => (
-                          <span
-                            key={t}
-                            className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center font-mono text-[#334155]"
+                    {producto.tipo_categoria === "ESCRITO" && (
+                      <div className="mb-4 flex gap-3 items-center text-sm font-medium text-[#334155]">
+                        <span className="flex items-center">
+                          <FileText className="w-4 h-4 mr-1 text-purple-600" />{" "}
+                          {producto.fuente_publicacion || "Documento Académico"}
+                        </span>
+                        {producto.url_documento &&
+                          (linksActivos ? (
+                            <a
+                              href={producto.url_documento}
+                              target="_blank"
+                              className="text-blue-600 hover:underline flex items-center text-xs"
+                            >
+                              Leer documento{" "}
+                              <ExternalLink className="w-3 h-3 ml-1" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 flex items-center text-xs cursor-not-allowed bg-gray-100 px-2 py-1 border border-gray-200">
+                              <Lock className="w-3 h-3 mr-1" /> Documento
+                              pendiente
+                            </span>
+                          ))}
+                      </div>
+                    )}
+
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="text-[10px] font-mono text-gray-400 mb-2">
+                        AUTORES / DESARROLLADORES DEL PRODUCTO
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {producto.participaciones?.map((part) => (
+                          <div
+                            key={part.id}
+                            className="flex items-center bg-white border border-gray-200 px-2 py-1 text-xs"
                           >
-                            <Code className="w-3 h-3 mr-1" /> {t}
-                          </span>
+                            <img
+                              src={part.integrante_img || undefined}
+                              alt=""
+                              className="w-4 h-4 mr-2 border border-gray-400 object-cover"
+                            />
+                            <span className="font-semibold mr-1">
+                              {part.integrante_nombre}
+                            </span>
+                            <span className="text-gray-500 italic">
+                              ({part.rol_en_producto})
+                            </span>
+                          </div>
                         ))}
                       </div>
-                      <div className="flex gap-3">
-                        {producto.url_repositorio && (
-                          <a
-                            href={producto.url_repositorio}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs bg-[#1E293B] text-white px-3 py-2 flex items-center hover:bg-gray-800"
-                          >
-                            Ver Código
-                          </a>
-                        )}
-                        {producto.url_demo && (
-                          <a
-                            href={producto.url_demo}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs bg-[#F37021] text-white px-3 py-2 flex items-center hover:bg-[#e06015]"
-                          >
-                            <LayoutDashboard className="w-4 h-4 mr-2" /> Ver
-                            Demo
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {producto.tipo_categoria === "ESCRITO" && (
-                    <div className="mb-4 flex gap-3 items-center text-sm font-medium text-[#334155]">
-                      <span className="flex items-center">
-                        <FileText className="w-4 h-4 mr-1 text-purple-600" />{" "}
-                        {producto.fuente_publicacion || "Documento Académico"}
-                      </span>
-                      {producto.url_documento && (
-                        <a
-                          href={producto.url_documento}
-                          target="_blank"
-                          className="text-blue-600 hover:underline flex items-center text-xs"
-                        >
-                          Leer documento{" "}
-                          <ExternalLink className="w-3 h-3 ml-1" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Quienes participaron específicamente en ESTE producto */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-[10px] font-mono text-gray-400 mb-2">
-                      AUTORES / DESARROLLADORES DEL PRODUCTO
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {producto.participaciones?.map((part) => (
-                        <div
-                          key={part.id}
-                          className="flex items-center bg-white border border-gray-200 px-2 py-1 text-xs"
-                        >
-                          <img
-                            src={part.integrante_img || undefined}
-                            alt=""
-                            className="w-4 h-4 mr-2 border border-gray-400 object-cover"
-                          />
-                          <span className="font-semibold mr-1">
-                            {part.integrante_nombre}
-                          </span>
-                          <span className="text-gray-500 italic">
-                            ({part.rol_en_producto})
-                          </span>
-                        </div>
-                      ))}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         </div>
 
-        {/* BARRA LATERAL: EQUIPO DE INVESTIGACIÓN TOTAL */}
         {uniqueTeam.length > 0 && (
           <div className="lg:col-span-1 space-y-8">
             <section className="bg-white pixel-border p-6">
