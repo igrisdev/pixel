@@ -1,16 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Edit, Trash2, Plus, X } from "lucide-react";
+import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
 import { useStore } from "@/store/useStore";
-import { Student } from "@/types"; // Asegúrate de que apunte donde tienes tus tipos
+import { Student } from "@/types";
 
 export default function AdminUsuariosCRUD() {
-  const { students, setStudents } = useStore();
+  // Ahora traemos updateStudent para aprovechar el método de la API en el store
+  const { students, setStudents, updateStudent } = useStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  // Actualizamos el formData con los campos acordados
+  // Estado para la gestión de cargas asíncronas
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<{
     name: string;
     email_institucional: string;
@@ -25,32 +28,44 @@ export default function AdminUsuariosCRUD() {
     status: "ESTUDIANTE",
   });
 
-  const toggleVetado = (id: number) =>
-    setStudents(
-      students.map((s) => (s.id === id ? { ...s, vetado: !s.vetado } : s)),
-    );
+  const toggleVetado = async (student: Student) => {
+    setLoadingAction(`vetar-${student.id}`);
+    try {
+      // Usamos el método real asíncrono del store
+      await updateStudent(student.id, { vetado: !student.vetado });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoadingAction("save");
 
-    const nextId =
-      students.length > 0 ? Math.max(...students.map((s) => s.id)) + 1 : 1;
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600)); // Latencia simulada
 
-    const newStudent: Student = {
-      id: nextId,
-      ...formData,
-      role: "Integrante", // Un rol genérico inicial para el UI público
-      tech: [],
-      img: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1E293B&color=fff`,
-      vetado: false,
-      email_personal: "",
-      url_cv: "",
-      enlaces: [],
-    };
+      const nextId =
+        students.length > 0 ? Math.max(...students.map((s) => s.id)) + 1 : 1;
 
-    setStudents([...students, newStudent]);
-    setIsAdding(false);
-    resetForm();
+      const newStudent: Student = {
+        id: nextId,
+        ...formData,
+        role: "Integrante",
+        tech: [],
+        img: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1E293B&color=fff`,
+        vetado: false,
+        email_personal: "",
+        url_cv: "",
+        enlaces: [],
+      };
+
+      setStudents([...students, newStudent]);
+      setIsAdding(false);
+      resetForm();
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   const startEdit = (student: Student) => {
@@ -64,18 +79,30 @@ export default function AdminUsuariosCRUD() {
     });
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStudents(
-      students.map((s) => (s.id === editId ? { ...s, ...formData } : s)),
-    );
-    setEditId(null);
-    resetForm();
+    if (!editId) return;
+
+    setLoadingAction("save");
+    try {
+      await updateStudent(editId, formData);
+      setEditId(null);
+      resetForm();
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("¿Eliminar usuario del sistema?"))
-      setStudents(students.filter((s) => s.id !== id));
+  const handleDelete = async (id: number) => {
+    if (window.confirm("¿Eliminar usuario del sistema?")) {
+      setLoadingAction(`delete-${id}`);
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 600)); // Latencia simulada
+        setStudents(students.filter((s) => s.id !== id));
+      } finally {
+        setLoadingAction(null);
+      }
+    }
   };
 
   const resetForm = () => {
@@ -88,7 +115,6 @@ export default function AdminUsuariosCRUD() {
     });
   };
 
-  // Opciones de carreras (puedes ajustarlas según las de UNIMAYOR)
   const opcionesCarreras = [
     "Ingeniería Informática",
     "Tecnología en Desarrollo de Software",
@@ -109,7 +135,8 @@ export default function AdminUsuariosCRUD() {
             setEditId(null);
             if (!isAdding) resetForm();
           }}
-          className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] hover:bg-[#1f3f1b] flex items-center font-bold text-sm"
+          disabled={loadingAction !== null}
+          className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] hover:bg-[#1f3f1b] flex items-center font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAdding || editId ? (
             <X className="w-4 h-4 mr-1" />
@@ -133,11 +160,12 @@ export default function AdminUsuariosCRUD() {
               <input
                 type="text"
                 required
+                disabled={loadingAction === "save"}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 placeholder="Ej. Isabella Velasco"
               />
             </div>
@@ -147,11 +175,12 @@ export default function AdminUsuariosCRUD() {
               </label>
               <select
                 required
+                disabled={loadingAction === "save"}
                 value={formData.carrera}
                 onChange={(e) =>
                   setFormData({ ...formData, carrera: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
               >
                 <option value="" disabled>
                   Seleccionar carrera...
@@ -169,13 +198,14 @@ export default function AdminUsuariosCRUD() {
               </label>
               <select
                 value={formData.status}
+                disabled={loadingAction === "save"}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
                     status: e.target.value as "ESTUDIANTE" | "EGRESADO",
                   })
                 }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
               >
                 <option value="ESTUDIANTE">ESTUDIANTE</option>
                 <option value="EGRESADO">EGRESADO</option>
@@ -191,6 +221,7 @@ export default function AdminUsuariosCRUD() {
               <input
                 type="email"
                 required
+                disabled={loadingAction === "save"}
                 value={formData.email_institucional}
                 onChange={(e) =>
                   setFormData({
@@ -198,7 +229,7 @@ export default function AdminUsuariosCRUD() {
                     email_institucional: e.target.value,
                   })
                 }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 placeholder="ejemplo@unimayor.edu.co"
               />
             </div>
@@ -209,19 +240,27 @@ export default function AdminUsuariosCRUD() {
               <input
                 type="text"
                 required
+                disabled={loadingAction === "save"}
                 value={formData.password_hash}
                 onChange={(e) =>
                   setFormData({ ...formData, password_hash: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white"
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 placeholder="Ej. pixel2026"
               />
             </div>
             <button
               type="submit"
-              className="bg-[#F37021] text-white px-8 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] h-[44px]"
+              disabled={loadingAction === "save"}
+              className="bg-[#F37021] text-white px-8 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] h-[44px] flex items-center justify-center min-w-[140px] disabled:opacity-70"
             >
-              {editId ? "Actualizar" : "Crear"}
+              {loadingAction === "save" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : editId ? (
+                "Actualizar"
+              ) : (
+                "Crear"
+              )}
             </button>
           </div>
         </form>
@@ -231,7 +270,6 @@ export default function AdminUsuariosCRUD() {
         <thead className="bg-[#F8F9FA] border-b-2 border-[#1E293B]">
           <tr>
             <th className="p-3 font-mono">NOMBRE</th>
-            {/* Cambiamos la columna ROL por CARRERA */}
             <th className="p-3 font-mono">CARRERA</th>
             <th className="p-3 font-mono">ESTADO</th>
             <th className="p-3 font-mono">VETADO</th>
@@ -242,7 +280,11 @@ export default function AdminUsuariosCRUD() {
           {students.map((s) => (
             <tr
               key={s.id}
-              className="border-b border-gray-200 hover:bg-gray-50"
+              className={`border-b border-gray-200 transition ${
+                loadingAction === `delete-${s.id}`
+                  ? "bg-red-50 opacity-50"
+                  : "hover:bg-gray-50"
+              }`}
             >
               <td className="p-3 font-medium flex items-center">
                 <img
@@ -257,7 +299,6 @@ export default function AdminUsuariosCRUD() {
                   </div>
                 </div>
               </td>
-              {/* Mostramos la carrera en lugar del rol */}
               <td className="p-3 text-gray-600">
                 {s.carrera || "No registrada"}
               </td>
@@ -281,22 +322,35 @@ export default function AdminUsuariosCRUD() {
               </td>
               <td className="p-3 flex justify-end space-x-2">
                 <button
-                  onClick={() => toggleVetado(s.id)}
-                  className={`${s.vetado ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"} text-white px-3 py-1 text-xs font-bold border border-[#1E293B]`}
+                  onClick={() => toggleVetado(s)}
+                  disabled={loadingAction !== null}
+                  className={`${s.vetado ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"} text-white px-3 py-1 text-xs font-bold border border-[#1E293B] min-w-[80px] flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
-                  {s.vetado ? "Desvetar" : "Vetar"}
+                  {loadingAction === `vetar-${s.id}` ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : s.vetado ? (
+                    "Desvetar"
+                  ) : (
+                    "Vetar"
+                  )}
                 </button>
                 <button
                   onClick={() => startEdit(s)}
-                  className="bg-gray-200 p-2 border border-gray-400 hover:bg-gray-300 transition"
+                  disabled={loadingAction !== null}
+                  className="bg-gray-200 p-2 border border-gray-400 hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Edit className="w-4 h-4 text-gray-700" />
                 </button>
                 <button
                   onClick={() => handleDelete(s.id)}
-                  className="bg-red-100 text-red-600 p-2 border border-red-300 hover:bg-red-200 transition"
+                  disabled={loadingAction !== null}
+                  className="bg-red-100 text-red-600 p-2 border border-red-300 hover:bg-red-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {loadingAction === `delete-${s.id}` ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </button>
               </td>
             </tr>

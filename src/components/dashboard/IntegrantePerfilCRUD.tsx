@@ -8,6 +8,7 @@ import {
   Trash2,
   Lock,
   Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
@@ -23,7 +24,7 @@ export default function IntegrantePerfilCRUD() {
     role: user.role || "",
     email_personal: user.email_personal || "",
     url_cv: user.url_cv || "",
-    img: user.img || "", // <-- Nuevo campo de imagen (url_foto)
+    img: user.img || "",
     password_hash: user.password_hash || "",
   });
 
@@ -31,14 +32,24 @@ export default function IntegrantePerfilCRUD() {
     { id: number; plataforma: string; url: string }[]
   >(user.enlaces || []);
   const [newEnlace, setNewEnlace] = useState({ plataforma: "GitHub", url: "" });
+
+  // NUEVO: Estados para manejar la carga asíncrona y el éxito
+  const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentUser) {
-      updateStudent(currentUser.id, { ...formData, enlaces });
+    if (!currentUser) return;
+
+    setIsSaving(true);
+    try {
+      // Usamos el método asíncrono updateStudent de nuestro store
+      await updateStudent(currentUser.id, { ...formData, enlaces });
+
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -108,11 +119,12 @@ export default function IntegrantePerfilCRUD() {
               </label>
               <input
                 type="url"
+                disabled={isSaving}
                 value={formData.img}
                 onChange={(e) =>
                   setFormData({ ...formData, img: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm"
+                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="https://..."
               />
             </div>
@@ -124,11 +136,12 @@ export default function IntegrantePerfilCRUD() {
             </label>
             <input
               type="text"
+              disabled={isSaving}
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B]"
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
             />
           </div>
@@ -138,11 +151,12 @@ export default function IntegrantePerfilCRUD() {
             </label>
             <input
               type="text"
+              disabled={isSaving}
               value={formData.role}
               onChange={(e) =>
                 setFormData({ ...formData, role: e.target.value })
               }
-              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B]"
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
             />
           </div>
@@ -152,11 +166,12 @@ export default function IntegrantePerfilCRUD() {
             </label>
             <input
               type="email"
+              disabled={isSaving}
               value={formData.email_personal}
               onChange={(e) =>
                 setFormData({ ...formData, email_personal: e.target.value })
               }
-              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021]"
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="Para que te contacten empresas..."
             />
           </div>
@@ -166,12 +181,13 @@ export default function IntegrantePerfilCRUD() {
             </label>
             <input
               type="url"
+              disabled={isSaving}
               value={formData.url_cv}
               onChange={(e) =>
                 setFormData({ ...formData, url_cv: e.target.value })
               }
               placeholder="https://..."
-              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021]"
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -181,21 +197,27 @@ export default function IntegrantePerfilCRUD() {
             </label>
             <input
               type="password"
+              disabled={isSaving}
               value={formData.password_hash}
               onChange={(e) =>
                 setFormData({ ...formData, password_hash: e.target.value })
               }
               placeholder="Escribe tu nueva contraseña..."
-              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium"
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#F37021] text-white font-bold py-4 pixel-border-accent hover:bg-[#e06015] transition flex justify-center items-center mt-6"
+            disabled={isSaving}
+            className="w-full bg-[#F37021] text-white font-bold py-4 border-2 border-[#1E293B] hover:bg-[#e06015] transition flex justify-center items-center mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {saved ? (
+            {isSaving ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> GUARDANDO...
+              </>
+            ) : saved ? (
               <>
                 <CheckCircle className="w-5 h-5 mr-2" /> PERFIL ACTUALIZADO
               </>
@@ -219,11 +241,12 @@ export default function IntegrantePerfilCRUD() {
 
         <form onSubmit={addEnlace} className="flex gap-2 mb-8">
           <select
+            disabled={isSaving}
             value={newEnlace.plataforma}
             onChange={(e) =>
               setNewEnlace({ ...newEnlace, plataforma: e.target.value })
             }
-            className="border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white"
+            className="border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option>GitHub</option>
             <option>LinkedIn</option>
@@ -232,17 +255,19 @@ export default function IntegrantePerfilCRUD() {
           </select>
           <input
             type="url"
+            disabled={isSaving}
             placeholder="https://..."
             required
             value={newEnlace.url}
             onChange={(e) =>
               setNewEnlace({ ...newEnlace, url: e.target.value })
             }
-            className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021]"
+            className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           <button
             type="submit"
-            className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 border-2 border-[#2D5A27] transition"
+            disabled={isSaving}
+            className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 border-2 border-[#2D5A27] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             <Plus className="w-6 h-6" />
           </button>
@@ -252,7 +277,7 @@ export default function IntegrantePerfilCRUD() {
           {enlaces.map((e) => (
             <li
               key={e.id}
-              className="flex justify-between items-center p-4 border-2 border-gray-200 bg-[#F8F9FA] hover:border-[#1E293B] transition"
+              className={`flex justify-between items-center p-4 border-2 transition ${isSaving ? "border-gray-200 bg-gray-100 opacity-60" : "border-gray-200 bg-[#F8F9FA] hover:border-[#1E293B]"}`}
             >
               <div className="overflow-hidden pr-4">
                 <strong className="text-[#1E293B] block text-sm">
@@ -264,7 +289,8 @@ export default function IntegrantePerfilCRUD() {
               </div>
               <button
                 onClick={() => deleteEnlace(e.id)}
-                className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition"
+                disabled={isSaving}
+                className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:cursor-not-allowed disabled:bg-gray-200"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

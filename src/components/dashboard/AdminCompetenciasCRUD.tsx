@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Edit, Trash2, Plus, X } from "lucide-react";
+import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 export default function AdminCompetenciasCRUD() {
   const { competencies, setCompetencies } = useStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+
+  // NUEVO: Estado para gestionar cargas individuales
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<{
     nombre: string;
     descripcion: string;
@@ -18,18 +22,29 @@ export default function AdminCompetenciasCRUD() {
     tipo: "TECNICA",
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editId) {
-      setCompetencies(
-        competencies.map((c) => (c.id === editId ? { ...c, ...formData } : c)),
-      );
-      setEditId(null);
-    } else {
-      setCompetencies([{ id: Date.now(), ...formData }, ...competencies]);
-      setIsAdding(false);
+    setLoadingAction("save");
+
+    try {
+      // Simulamos la latencia de la API (puedes quitar esto cuando uses ApiRepository)
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      if (editId) {
+        setCompetencies(
+          competencies.map((c) =>
+            c.id === editId ? { ...c, ...formData } : c,
+          ),
+        );
+        setEditId(null);
+      } else {
+        setCompetencies([{ id: Date.now(), ...formData }, ...competencies]);
+        setIsAdding(false);
+      }
+      setFormData({ nombre: "", descripcion: "", tipo: "TECNICA" });
+    } finally {
+      setLoadingAction(null);
     }
-    setFormData({ nombre: "", descripcion: "", tipo: "TECNICA" });
   };
 
   const startEdit = (comp: any) => {
@@ -40,9 +55,17 @@ export default function AdminCompetenciasCRUD() {
       tipo: comp.tipo,
     });
   };
-  const handleDelete = (id: number) => {
-    if (window.confirm("¿Borrar competencia global?"))
-      setCompetencies(competencies.filter((c) => c.id !== id));
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm("¿Borrar competencia global?")) {
+      setLoadingAction(`delete-${id}`);
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 600)); // Simulación de API
+        setCompetencies(competencies.filter((c) => c.id !== id));
+      } finally {
+        setLoadingAction(null);
+      }
+    }
   };
 
   return (
@@ -56,7 +79,8 @@ export default function AdminCompetenciasCRUD() {
             setIsAdding(!isAdding);
             setEditId(null);
           }}
-          className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] text-sm font-bold flex items-center hover:bg-[#1f3f1b]"
+          disabled={loadingAction !== null}
+          className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] text-sm font-bold flex items-center hover:bg-[#1f3f1b] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAdding || editId ? (
             <X className="w-4 h-4 mr-1" />
@@ -77,11 +101,12 @@ export default function AdminCompetenciasCRUD() {
             <input
               type="text"
               required
+              disabled={loadingAction === "save"}
               value={formData.nombre}
               onChange={(e) =>
                 setFormData({ ...formData, nombre: e.target.value })
               }
-              className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none"
+              className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none disabled:bg-gray-100"
             />
           </div>
           <div className="col-span-2">
@@ -89,11 +114,12 @@ export default function AdminCompetenciasCRUD() {
             <input
               type="text"
               required
+              disabled={loadingAction === "save"}
               value={formData.descripcion}
               onChange={(e) =>
                 setFormData({ ...formData, descripcion: e.target.value })
               }
-              className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none"
+              className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none disabled:bg-gray-100"
             />
           </div>
           <div className="col-span-1 flex gap-2">
@@ -101,10 +127,11 @@ export default function AdminCompetenciasCRUD() {
               <label className="block text-xs font-mono mb-1">Tipo</label>
               <select
                 value={formData.tipo}
+                disabled={loadingAction === "save"}
                 onChange={(e) =>
                   setFormData({ ...formData, tipo: e.target.value as any })
                 }
-                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021]"
+                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] disabled:bg-gray-100"
               >
                 <option value="TECNICA">TÉCNICA</option>
                 <option value="TRANSVERSAL">TRANSVERSAL</option>
@@ -112,9 +139,16 @@ export default function AdminCompetenciasCRUD() {
             </div>
             <button
               type="submit"
-              className="bg-[#F37021] text-white px-4 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] mb-[2px]"
+              disabled={loadingAction === "save"}
+              className="bg-[#F37021] text-white px-4 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] mb-[2px] disabled:opacity-70 flex items-center justify-center min-w-[100px]"
             >
-              {editId ? "Guardar" : "Crear"}
+              {loadingAction === "save" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : editId ? (
+                "Guardar"
+              ) : (
+                "Crear"
+              )}
             </button>
           </div>
         </form>
@@ -124,7 +158,11 @@ export default function AdminCompetenciasCRUD() {
         {competencies.map((c) => (
           <div
             key={c.id}
-            className="border-2 border-gray-200 p-5 relative group hover:border-[#1E293B] transition bg-[#F8F9FA]"
+            className={`border-2 p-5 relative group transition bg-[#F8F9FA] ${
+              loadingAction === `delete-${c.id}`
+                ? "border-red-300 opacity-60"
+                : "border-gray-200 hover:border-[#1E293B]"
+            }`}
           >
             <span
               className={`text-[10px] font-mono font-bold px-2 py-1 mb-3 inline-block border ${c.tipo === "TECNICA" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300"}`}
@@ -138,15 +176,21 @@ export default function AdminCompetenciasCRUD() {
             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex space-x-2 bg-[#F8F9FA] pl-2">
               <button
                 onClick={() => startEdit(c)}
-                className="bg-gray-200 p-1.5 border border-gray-400 hover:bg-gray-300"
+                disabled={loadingAction !== null}
+                className="bg-gray-200 p-1.5 border border-gray-400 hover:bg-gray-300 disabled:cursor-not-allowed"
               >
                 <Edit className="w-4 h-4 text-gray-700" />
               </button>
               <button
                 onClick={() => handleDelete(c.id)}
-                className="bg-red-100 p-1.5 border border-red-300 text-red-600 hover:bg-red-200"
+                disabled={loadingAction !== null}
+                className="bg-red-100 p-1.5 border border-red-300 text-red-600 hover:bg-red-200 disabled:cursor-not-allowed"
               >
-                <Trash2 className="w-4 h-4" />
+                {loadingAction === `delete-${c.id}` ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>

@@ -1,33 +1,38 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trash2, Search, Eye, Edit3 } from "lucide-react";
+import { Trash2, Search, Eye, Edit3, Loader2 } from "lucide-react"; // Añadimos Loader2
 import Link from "next/link";
 import { useStore } from "@/store/useStore";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 
 export default function AdminAuditoriaCRUD() {
-  // Añadimos updateProyecto para poder modificar el estado
   const { proyectos, deleteProyecto, updateProyecto } = useStore();
 
-  // Estados para darle poder a la auditoría
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState<
     "TODOS" | "ACTIVO" | "PENDIENTE" | "RECHAZADO"
   >("TODOS");
 
-  const handleDelete = (id: number) => {
+  // NUEVO: Estado para bloqueos asíncronos
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  const handleDelete = async (id: number) => {
     if (
       window.confirm(
         "ATENCIÓN: ¿Eliminar este proyecto macro del sistema de forma permanente? Esta acción no se puede deshacer.",
       )
     ) {
-      deleteProyecto(id);
+      setLoadingAction(`eliminar-${id}`);
+      try {
+        await deleteProyecto(id);
+      } finally {
+        setLoadingAction(null);
+      }
     }
   };
 
-  // NUEVA FUNCIÓN: Cambiar el estado directamente
-  const handleCambiarEstado = (
+  const handleCambiarEstado = async (
     id: number,
     nuevoEstado: "ACTIVO" | "PENDIENTE" | "RECHAZADO",
   ) => {
@@ -36,11 +41,15 @@ export default function AdminAuditoriaCRUD() {
         `¿Estás seguro de cambiar el estado de este proyecto a ${nuevoEstado}?`,
       )
     ) {
-      updateProyecto(id, { estado_aprobacion: nuevoEstado });
+      setLoadingAction(`estado-${id}`);
+      try {
+        await updateProyecto(id, { estado_aprobacion: nuevoEstado });
+      } finally {
+        setLoadingAction(null);
+      }
     }
   };
 
-  // Lógica de filtrado
   const proyectosFiltrados = proyectos.filter((p) => {
     const coincideBusqueda = p.titulo
       .toLowerCase()
@@ -59,6 +68,7 @@ export default function AdminAuditoriaCRUD() {
 
         {/* BUSCADOR Y FILTROS */}
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          {/* ... (Mismo código de filtros) ... */}
           <div className="relative flex-1 sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
             <input
@@ -86,7 +96,11 @@ export default function AdminAuditoriaCRUD() {
         {proyectosFiltrados.map((p) => (
           <div
             key={p.id}
-            className="flex flex-col xl:flex-row justify-between items-start xl:items-center border-2 border-gray-200 p-4 bg-[#F8F9FA] hover:border-[#F37021] transition gap-4"
+            className={`flex flex-col xl:flex-row justify-between items-start xl:items-center border-2 p-4 transition gap-4 ${
+              loadingAction?.includes(p.id.toString())
+                ? "border-gray-300 bg-gray-100 opacity-70" // Estilo si está cargando
+                : "border-gray-200 bg-[#F8F9FA] hover:border-[#F37021]"
+            }`}
           >
             <div className="flex items-center gap-4 w-full xl:w-auto">
               <img
@@ -108,15 +122,26 @@ export default function AdminAuditoriaCRUD() {
 
             {/* ACCIONES DE AUDITORÍA */}
             <div className="flex gap-2 w-full xl:w-auto flex-wrap">
-              {/* NUEVO: Select rápido para cambiar el estado */}
-              <div className="flex-1 sm:flex-none border-2 border-gray-300 bg-white hover:border-[#F37021] transition flex items-center px-2">
-                <Edit3 className="w-4 h-4 text-gray-500 mr-2" />
+              {/* Select para estado con deshabilitado dinámico */}
+              <div
+                className={`flex-1 sm:flex-none border-2 transition flex items-center px-2 ${
+                  loadingAction !== null
+                    ? "border-gray-200 bg-gray-100 cursor-not-allowed"
+                    : "border-gray-300 bg-white hover:border-[#F37021]"
+                }`}
+              >
+                {loadingAction === `estado-${p.id}` ? (
+                  <Loader2 className="w-4 h-4 text-gray-500 mr-2 animate-spin" />
+                ) : (
+                  <Edit3 className="w-4 h-4 text-gray-500 mr-2" />
+                )}
                 <select
                   value={p.estado_aprobacion}
+                  disabled={loadingAction !== null}
                   onChange={(e) =>
                     handleCambiarEstado(p.id, e.target.value as any)
                   }
-                  className="w-full text-xs font-bold text-[#1E293B] py-2 outline-none bg-transparent cursor-pointer"
+                  className="w-full text-xs font-bold text-[#1E293B] py-2 outline-none bg-transparent cursor-pointer disabled:cursor-not-allowed"
                 >
                   <option value="ACTIVO">Hacer ACTIVO</option>
                   <option value="PENDIENTE">Pasar a PENDIENTE</option>
@@ -124,20 +149,30 @@ export default function AdminAuditoriaCRUD() {
                 </select>
               </div>
 
-              {/* Botón: Ver Detalles */}
+              {/* Botón Detalles */}
               <Link
                 href={`/project/${p.id}`}
-                className="flex-1 sm:flex-none text-[#1E293B] bg-white hover:bg-[#1E293B] hover:text-white px-4 py-2 border-2 border-[#1E293B] transition font-bold text-xs flex items-center justify-center"
+                className={`flex-1 sm:flex-none px-4 py-2 border-2 transition font-bold text-xs flex items-center justify-center ${
+                  loadingAction !== null
+                    ? "text-gray-400 border-gray-200 pointer-events-none"
+                    : "text-[#1E293B] bg-white hover:bg-[#1E293B] hover:text-white border-[#1E293B]"
+                }`}
               >
                 <Eye className="w-4 h-4 mr-2" /> DETALLES
               </Link>
 
-              {/* Botón: Eliminar */}
+              {/* Botón Eliminar */}
               <button
                 onClick={() => handleDelete(p.id)}
-                className="flex-1 sm:flex-none text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-4 py-2 border-2 border-red-200 hover:border-red-600 transition font-bold text-xs flex items-center justify-center"
+                disabled={loadingAction !== null}
+                className="flex-1 sm:flex-none px-4 py-2 border-2 transition font-bold text-xs flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:border-gray-200 disabled:text-gray-400 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border-red-200 hover:border-red-600"
               >
-                <Trash2 className="w-4 h-4 mr-2" /> ELIMINAR
+                {loadingAction === `eliminar-${p.id}` ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                ELIMINAR
               </button>
             </div>
           </div>

@@ -1,82 +1,106 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useStore } from "@/store/useStore";
 import {
   CheckCircle,
   XCircle,
   Folder,
   FileCode,
-  FileText,
-  MapPin,
   User,
+  Loader2, // NUEVO: Importamos el spinner
 } from "lucide-react";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 
 export default function AdminAprobaciones() {
   const { proyectos, students, updateProyecto } = useStore();
 
-  // 1. Filtrar Proyectos Macro pendientes
+  // NUEVO: Estado para saber qué botón específico está cargando
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
   const proyectosPendientes = proyectos.filter(
     (p) => p.estado_aprobacion === "PENDIENTE",
   );
 
-  // 2. Extraer todos los Productos pendientes de todos los proyectos (incluso si el proyecto ya está activo)
   const productosPendientes = proyectos.flatMap((p) => {
     const pendientes = (p.productos || []).filter(
       (prod) => prod.estado_aprobacion === "PENDIENTE",
     );
-    // Le añadimos la info del proyecto padre para mostrarla en la UI
     return pendientes.map((prod) => ({ ...prod, proyecto_padre: p }));
   });
 
-  // --- LÓGICA DE APROBACIÓN / RECHAZO ---
+  // --- LÓGICA DE APROBACIÓN / RECHAZO (AHORA ASÍNCRONA) ---
 
-  const handleAprobarProyecto = (id: number) => {
+  const handleAprobarProyecto = async (id: number) => {
     if (
       window.confirm("¿Estás seguro de APROBAR y publicar este proyecto macro?")
     ) {
-      updateProyecto(id, { estado_aprobacion: "ACTIVO" });
+      setLoadingAction(`aprobar-proy-${id}`); // Bloqueamos este botón
+      try {
+        await updateProyecto(id, { estado_aprobacion: "ACTIVO" });
+      } finally {
+        setLoadingAction(null); // Liberamos
+      }
     }
   };
 
-  const handleRechazarProyecto = (id: number) => {
+  const handleRechazarProyecto = async (id: number) => {
     if (
       window.confirm("¿Rechazar este proyecto? Pasará a estado de corrección.")
     ) {
-      updateProyecto(id, { estado_aprobacion: "RECHAZADO" });
+      setLoadingAction(`rechazar-proy-${id}`);
+      try {
+        await updateProyecto(id, { estado_aprobacion: "RECHAZADO" });
+      } finally {
+        setLoadingAction(null);
+      }
     }
   };
 
-  const handleAprobarProducto = (idProyecto: number, idProducto: number) => {
+  const handleAprobarProducto = async (
+    idProyecto: number,
+    idProducto: number,
+  ) => {
     if (window.confirm("¿Estás seguro de APROBAR este producto académico?")) {
       const project = proyectos.find((p) => p.id === idProyecto);
       if (!project) return;
 
-      const updatedProductos = (project.productos || []).map((prod) =>
-        prod.id === idProducto
-          ? { ...prod, estado_aprobacion: "ACTIVO" as const }
-          : prod,
-      );
-      updateProyecto(idProyecto, { productos: updatedProductos });
+      setLoadingAction(`aprobar-prod-${idProducto}`);
+      try {
+        const updatedProductos = (project.productos || []).map((prod) =>
+          prod.id === idProducto
+            ? { ...prod, estado_aprobacion: "ACTIVO" as const }
+            : prod,
+        );
+        await updateProyecto(idProyecto, { productos: updatedProductos });
+      } finally {
+        setLoadingAction(null);
+      }
     }
   };
 
-  const handleRechazarProducto = (idProyecto: number, idProducto: number) => {
+  const handleRechazarProducto = async (
+    idProyecto: number,
+    idProducto: number,
+  ) => {
     if (window.confirm("¿Rechazar este producto académico?")) {
       const project = proyectos.find((p) => p.id === idProyecto);
       if (!project) return;
 
-      const updatedProductos = (project.productos || []).map((prod) =>
-        prod.id === idProducto
-          ? { ...prod, estado_aprobacion: "RECHAZADO" as const }
-          : prod,
-      );
-      updateProyecto(idProyecto, { productos: updatedProductos });
+      setLoadingAction(`rechazar-prod-${idProducto}`);
+      try {
+        const updatedProductos = (project.productos || []).map((prod) =>
+          prod.id === idProducto
+            ? { ...prod, estado_aprobacion: "RECHAZADO" as const }
+            : prod,
+        );
+        await updateProyecto(idProyecto, { productos: updatedProductos });
+      } finally {
+        setLoadingAction(null);
+      }
     }
   };
 
-  // Función auxiliar para obtener el nombre del creador
   const getAutor = (idCreador: number) => {
     const student = students.find((s) => s.id === idCreador);
     return student ? student.name : "Usuario Desconocido";
@@ -105,6 +129,7 @@ export default function AdminAprobaciones() {
                 key={p.id}
                 className="border-2 border-gray-200 p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 bg-gray-50"
               >
+                {/* ... (código de visualización igual) ... */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-bold text-lg text-[#1E293B]">
@@ -120,18 +145,31 @@ export default function AdminAprobaciones() {
                     {getAutor(p.creado_por)}
                   </p>
                 </div>
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAprobarProyecto(p.id)}
-                    className="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-green-200 hover:border-green-600"
+                    disabled={loadingAction !== null} // Deshabilita si CUALQUIER acción está cargando
+                    className="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-green-200 hover:border-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" /> APROBAR
+                    {loadingAction === `aprobar-proy-${p.id}` ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                    )}
+                    APROBAR
                   </button>
                   <button
                     onClick={() => handleRechazarProyecto(p.id)}
-                    className="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-red-200 hover:border-red-600"
+                    disabled={loadingAction !== null}
+                    className="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-red-200 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <XCircle className="w-4 h-4 mr-2" /> RECHAZAR
+                    {loadingAction === `rechazar-proy-${p.id}` ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <XCircle className="w-4 h-4 mr-2" />
+                    )}
+                    RECHAZAR
                   </button>
                 </div>
               </div>
@@ -161,6 +199,7 @@ export default function AdminAprobaciones() {
                 key={prod.id}
                 className="border-2 border-gray-200 p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 bg-gray-50"
               >
+                {/* ... (código de visualización igual) ... */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span
@@ -181,22 +220,35 @@ export default function AdminAprobaciones() {
                     {prod.proyecto_padre.titulo}
                   </p>
                 </div>
+
                 <div className="flex gap-2">
                   <button
                     onClick={() =>
                       handleAprobarProducto(prod.proyecto_padre.id, prod.id)
                     }
-                    className="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-green-200 hover:border-green-600"
+                    disabled={loadingAction !== null}
+                    className="bg-green-100 text-green-700 hover:bg-green-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-green-200 hover:border-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" /> APROBAR
+                    {loadingAction === `aprobar-prod-${prod.id}` ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                    )}
+                    APROBAR
                   </button>
                   <button
                     onClick={() =>
                       handleRechazarProducto(prod.proyecto_padre.id, prod.id)
                     }
-                    className="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-red-200 hover:border-red-600"
+                    disabled={loadingAction !== null}
+                    className="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white px-4 py-2 text-sm font-bold flex items-center transition border border-red-200 hover:border-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <XCircle className="w-4 h-4 mr-2" /> RECHAZAR
+                    {loadingAction === `rechazar-prod-${prod.id}` ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <XCircle className="w-4 h-4 mr-2" />
+                    )}
+                    RECHAZAR
                   </button>
                 </div>
               </div>

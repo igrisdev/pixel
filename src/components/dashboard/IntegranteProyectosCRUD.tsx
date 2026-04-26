@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Users,
   UserPlus,
+  Loader2, // <-- Importamos Loader2
 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import {
@@ -21,7 +22,7 @@ import {
   TipoCategoria,
   Participacion,
 } from "@/types";
-import BadgeEstado from "@/components/ui/BadgeEstado"; // <-- NUEVO: Importamos el Badge
+import BadgeEstado from "@/components/ui/BadgeEstado";
 
 export default function IntegranteProyectosCRUD() {
   const {
@@ -32,6 +33,9 @@ export default function IntegranteProyectosCRUD() {
     updateProyecto,
     deleteProyecto,
   } = useStore();
+
+  // --- NUEVO: Estado global de carga asíncrona para este componente ---
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   // --- ESTADOS: PROYECTO MACRO ---
   const [isAddingProj, setIsAddingProj] = useState(false);
@@ -76,43 +80,56 @@ export default function IntegranteProyectosCRUD() {
   // ------------------------------------------------------------------------
   // LÓGICA: PROYECTOS MACRO
   // ------------------------------------------------------------------------
-  const handleSaveProject = (e: React.FormEvent) => {
+  const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editProjId) {
-      updateProyecto(editProjId, projFormData);
-      setEditProjId(null);
-    } else if (currentUser) {
-      const nextId =
-        proyectos.length > 0 ? Math.max(...proyectos.map((p) => p.id)) + 1 : 1;
+    setLoadingAction("save-project");
 
-      const newProj: Proyecto = {
-        id: nextId,
-        ...projFormData,
-        creado_por: currentUser.id,
-        estado_aprobacion: "PENDIENTE", // <-- NUEVO: Nace pendiente por defecto
-        productos: [],
-      };
+    try {
+      if (editProjId) {
+        await updateProyecto(editProjId, projFormData);
+        setEditProjId(null);
+      } else if (currentUser) {
+        const nextId =
+          proyectos.length > 0
+            ? Math.max(...proyectos.map((p) => p.id)) + 1
+            : 1;
 
-      addProyecto(newProj);
-      setIsAddingProj(false);
+        const newProj: Proyecto = {
+          id: nextId,
+          ...projFormData,
+          creado_por: currentUser.id,
+          estado_aprobacion: "PENDIENTE",
+          productos: [],
+        };
+
+        await addProyecto(newProj);
+        setIsAddingProj(false);
+      }
+      setProjFormData({
+        titulo: "",
+        objetivo: "",
+        premios_distinciones: "",
+        fecha_inicio: "",
+        fecha_fin: "",
+        img: "",
+      });
+    } finally {
+      setLoadingAction(null);
     }
-    setProjFormData({
-      titulo: "",
-      objetivo: "",
-      premios_distinciones: "",
-      fecha_inicio: "",
-      fecha_fin: "",
-      img: "",
-    });
   };
 
-  const handleDeleteProject = (id: number) => {
+  const handleDeleteProject = async (id: number) => {
     if (
       window.confirm(
         "ATENCIÓN: ¿Eliminar todo el proyecto y sus productos derivados?",
       )
     ) {
-      deleteProyecto(id);
+      setLoadingAction(`delete-proj-${id}`);
+      try {
+        await deleteProyecto(id);
+      } finally {
+        setLoadingAction(null);
+      }
     }
   };
 
@@ -153,96 +170,105 @@ export default function IntegranteProyectosCRUD() {
     setManagingTeamProdId(null);
   };
 
-  const handleSaveProduct = (e: React.FormEvent, projectId: number) => {
+  const handleSaveProduct = async (e: React.FormEvent, projectId: number) => {
     e.preventDefault();
     if (!currentUser) return;
     const project = proyectos.find((p) => p.id === projectId);
     if (!project) return;
 
-    const baseProductData = {
-      titulo: prodFormData.titulo,
-      descripcion: prodFormData.descripcion,
-      tipo_categoria: prodFormData.tipo_categoria,
-      tecnologias: prodFormData.tecnologias_string
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-      url_repositorio: prodFormData.url_repositorio,
-      url_demo: prodFormData.url_demo,
-      fuente_publicacion: prodFormData.fuente_publicacion,
-      url_documento: prodFormData.url_documento,
-      localidad: prodFormData.localidad,
-    };
+    setLoadingAction(`save-prod-${projectId}`);
 
-    if (editProdId) {
-      // ACTUALIZAR PRODUCTO EXISTENTE (Podrías devolverlo a PENDIENTE si lo editan, por ahora lo dejamos como está o forzamos pendiente)
-      const updatedProductos = (project.productos || []).map((p) =>
-        p.id === editProdId
-          ? {
-              ...p,
-              ...baseProductData,
-              estado_aprobacion: "PENDIENTE" as const,
-            }
-          : p,
-      );
-      updateProyecto(projectId, { productos: updatedProductos });
-    } else {
-      // CREAR NUEVO PRODUCTO
-      const allProds = proyectos.flatMap((p) => p.productos || []);
-      const nextProdId =
-        allProds.length > 0 ? Math.max(...allProds.map((p) => p.id)) + 1 : 1;
-      const allParts = allProds.flatMap((p) => p.participaciones || []);
-      const nextPartId =
-        allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
-      const userDetails = students.find((s) => s.id === currentUser.id);
-
-      const newProduct: ProductoAcademico = {
-        id: nextProdId,
-        id_proyecto: projectId,
-        ...baseProductData,
-        estado_aprobacion: "PENDIENTE", // <-- NUEVO: Nace pendiente por defecto
-        participaciones: [
-          {
-            id: nextPartId,
-            id_integrante: currentUser.id,
-            id_producto: nextProdId,
-            rol_en_producto: "Autor/Desarrollador Principal",
-            fecha_inicio_rol: project.fecha_inicio,
-            fecha_fin_rol: project.fecha_fin,
-            integrante_nombre: currentUser.name,
-            integrante_img: userDetails?.img || "",
-          },
-        ],
+    try {
+      const baseProductData = {
+        titulo: prodFormData.titulo,
+        descripcion: prodFormData.descripcion,
+        tipo_categoria: prodFormData.tipo_categoria,
+        tecnologias: prodFormData.tecnologias_string
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        url_repositorio: prodFormData.url_repositorio,
+        url_demo: prodFormData.url_demo,
+        fuente_publicacion: prodFormData.fuente_publicacion,
+        url_documento: prodFormData.url_documento,
+        localidad: prodFormData.localidad,
       };
-      updateProyecto(projectId, {
-        productos: [...(project.productos || []), newProduct],
-      });
-    }
 
-    setActiveFormProjectId(null);
-    setEditProdId(null);
-    setProdFormData({
-      titulo: "",
-      descripcion: "",
-      tipo_categoria: "DESARROLLO",
-      tecnologias_string: "",
-      url_repositorio: "",
-      url_demo: "",
-      fuente_publicacion: "",
-      url_documento: "",
-      localidad: "",
-    });
+      if (editProdId) {
+        const updatedProductos = (project.productos || []).map((p) =>
+          p.id === editProdId
+            ? {
+                ...p,
+                ...baseProductData,
+                estado_aprobacion: "PENDIENTE" as const,
+              }
+            : p,
+        );
+        await updateProyecto(projectId, { productos: updatedProductos });
+      } else {
+        const allProds = proyectos.flatMap((p) => p.productos || []);
+        const nextProdId =
+          allProds.length > 0 ? Math.max(...allProds.map((p) => p.id)) + 1 : 1;
+        const allParts = allProds.flatMap((p) => p.participaciones || []);
+        const nextPartId =
+          allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
+        const userDetails = students.find((s) => s.id === currentUser.id);
+
+        const newProduct: ProductoAcademico = {
+          id: nextProdId,
+          id_proyecto: projectId,
+          ...baseProductData,
+          estado_aprobacion: "PENDIENTE",
+          participaciones: [
+            {
+              id: nextPartId,
+              id_integrante: currentUser.id,
+              id_producto: nextProdId,
+              rol_en_producto: "Autor/Desarrollador Principal",
+              fecha_inicio_rol: project.fecha_inicio,
+              fecha_fin_rol: project.fecha_fin,
+              integrante_nombre: currentUser.name,
+              integrante_img: userDetails?.img || "",
+            },
+          ],
+        };
+        await updateProyecto(projectId, {
+          productos: [...(project.productos || []), newProduct],
+        });
+      }
+
+      setActiveFormProjectId(null);
+      setEditProdId(null);
+      setProdFormData({
+        titulo: "",
+        descripcion: "",
+        tipo_categoria: "DESARROLLO",
+        tecnologias_string: "",
+        url_repositorio: "",
+        url_demo: "",
+        fuente_publicacion: "",
+        url_documento: "",
+        localidad: "",
+      });
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
-  const handleDeleteProduct = (projectId: number, productId: number) => {
+  const handleDeleteProduct = async (projectId: number, productId: number) => {
     if (window.confirm("¿Eliminar este producto académico?")) {
       const project = proyectos.find((p) => p.id === projectId);
       if (project) {
-        updateProyecto(projectId, {
-          productos: (project.productos || []).filter(
-            (p) => p.id !== productId,
-          ),
-        });
+        setLoadingAction(`delete-prod-${productId}`);
+        try {
+          await updateProyecto(projectId, {
+            productos: (project.productos || []).filter(
+              (p) => p.id !== productId,
+            ),
+          });
+        } finally {
+          setLoadingAction(null);
+        }
       }
     }
   };
@@ -250,7 +276,7 @@ export default function IntegranteProyectosCRUD() {
   // ------------------------------------------------------------------------
   // LÓGICA: PARTICIPACIONES (EQUIPO)
   // ------------------------------------------------------------------------
-  const handleAddTeamMember = (
+  const handleAddTeamMember = async (
     e: React.FormEvent,
     projectId: number,
     productId: number,
@@ -265,38 +291,44 @@ export default function IntegranteProyectosCRUD() {
     );
     if (!project || !product || !studentToAdd) return;
 
-    const allParts = proyectos
-      .flatMap((p) => p.productos || [])
-      .flatMap((p) => p.participaciones || []);
-    const nextPartId =
-      allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
+    setLoadingAction(`add-team-${productId}`);
 
-    const newParticipacion: Participacion = {
-      id: nextPartId,
-      id_integrante: studentToAdd.id,
-      id_producto: productId,
-      rol_en_producto: teamForm.role,
-      fecha_inicio_rol: project.fecha_inicio,
-      fecha_fin_rol: project.fecha_fin,
-      integrante_nombre: studentToAdd.name,
-      integrante_img: studentToAdd.img,
-    };
+    try {
+      const allParts = proyectos
+        .flatMap((p) => p.productos || [])
+        .flatMap((p) => p.participaciones || []);
+      const nextPartId =
+        allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
 
-    const updatedProductos = (project.productos || []).map((p) => {
-      if (p.id === productId) {
-        return {
-          ...p,
-          participaciones: [...(p.participaciones || []), newParticipacion],
-        };
-      }
-      return p;
-    });
+      const newParticipacion: Participacion = {
+        id: nextPartId,
+        id_integrante: studentToAdd.id,
+        id_producto: productId,
+        rol_en_producto: teamForm.role,
+        fecha_inicio_rol: project.fecha_inicio,
+        fecha_fin_rol: project.fecha_fin,
+        integrante_nombre: studentToAdd.name,
+        integrante_img: studentToAdd.img,
+      };
 
-    updateProyecto(projectId, { productos: updatedProductos });
-    setTeamForm({ studentId: "", role: "" });
+      const updatedProductos = (project.productos || []).map((p) => {
+        if (p.id === productId) {
+          return {
+            ...p,
+            participaciones: [...(p.participaciones || []), newParticipacion],
+          };
+        }
+        return p;
+      });
+
+      await updateProyecto(projectId, { productos: updatedProductos });
+      setTeamForm({ studentId: "", role: "" });
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
-  const handleRemoveTeamMember = (
+  const handleRemoveTeamMember = async (
     projectId: number,
     productId: number,
     participacionId: number,
@@ -304,18 +336,24 @@ export default function IntegranteProyectosCRUD() {
     const project = proyectos.find((p) => p.id === projectId);
     if (!project) return;
 
-    const updatedProductos = (project.productos || []).map((p) => {
-      if (p.id === productId) {
-        return {
-          ...p,
-          participaciones: (p.participaciones || []).filter(
-            (part) => part.id !== participacionId,
-          ),
-        };
-      }
-      return p;
-    });
-    updateProyecto(projectId, { productos: updatedProductos });
+    setLoadingAction(`remove-team-${participacionId}`);
+
+    try {
+      const updatedProductos = (project.productos || []).map((p) => {
+        if (p.id === productId) {
+          return {
+            ...p,
+            participaciones: (p.participaciones || []).filter(
+              (part) => part.id !== participacionId,
+            ),
+          };
+        }
+        return p;
+      });
+      await updateProyecto(projectId, { productos: updatedProductos });
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   return (
@@ -331,7 +369,8 @@ export default function IntegranteProyectosCRUD() {
             setIsAddingProj(!isAddingProj);
             setEditProjId(null);
           }}
-          className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-2.5 text-sm font-bold border-2 border-[#1E293B] flex items-center transition"
+          disabled={loadingAction !== null}
+          className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-2.5 text-sm font-bold border-2 border-[#1E293B] flex items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAddingProj || editProjId ? (
             <X className="w-4 h-4 mr-2" />
@@ -367,11 +406,12 @@ export default function IntegranteProyectosCRUD() {
               <input
                 type="text"
                 required
+                disabled={loadingAction === "save-project"}
                 value={projFormData.titulo}
                 onChange={(e) =>
                   setProjFormData({ ...projFormData, titulo: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 font-medium"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 font-medium disabled:bg-gray-100"
               />
             </div>
             <div className="md:col-span-2">
@@ -380,12 +420,13 @@ export default function IntegranteProyectosCRUD() {
               </label>
               <textarea
                 required
+                disabled={loadingAction === "save-project"}
                 value={projFormData.objetivo}
                 onChange={(e) =>
                   setProjFormData({ ...projFormData, objetivo: e.target.value })
                 }
                 rows={2}
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
               />
             </div>
             <div>
@@ -395,6 +436,7 @@ export default function IntegranteProyectosCRUD() {
               <input
                 type="date"
                 required
+                disabled={loadingAction === "save-project"}
                 value={projFormData.fecha_inicio}
                 onChange={(e) =>
                   setProjFormData({
@@ -402,7 +444,7 @@ export default function IntegranteProyectosCRUD() {
                     fecha_inicio: e.target.value,
                   })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
               />
             </div>
             <div>
@@ -411,6 +453,7 @@ export default function IntegranteProyectosCRUD() {
               </label>
               <input
                 type="date"
+                disabled={loadingAction === "save-project"}
                 value={projFormData.fecha_fin}
                 onChange={(e) =>
                   setProjFormData({
@@ -418,7 +461,7 @@ export default function IntegranteProyectosCRUD() {
                     fecha_fin: e.target.value,
                   })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
               />
             </div>
             <div>
@@ -427,6 +470,7 @@ export default function IntegranteProyectosCRUD() {
               </label>
               <input
                 type="text"
+                disabled={loadingAction === "save-project"}
                 value={projFormData.premios_distinciones}
                 onChange={(e) =>
                   setProjFormData({
@@ -434,7 +478,7 @@ export default function IntegranteProyectosCRUD() {
                     premios_distinciones: e.target.value,
                   })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
               />
             </div>
             <div>
@@ -443,22 +487,29 @@ export default function IntegranteProyectosCRUD() {
               </label>
               <input
                 type="url"
+                disabled={loadingAction === "save-project"}
                 value={projFormData.img}
                 onChange={(e) =>
                   setProjFormData({ ...projFormData, img: e.target.value })
                 }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3"
+                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#F37021] hover:bg-[#e06015] text-white py-4 font-bold border-2 border-[#1E293B] mt-4 transition pixel-border-accent"
+            disabled={loadingAction === "save-project"}
+            className="w-full bg-[#F37021] hover:bg-[#e06015] text-white py-4 font-bold border-2 border-[#1E293B] mt-4 transition pixel-border-accent flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {editProjId
-              ? "GUARDAR CAMBIOS DEL PROYECTO"
-              : "CREAR PROYECTO MACRO"}
+            {loadingAction === "save-project" ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            ) : null}
+            {loadingAction === "save-project"
+              ? "GUARDANDO..."
+              : editProjId
+                ? "GUARDAR CAMBIOS DEL PROYECTO"
+                : "CREAR PROYECTO MACRO"}
           </button>
         </form>
       )}
@@ -466,7 +517,10 @@ export default function IntegranteProyectosCRUD() {
       {/* LISTADO DE PROYECTOS Y SUS PRODUCTOS */}
       <div className="space-y-12">
         {misProyectos.map((p) => (
-          <div key={p.id} className="border-4 border-[#1E293B] overflow-hidden">
+          <div
+            key={p.id}
+            className={`border-4 transition ${loadingAction === `delete-proj-${p.id}` ? "border-red-300 opacity-50" : "border-[#1E293B]"} overflow-hidden`}
+          >
             {/* Cabecera del Proyecto Macro */}
             <div className="bg-[#F8F9FA] p-6 border-b-2 border-gray-200 flex flex-col md:flex-row justify-between md:items-start gap-4">
               <div>
@@ -474,7 +528,6 @@ export default function IntegranteProyectosCRUD() {
                   <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
                     PROYECTO MACRO
                   </span>
-                  {/* <-- NUEVO: Badge de Estado del Proyecto --> */}
                   <BadgeEstado estado={p.estado_aprobacion} />
                 </div>
 
@@ -486,17 +539,23 @@ export default function IntegranteProyectosCRUD() {
               <div className="flex gap-2 shrink-0">
                 <button
                   onClick={() => handleEditProjectClick(p)}
-                  className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition"
+                  disabled={loadingAction !== null}
+                  className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Editar Proyecto"
                 >
                   <Edit className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleDeleteProject(p.id)}
-                  className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition"
+                  disabled={loadingAction !== null}
+                  className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[38px]"
                   title="Eliminar todo el proyecto"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  {loadingAction === `delete-proj-${p.id}` ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -527,7 +586,8 @@ export default function IntegranteProyectosCRUD() {
                     });
                     setManagingTeamProdId(null);
                   }}
-                  className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition"
+                  disabled={loadingAction !== null}
+                  className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   + AÑADIR PRODUCTO
                 </button>
@@ -558,6 +618,7 @@ export default function IntegranteProyectosCRUD() {
                       <input
                         type="text"
                         required
+                        disabled={loadingAction === `save-prod-${p.id}`}
                         value={prodFormData.titulo}
                         onChange={(e) =>
                           setProdFormData({
@@ -565,7 +626,7 @@ export default function IntegranteProyectosCRUD() {
                             titulo: e.target.value,
                           })
                         }
-                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021]"
+                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                       />
                     </div>
                     <div className="w-full md:w-64">
@@ -580,8 +641,10 @@ export default function IntegranteProyectosCRUD() {
                             tipo_categoria: e.target.value as TipoCategoria,
                           })
                         }
-                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white"
-                        disabled={!!editProdId}
+                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white disabled:bg-gray-100"
+                        disabled={
+                          !!editProdId || loadingAction === `save-prod-${p.id}`
+                        }
                       >
                         <option value="DESARROLLO">
                           Software / Desarrollo
@@ -597,6 +660,7 @@ export default function IntegranteProyectosCRUD() {
                     </label>
                     <textarea
                       required
+                      disabled={loadingAction === `save-prod-${p.id}`}
                       value={prodFormData.descripcion}
                       onChange={(e) =>
                         setProdFormData({
@@ -605,7 +669,7 @@ export default function IntegranteProyectosCRUD() {
                         })
                       }
                       rows={2}
-                      className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021]"
+                      className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                     />
                   </div>
 
@@ -620,6 +684,7 @@ export default function IntegranteProyectosCRUD() {
                           </label>
                           <input
                             type="text"
+                            disabled={loadingAction === `save-prod-${p.id}`}
                             value={prodFormData.tecnologias_string}
                             onChange={(e) =>
                               setProdFormData({
@@ -627,7 +692,7 @@ export default function IntegranteProyectosCRUD() {
                                 tecnologias_string: e.target.value,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                           />
                         </div>
                         <div>
@@ -636,6 +701,7 @@ export default function IntegranteProyectosCRUD() {
                           </label>
                           <input
                             type="url"
+                            disabled={loadingAction === `save-prod-${p.id}`}
                             value={prodFormData.url_repositorio}
                             onChange={(e) =>
                               setProdFormData({
@@ -643,7 +709,7 @@ export default function IntegranteProyectosCRUD() {
                                 url_repositorio: e.target.value,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                           />
                         </div>
                         <div>
@@ -652,6 +718,7 @@ export default function IntegranteProyectosCRUD() {
                           </label>
                           <input
                             type="url"
+                            disabled={loadingAction === `save-prod-${p.id}`}
                             value={prodFormData.url_demo}
                             onChange={(e) =>
                               setProdFormData({
@@ -659,7 +726,7 @@ export default function IntegranteProyectosCRUD() {
                                 url_demo: e.target.value,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                           />
                         </div>
                       </div>
@@ -673,6 +740,7 @@ export default function IntegranteProyectosCRUD() {
                           </label>
                           <input
                             type="text"
+                            disabled={loadingAction === `save-prod-${p.id}`}
                             value={prodFormData.fuente_publicacion}
                             onChange={(e) =>
                               setProdFormData({
@@ -680,7 +748,7 @@ export default function IntegranteProyectosCRUD() {
                                 fuente_publicacion: e.target.value,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                           />
                         </div>
                         <div>
@@ -689,6 +757,7 @@ export default function IntegranteProyectosCRUD() {
                           </label>
                           <input
                             type="url"
+                            disabled={loadingAction === `save-prod-${p.id}`}
                             value={prodFormData.url_documento}
                             onChange={(e) =>
                               setProdFormData({
@@ -696,7 +765,7 @@ export default function IntegranteProyectosCRUD() {
                                 url_documento: e.target.value,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                           />
                         </div>
                       </div>
@@ -709,6 +778,7 @@ export default function IntegranteProyectosCRUD() {
                         </label>
                         <input
                           type="text"
+                          disabled={loadingAction === `save-prod-${p.id}`}
                           value={prodFormData.localidad}
                           onChange={(e) =>
                             setProdFormData({
@@ -716,7 +786,7 @@ export default function IntegranteProyectosCRUD() {
                               localidad: e.target.value,
                             })
                           }
-                          className="w-full border border-gray-300 p-2 focus:border-[#F37021]"
+                          className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                         />
                       </div>
                     )}
@@ -724,16 +794,25 @@ export default function IntegranteProyectosCRUD() {
                   <div className="flex gap-3 mt-4">
                     <button
                       type="submit"
-                      className="bg-[#1E293B] text-white px-6 py-3 font-bold hover:bg-[#2D5A27] transition flex-1"
+                      disabled={loadingAction === `save-prod-${p.id}`}
+                      className="bg-[#1E293B] text-white px-6 py-3 font-bold hover:bg-[#2D5A27] transition flex-1 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      {editProdId
-                        ? "GUARDAR CAMBIOS DEL PRODUCTO"
-                        : "GUARDAR NUEVO PRODUCTO"}
+                      {loadingAction === `save-prod-${p.id}` ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                          GUARDANDO...
+                        </>
+                      ) : editProdId ? (
+                        "GUARDAR CAMBIOS DEL PRODUCTO"
+                      ) : (
+                        "GUARDAR NUEVO PRODUCTO"
+                      )}
                     </button>
                     <button
                       type="button"
+                      disabled={loadingAction === `save-prod-${p.id}`}
                       onClick={() => setActiveFormProjectId(null)}
-                      className="bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 transition"
+                      className="bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 transition disabled:opacity-50"
                     >
                       CANCELAR
                     </button>
@@ -754,7 +833,11 @@ export default function IntegranteProyectosCRUD() {
                   return (
                     <div
                       key={prod.id}
-                      className="border border-gray-200 p-4 relative group hover:border-[#1E293B] transition flex flex-col"
+                      className={`border p-4 relative group transition flex flex-col ${
+                        loadingAction === `delete-prod-${prod.id}`
+                          ? "border-red-300 bg-red-50 opacity-50"
+                          : "border-gray-200 hover:border-[#1E293B]"
+                      }`}
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
@@ -763,7 +846,6 @@ export default function IntegranteProyectosCRUD() {
                           >
                             {prod.tipo_categoria}
                           </div>
-                          {/* <-- NUEVO: Badge de Estado del Producto --> */}
                           <BadgeEstado estado={prod.estado_aprobacion} />
                         </div>
 
@@ -775,24 +857,31 @@ export default function IntegranteProyectosCRUD() {
                                 managingTeamProdId === prod.id ? null : prod.id,
                               )
                             }
-                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-[#2D5A27] hover:text-white transition"
+                            disabled={loadingAction !== null}
+                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-[#2D5A27] hover:text-white transition disabled:opacity-50"
                             title="Gestionar Equipo"
                           >
                             <Users className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleEditProductClick(p.id, prod)}
-                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition"
+                            disabled={loadingAction !== null}
+                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition disabled:opacity-50"
                             title="Editar Producto"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(p.id, prod.id)}
-                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-red-600 hover:text-white transition"
+                            disabled={loadingAction !== null}
+                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-red-600 hover:text-white transition disabled:opacity-50 flex items-center justify-center min-w-[30px]"
                             title="Eliminar Producto"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {loadingAction === `delete-prod-${prod.id}` ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -828,7 +917,7 @@ export default function IntegranteProyectosCRUD() {
                             {(prod.participaciones || []).map((part) => (
                               <li
                                 key={part.id}
-                                className="flex justify-between items-center bg-white border border-gray-200 p-2 text-xs"
+                                className={`flex justify-between items-center bg-white border p-2 text-xs transition ${loadingAction === `remove-team-${part.id}` ? "border-red-300 opacity-50" : "border-gray-200"}`}
                               >
                                 <div className="flex items-center">
                                   <img
@@ -852,9 +941,15 @@ export default function IntegranteProyectosCRUD() {
                                         part.id,
                                       )
                                     }
-                                    className="text-red-400 hover:text-red-600"
+                                    disabled={loadingAction !== null}
+                                    className="text-red-400 hover:text-red-600 disabled:opacity-50"
                                   >
-                                    <X className="w-4 h-4" />
+                                    {loadingAction ===
+                                    `remove-team-${part.id}` ? (
+                                      <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+                                    ) : (
+                                      <X className="w-4 h-4" />
+                                    )}
                                   </button>
                                 )}
                               </li>
@@ -870,13 +965,16 @@ export default function IntegranteProyectosCRUD() {
                             >
                               <select
                                 value={teamForm.studentId}
+                                disabled={
+                                  loadingAction === `add-team-${prod.id}`
+                                }
                                 onChange={(e) =>
                                   setTeamForm({
                                     ...teamForm,
                                     studentId: e.target.value,
                                   })
                                 }
-                                className="text-xs border border-gray-300 p-2 bg-white"
+                                className="text-xs border border-gray-300 p-2 bg-white disabled:bg-gray-100"
                                 required
                               >
                                 <option value="">
@@ -893,20 +991,31 @@ export default function IntegranteProyectosCRUD() {
                                   type="text"
                                   placeholder="Rol (Ej. Analista QA)"
                                   value={teamForm.role}
+                                  disabled={
+                                    loadingAction === `add-team-${prod.id}`
+                                  }
                                   onChange={(e) =>
                                     setTeamForm({
                                       ...teamForm,
                                       role: e.target.value,
                                     })
                                   }
-                                  className="text-xs border border-gray-300 p-2 flex-1"
+                                  className="text-xs border border-gray-300 p-2 flex-1 disabled:bg-gray-100"
                                   required
                                 />
                                 <button
                                   type="submit"
-                                  className="bg-[#2D5A27] text-white px-3 py-2 text-xs font-bold hover:bg-[#1f3f1b] flex items-center"
+                                  disabled={
+                                    loadingAction === `add-team-${prod.id}`
+                                  }
+                                  className="bg-[#2D5A27] text-white px-3 py-2 text-xs font-bold hover:bg-[#1f3f1b] flex items-center justify-center min-w-[85px] disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                  <UserPlus className="w-3 h-3 mr-1" /> AÑADIR
+                                  {loadingAction === `add-team-${prod.id}` ? (
+                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <UserPlus className="w-3 h-3 mr-1" />
+                                  )}
+                                  AÑADIR
                                 </button>
                               </div>
                             </form>
