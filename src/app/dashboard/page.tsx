@@ -11,6 +11,8 @@ import {
   BookOpen,
   CheckSquare,
   FolderPlus,
+  Menu, // NUEVO: Ícono de menú hamburguesa
+  X, // NUEVO: Ícono para cerrar
 } from "lucide-react";
 
 // Importamos los componentes CRUD
@@ -25,6 +27,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const { currentUser, logout } = useStore();
   const [activeTab, setActiveTab] = useState("");
+
+  // NUEVO: Estado para controlar si el menú móvil está abierto o cerrado
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -41,21 +46,69 @@ export default function DashboardPage() {
     router.push("/");
   };
 
+  // Función para cambiar de pestaña y cerrar el menú en móviles automáticamente
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row">
-      {/* SIDEBAR */}
-      <aside className="w-full md:w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021] md:min-h-screen sticky top-0 md:h-screen overflow-y-auto">
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-bold mb-1">
-            Panel <span className="text-[#F37021]">Pixel</span>
-          </h2>
-          <p className="text-xs font-mono text-gray-400 flex items-center">
-            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>{" "}
-            {currentUser.name}
-          </p>
-          <div className="mt-3 inline-block bg-[#2D5A27] px-2 py-1 text-[10px] font-mono font-bold">
-            ROL: {currentUser.role}
+    <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row relative">
+      {/* NAVEGACIÓN MÓVIL SUPERIOR (Visible solo en celulares) */}
+      <div className="md:hidden bg-[#1E293B] text-white flex justify-between items-center p-4 sticky top-0 z-40 border-b-4 border-[#F37021] shadow-md">
+        <h2 className="text-xl font-bold">
+          Panel <span className="text-[#F37021]">Pixel</span>
+        </h2>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-1 hover:bg-gray-800 rounded transition"
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </button>
+      </div>
+
+      {/* FONDO OSCURO PARA EL MENÚ MÓVIL (Al hacer clic, se cierra) */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR / BARRA LATERAL */}
+      {/* Se adapta dinámicamente: Oculta en móviles (-translate-x-full) pero visible en MD (translate-x-0) */}
+      <aside
+        className={`fixed md:sticky top-0 left-0 z-50 h-screen w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021] overflow-y-auto transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        <div className="p-6 border-b border-gray-700 flex justify-between items-start">
+          <div>
+            <h2 className="text-xl font-bold mb-1 hidden md:block">
+              Panel <span className="text-[#F37021]">Pixel</span>
+            </h2>
+            <p className="text-xs font-mono text-gray-400 flex items-center mt-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>{" "}
+              <span className="truncate w-40">{currentUser.name}</span>
+            </p>
+            <div className="mt-3 inline-block bg-[#2D5A27] px-2 py-1 text-[10px] font-mono font-bold">
+              ROL: {currentUser.role}
+            </div>
           </div>
+
+          {/* Botón X dentro del sidebar para móviles */}
+          <button
+            className="md:hidden text-gray-400 hover:text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         <nav className="flex-1 py-6 px-4 space-y-2">
@@ -63,28 +116,27 @@ export default function DashboardPage() {
             <>
               <SidebarBtn
                 active={activeTab === "usuarios"}
-                onClick={() => setActiveTab("usuarios")}
+                onClick={() => handleTabChange("usuarios")}
                 icon={<User className="w-5 h-5" />}
                 label="Gestión de Usuarios"
               />
 
-              {/* NUEVO: Bandeja de aprobaciones (Para el Paso D) */}
               <SidebarBtn
                 active={activeTab === "aprobaciones"}
-                onClick={() => setActiveTab("aprobaciones")}
+                onClick={() => handleTabChange("aprobaciones")}
                 icon={<CheckSquare className="w-5 h-5 text-yellow-400" />}
                 label="Aprobaciones Pendientes"
               />
 
               <SidebarBtn
                 active={activeTab === "proyectos_admin"}
-                onClick={() => setActiveTab("proyectos_admin")}
+                onClick={() => handleTabChange("proyectos_admin")}
                 icon={<Folder className="w-5 h-5" />}
                 label="Auditoría Global"
               />
               <SidebarBtn
                 active={activeTab === "competencias"}
-                onClick={() => setActiveTab("competencias")}
+                onClick={() => handleTabChange("competencias")}
                 icon={<BookOpen className="w-5 h-5" />}
                 label="Catálogo Competencias"
               />
@@ -93,10 +145,9 @@ export default function DashboardPage() {
                 <p className="text-[10px] text-gray-500 font-mono mb-2 px-2">
                   ÁREA PERSONAL
                 </p>
-                {/* NUEVO: Mis Proyectos para el Admin (Paso C) */}
                 <SidebarBtn
                   active={activeTab === "mis_proyectos"}
-                  onClick={() => setActiveTab("mis_proyectos")}
+                  onClick={() => handleTabChange("mis_proyectos")}
                   icon={<FolderPlus className="w-5 h-5" />}
                   label="Mis Proyectos"
                 />
@@ -106,13 +157,13 @@ export default function DashboardPage() {
             <>
               <SidebarBtn
                 active={activeTab === "perfil"}
-                onClick={() => setActiveTab("perfil")}
+                onClick={() => handleTabChange("perfil")}
                 icon={<Settings className="w-5 h-5" />}
                 label="Mi Perfil"
               />
               <SidebarBtn
                 active={activeTab === "mis_proyectos"}
-                onClick={() => setActiveTab("mis_proyectos")}
+                onClick={() => handleTabChange("mis_proyectos")}
                 icon={<Folder className="w-5 h-5" />}
                 label="Mis Proyectos"
               />
@@ -120,7 +171,7 @@ export default function DashboardPage() {
           )}
         </nav>
 
-        <div className="p-4 border-t border-gray-700 mt-auto">
+        <div className="p-4 border-t border-gray-700 mt-auto bg-[#1E293B]">
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center bg-transparent border-2 border-gray-600 hover:border-red-500 hover:text-red-500 text-gray-300 font-bold py-3 transition"
@@ -131,12 +182,13 @@ export default function DashboardPage() {
       </aside>
 
       {/* ÁREA PRINCIPAL (Inyecta el componente dinámicamente) */}
-      <main className="flex-1 p-4 md:p-10 overflow-x-hidden">
-        <header className="mb-8 border-b-2 border-gray-200 pb-4">
+      <main className="flex-1 p-4 md:p-8 lg:p-10 overflow-x-hidden w-full">
+        <header className="mb-6 md:mb-8 border-b-2 border-gray-200 pb-4">
           <h1 className="text-2xl md:text-3xl font-bold text-[#1E293B] capitalize">
             {activeTab.replace("_", " ")}
           </h1>
         </header>
+
         {/* Renderizado Condicional del Componente CRUD correcto */}
         {currentUser.role === "ADMIN" && activeTab === "usuarios" && (
           <AdminUsuariosCRUD />
@@ -147,7 +199,6 @@ export default function DashboardPage() {
         {currentUser.role === "ADMIN" && activeTab === "proyectos_admin" && (
           <AdminAuditoriaCRUD />
         )}
-        {/* 👇 AQUI VA EL NUEVO COMPONENTE 👇 */}
         {currentUser.role === "ADMIN" && activeTab === "aprobaciones" && (
           <AdminAprobaciones />
         )}
@@ -155,7 +206,7 @@ export default function DashboardPage() {
           <IntegrantePerfilCRUD />
         )}
         {/* Habilitamos 'mis_proyectos' para AMBOS roles */}
-        {activeTab === "mis_proyectos" && <IntegranteProyectosCRUD />}{" "}
+        {activeTab === "mis_proyectos" && <IntegranteProyectosCRUD />}
       </main>
     </div>
   );
@@ -182,7 +233,7 @@ function SidebarBtn({
       }`}
     >
       <span className="mr-3">{icon}</span>
-      <span className="truncate">{label}</span>
+      <span className="truncate text-left text-sm md:text-base">{label}</span>
     </button>
   );
 }
