@@ -48,6 +48,9 @@ export interface Competency {
 // 3. ESTRUCTURA DE PROYECTOS Y PRODUCTOS (SEGÚN ER)
 // ----------------------------------------------------
 
+// NUEVO: Tipo de estado para el flujo de revisión
+export type EstadoAprobacion = "PENDIENTE" | "ACTIVO" | "RECHAZADO";
+
 // La tabla principal del Macro-Proyecto
 export interface Proyecto {
   id: number;
@@ -58,6 +61,7 @@ export interface Proyecto {
   fecha_fin: string | null;
   creado_por: number; // FK a id_integrante
   img: string; // Para la UI (portada del proyecto)
+  estado_aprobacion: EstadoAprobacion; // <--- AÑADIDO
 
   // Relación 1:N con Productos
   productos?: ProductoAcademico[];
@@ -73,6 +77,7 @@ export interface ProductoAcademico {
   titulo: string;
   descripcion: string;
   tipo_categoria: TipoCategoria;
+  estado_aprobacion: EstadoAprobacion; // <--- AÑADIDO
 
   // --- Campos específicos de DESARROLLO (1:1) ---
   subtipo_desarrollo?: string;

@@ -136,6 +136,7 @@ export const INITIAL_PROYECTOS: Proyecto[] = [
     fecha_fin: "2024-11-30",
     creado_por: 1, // Creado por Johan
     img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80",
+    estado_aprobacion: "PENDIENTE", // <--- AÑADIDO
     productos: [
       {
         id: 101,
@@ -144,6 +145,7 @@ export const INITIAL_PROYECTOS: Proyecto[] = [
         descripcion:
           "Una arquitectura limpia basada en contenedores Docker y microservicios. Implementa JWT para autenticación, Next.js para el renderizado del lado del servidor y MySQL.",
         tipo_categoria: "DESARROLLO",
+        estado_aprobacion: "PENDIENTE", // <--- AÑADIDO
         tecnologias: ["Docker", "Express", "Next.js", "MySQL"],
         url_repositorio: "https://github.com/pixel/core-engine",
         url_demo: "https://pixel-demo.com",
@@ -184,6 +186,7 @@ export const INITIAL_PROYECTOS: Proyecto[] = [
     fecha_fin: "2024-05-30",
     creado_por: 3, // Creado por Carlos
     img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
+    estado_aprobacion: "ACTIVO", // <--- AÑADIDO
     productos: [
       {
         id: 102,
@@ -192,9 +195,10 @@ export const INITIAL_PROYECTOS: Proyecto[] = [
         descripcion:
           "El sistema recopila datos de humedad y temperatura del suelo en tiempo real. Utiliza un modelo predictivo en Python (TensorFlow) para alertar a los agricultores.",
         tipo_categoria: "DESARROLLO",
+        estado_aprobacion: "ACTIVO", // <--- AÑADIDO
         tecnologias: ["Python", "IoT", "React", "TensorFlow"],
         url_repositorio: "https://github.com/pixel/agrotech",
-        url_demo: null,
+        url_demo: undefined,
         participaciones: [
           {
             id: 1003,
