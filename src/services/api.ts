@@ -1,30 +1,25 @@
-import { Proyecto, Student } from "@/types";
+import { Project, Member } from "@/types";
 
-// Utilidad para simular latencia de red (Backend falso)
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const ApiRepository = {
   // --- PROYECTOS ---
-  createProyecto: async (proyecto: Proyecto): Promise<Proyecto> => {
-    await delay(300); // Simulamos el POST a /api/proyectos
-    return proyecto; // El "backend" nos devuelve el objeto creado
+  createProject: async (project: Project): Promise<Project> => {
+    await delay(300); // Simulamos el POST a /api/projects
+    return project; // El "backend" nos devuelve el objeto creado
   },
 
-  updateProyecto: async (
-    id: number,
-    data: Partial<Proyecto>,
-  ): Promise<void> => {
-    await delay(300); // Simulamos el PUT a /api/proyectos/[id]
-    // No retorna nada, solo confirma que se actualizó
+  updateProject: async (id: number, data: Partial<Project>): Promise<void> => {
+    await delay(300); // Simulamos el PUT a /api/projects/[id]
   },
 
-  deleteProyecto: async (id: number): Promise<void> => {
-    await delay(300); // Simulamos el DELETE a /api/proyectos/[id]
+  deleteProject: async (id: number): Promise<void> => {
+    await delay(300); // Simulamos el DELETE a /api/projects/[id]
   },
 
-  // --- ESTUDIANTES / USUARIOS ---
-  updateStudent: async (id: number, data: Partial<Student>): Promise<void> => {
-    await delay(300); // Simulamos el PUT a /api/students/[id]
+  // --- MIEMBROS / USUARIOS ---
+  updateMember: async (id: number, data: Partial<Member>): Promise<void> => {
+    await delay(300); // Simulamos el PUT a /api/members/[id]
   },
 
   // --- AUTH ---
