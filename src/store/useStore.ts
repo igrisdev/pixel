@@ -104,46 +104,36 @@ export const useStore = create<StoreState>()(
       userRole: null,
 
       login: async (email, pass) => {
-        // Simulamos el tiempo de validación de credenciales en el servidor
-        await ApiRepository.verifyCredentials();
-
-        // Lógica de administrador
-        if (email === "admin@unimayor.edu.co" && pass === "admin123") {
-          set({
-            currentUser: {
-              id: 999,
-              name: "Administrador Pixel",
-              role: "ADMIN",
-              email,
-            },
-            userRole: "ADMIN",
-          });
-          return true;
-        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         const state = get();
-        // Buscamos al estudiante por correo institucional o personal
+
+        // Buscamos al usuario (sea admin o integrante) por cualquier de sus correos
         const user = state.students.find(
           (s) => s.email_institucional === email || s.email_personal === email,
         );
 
-        // Comparamos contra la contraseña guardada en el perfil del usuario (password_hash)
+        // Verificamos contraseña y si el usuario no está vetado
         if (user && pass === user.password_hash) {
+          if (user.vetado) {
+            console.error("Usuario vetado");
+            return false;
+          }
+
           set({
             currentUser: {
               id: user.id,
               name: user.name,
-              role: "INTEGRANTE",
-              email,
+              role: user.role_sistema, // Aquí asignamos ADMIN o INTEGRANTE según el array
+              email: user.email_institucional,
             },
-            userRole: "INTEGRANTE",
+            userRole: user.role_sistema,
           });
           return true;
         }
 
         return false;
       },
-
       logout: () => {
         set({ currentUser: null, userRole: null });
       },

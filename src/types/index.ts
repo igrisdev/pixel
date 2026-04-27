@@ -16,6 +16,7 @@ export interface Student {
   carrera: string;
   status: "ESTUDIANTE" | "EGRESADO";
   vetado: boolean;
+  role_sistema: "ADMIN" | "INTEGRANTE";
 
   // Campos que el integrante actualiza en su perfil:
   img: string; // url_foto en BD

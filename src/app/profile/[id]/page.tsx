@@ -2,11 +2,14 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useStore } from "@/store/useStore";
 import { ExternalLink, Download, Code, MapPin, Trophy } from "lucide-react";
 
-type ParticipationMock = {
+// Actualizamos el tipo para incluir projectId y que sirva para la redirección
+type ParticipationData = {
   id: number;
+  projectId: number;
   title: string;
   type: string;
   role: string;
@@ -20,7 +23,9 @@ type ParticipationMock = {
 export default function ProfilePage() {
   const { id } = useParams();
   const router = useRouter();
-  const { students } = useStore();
+
+  // Extraemos students y proyectos del store global
+  const { students, proyectos } = useStore();
 
   const student = students.find((s) => s.id === Number(id));
 
@@ -40,52 +45,59 @@ export default function ProfilePage() {
     );
   }
 
-  // Extendemos los datos con el mock del diseño original
-  // Agregamos fallbacks seguros (|| []) para evitar errores de TypeScript
+  // --- LÓGICA RELACIONAL: BUSCAR PARTICIPACIONES REALES ---
+  const participacionesReales: ParticipationData[] = proyectos.flatMap(
+    (proyecto) => {
+      // 1. Buscamos los productos de este proyecto donde el estudiante haya participado
+      const productosDelEstudiante = (proyecto.productos || []).filter((prod) =>
+        (prod.participaciones || []).some(
+          (part) => part.id_integrante === student.id,
+        ),
+      );
+
+      // 2. Mapeamos esos productos a la estructura visual de la tarjeta
+      return productosDelEstudiante.map((prod) => {
+        // Extraemos exactamente el rol y fechas de la participación de ESTE estudiante en ESTE producto
+        const participacion = prod.participaciones!.find(
+          (part) => part.id_integrante === student.id,
+        )!;
+
+        return {
+          id: prod.id,
+          projectId: proyecto.id, // Fundamental para la redirección
+          title: prod.titulo,
+          type: prod.tipo_categoria,
+          role: participacion.rol_en_producto,
+          date: `${participacion.fecha_inicio_rol} - ${participacion.fecha_fin_rol || "Presente"}`,
+          tech: prod.tecnologias || [],
+          source: prod.fuente_publicacion || "",
+          location: prod.localidad || "",
+          isProjectHead: proyecto.creado_por === student.id, // Es líder si creó el Proyecto Macro
+        };
+      });
+    },
+  );
+
+  // Extendemos los datos. Dejamos las bio/skills simuladas ya que aún no existen en el Modelo BD
   const mockProfile = {
     ...student,
     email:
       student.email_personal ||
       student.name.split(" ")[0].toLowerCase() + "@unimayor.edu.co",
     bio: "Apasionado por la tecnología y la investigación aplicada. Investigador en el semillero Pixel participando activamente en el desarrollo de soluciones de software.",
-    skillsHard: (student.tech || []).concat(["Git", "Scrum", "API REST"]),
+    skillsHard:
+      (student.tech || []).length > 0
+        ? student.tech
+        : ["Git", "Scrum", "API REST"],
     skillsSoft: [
       "Liderazgo técnico",
       "Resolución de problemas",
       "Trabajo colaborativo",
       "Redacción científica",
     ],
-    // Le asignamos el tipo como un arreglo de ParticipationMock
-    participations: [
-      {
-        id: 100,
-        title: "Pixel Core Engine",
-        type: "DESARROLLO",
-        role: student.role,
-        date: "Mar 2024 - Nov 2024",
-        tech: student.tech || [],
-        isProjectHead: true,
-      },
-      {
-        id: 101,
-        title: "Visibilización de Talento IT",
-        type: "ESCRITO",
-        role: "Co-autor",
-        date: "Jun 2024 - Dic 2024",
-        source: "Revista Ingeniería UNIMAYOR",
-        isProjectHead: false,
-      },
-      {
-        id: 102,
-        title: "Encuentro Regional RedCOLSI",
-        type: "EVENTO",
-        role: "Ponente",
-        date: "Oct 2024",
-        location: "Universidad del Cauca, Popayán",
-        isProjectHead: false,
-      },
-    ] as ParticipationMock[],
+    participations: participacionesReales,
   };
+
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <button
@@ -130,7 +142,7 @@ export default function ProfilePage() {
                   ENLACES PROFESIONALES
                 </p>
                 <div className="flex flex-col space-y-3">
-                  {mockProfile.enlaces &&
+                  {mockProfile.enlaces && mockProfile.enlaces.length > 0 ? (
                     mockProfile.enlaces.map((enlace) => (
                       <a
                         key={enlace.id}
@@ -144,7 +156,13 @@ export default function ProfilePage() {
                           {enlace.plataforma}
                         </span>
                       </a>
-                    ))}
+                    ))
+                  ) : (
+                    <span className="text-xs italic text-gray-400">
+                      Sin enlaces registrados
+                    </span>
+                  )}
+
                   <a
                     href={`mailto:${mockProfile.email}`}
                     className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group mt-4 pt-4 border-t border-gray-100"
@@ -210,68 +228,87 @@ export default function ProfilePage() {
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-xl font-bold text-[#1E293B] flex items-center">
                 <span className="w-2 h-6 bg-[#2D5A27] mr-3 inline-block"></span>{" "}
-                Portafolio y Trayectoria
+                Portafolio y Trayectoria ({mockProfile.participations.length})
               </h3>
             </div>
-            <div className="relative border-l-2 border-[#1E293B] ml-3 space-y-8 pb-4">
-              {mockProfile.participations.map((part) => {
-                let typeColor = "bg-[#2D5A27]";
-                if (part.type === "ESCRITO") typeColor = "bg-blue-600";
-                if (part.type === "EVENTO") typeColor = "bg-purple-600";
 
-                return (
-                  <div key={part.id} className="relative pl-8">
-                    <div
-                      className={`absolute -left-[11px] top-1 w-5 h-5 ${typeColor} border-2 border-[#1E293B]`}
-                    ></div>
-                    <div className="bg-[#F8F9FA] border border-gray-200 p-5 hover:border-[#1E293B] transition group">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-lg font-bold text-[#1E293B] group-hover:text-[#F37021] transition">
-                          {part.title}
-                        </h4>
-                        <span className="text-xs font-mono text-gray-500">
-                          {part.date}
-                        </span>
-                      </div>
-                      <p className="text-[#2D5A27] font-semibold text-sm mb-3">
-                        {part.role}
-                      </p>
+            {mockProfile.participations.length === 0 ? (
+              <p className="text-gray-500 italic p-6 border-2 border-dashed border-gray-200 text-center">
+                Este integrante aún no tiene participaciones en productos
+                académicos.
+              </p>
+            ) : (
+              <div className="relative border-l-2 border-[#1E293B] ml-3 space-y-8 pb-4">
+                {mockProfile.participations.map((part) => {
+                  let typeColor = "bg-[#2D5A27]";
+                  if (part.type === "ESCRITO") typeColor = "bg-blue-600";
+                  if (part.type === "EVENTO") typeColor = "bg-purple-600";
 
-                      {/* Aquí aplicamos el Optional Chaining (?.) */}
-                      {part.type === "DESARROLLO" && part.tech && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {part.tech?.map((t: string) => (
-                            <span
-                              key={t}
-                              className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center text-[#334155]"
-                            >
-                              <Code className="w-3 h-3 mr-1" /> {t}
-                            </span>
-                          ))}
+                  return (
+                    <div key={part.id} className="relative pl-8">
+                      <div
+                        className={`absolute -left-[11px] top-1 w-5 h-5 ${typeColor} border-2 border-[#1E293B]`}
+                      ></div>
+
+                      {/* AHORA ES UN ENLACE CLICKEABLE HACIA EL PROYECTO */}
+                      <Link
+                        href={`/project/${part.projectId}`}
+                        className="block bg-[#F8F9FA] border border-gray-200 p-5 hover:border-[#F37021] hover:shadow-md transition group cursor-pointer"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="text-lg font-bold text-[#1E293B] group-hover:text-[#F37021] transition">
+                            {part.title}
+                          </h4>
+                          <span className="text-xs font-mono text-gray-500 bg-white px-2 py-1 border border-gray-200">
+                            {part.type}
+                          </span>
                         </div>
-                      )}
-                      {part.type === "ESCRITO" && (
-                        <p className="text-sm text-[#334155] italic">
-                          Publicado en: {part.source}
+                        <p className="text-[#2D5A27] font-semibold text-sm mb-3 flex items-center">
+                          {part.role}
                         </p>
-                      )}
-                      {part.type === "EVENTO" && (
-                        <p className="text-sm text-[#334155] flex items-center">
-                          <MapPin className="w-4 h-4 mr-1 text-gray-500" />{" "}
-                          {part.location}
+
+                        {/* Fechas de Participación */}
+                        <p className="text-[11px] font-mono text-gray-500 mb-3 uppercase">
+                          Período: {part.date}
                         </p>
-                      )}
-                      {part.isProjectHead && (
-                        <div className="mt-4 pt-3 border-t border-gray-200 flex items-center text-xs text-[#F37021] font-bold">
-                          <Trophy className="w-4 h-4 mr-1" /> Líder de Proyecto
-                          Principal
-                        </div>
-                      )}
+
+                        {part.type === "DESARROLLO" &&
+                          part.tech &&
+                          part.tech.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {part.tech.map((t: string) => (
+                                <span
+                                  key={t}
+                                  className="text-[10px] bg-white border border-gray-300 px-2 py-1 flex items-center text-[#334155] font-bold uppercase tracking-wider"
+                                >
+                                  <Code className="w-3 h-3 mr-1" /> {t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        {part.type === "ESCRITO" && part.source && (
+                          <p className="text-sm text-[#334155] italic">
+                            Publicado en: {part.source}
+                          </p>
+                        )}
+                        {part.type === "EVENTO" && part.location && (
+                          <p className="text-sm text-[#334155] flex items-center">
+                            <MapPin className="w-4 h-4 mr-1 text-gray-500" />{" "}
+                            {part.location}
+                          </p>
+                        )}
+                        {part.isProjectHead && (
+                          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center text-xs text-[#F37021] font-bold">
+                            <Trophy className="w-4 h-4 mr-1" /> Líder del
+                            Proyecto Macro
+                          </div>
+                        )}
+                      </Link>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

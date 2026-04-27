@@ -34,6 +34,7 @@ export default function DashboardPage() {
     if (!currentUser) {
       router.push("/login");
     } else {
+      // <-- MODIFICADO: Ambos roles ahora tienen tabs válidos por defecto
       setActiveTab(currentUser.role === "ADMIN" ? "usuarios" : "perfil");
     }
   }, [currentUser, router]);
@@ -52,7 +53,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row relative">
-      {/* NAVEGACIÓN MÓVIL SUPERIOR (Visible solo en celulares) */}
+      {/* NAVEGACIÓN MÓVIL SUPERIOR */}
       <div className="md:hidden bg-[#1E293B] text-white flex justify-between items-center p-4 sticky top-0 z-40 border-b-4 border-[#F37021] shadow-md">
         <h2 className="text-xl font-bold">
           Panel <span className="text-[#F37021]">Pixel</span>
@@ -69,7 +70,7 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* FONDO OSCURO PARA EL MENÚ MÓVIL (Al hacer clic, se cierra) */}
+      {/* FONDO OSCURO PARA EL MENÚ MÓVIL */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
@@ -78,7 +79,7 @@ export default function DashboardPage() {
       )}
 
       {/* SIDEBAR / BARRA LATERAL */}
-      {/* CORRECCIÓN: md:top-[66px] md:h-[calc(100vh-66px)] md:z-40 */}
+      {/* CORRECCIÓN DE POSICIONAMIENTO MD APLICADA ANTERIORMENTE */}
       <aside
         className={`fixed md:sticky top-0 md:top-[66px] left-0 z-50 md:z-40 h-screen md:h-[calc(100vh-66px)] w-64 bg-[#1E293B] text-white flex flex-col border-r-4 border-[#F37021] overflow-y-auto transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen
@@ -100,7 +101,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Botón X dentro del sidebar para móviles */}
           <button
             className="md:hidden text-gray-400 hover:text-white"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -112,6 +112,7 @@ export default function DashboardPage() {
         <nav className="flex-1 py-6 px-4 space-y-2">
           {currentUser.role === "ADMIN" ? (
             <>
+              {/* Sección de Gestión (Exclusiva Admin) */}
               <SidebarBtn
                 active={activeTab === "usuarios"}
                 onClick={() => handleTabChange("usuarios")}
@@ -139,10 +140,18 @@ export default function DashboardPage() {
                 label="Catálogo Competencias"
               />
 
+              {/* Sección Personal (Compartida con Admin) */}
               <div className="pt-4 mt-4 border-t border-gray-700">
                 <p className="text-[10px] text-gray-500 font-mono mb-2 px-2">
                   ÁREA PERSONAL
                 </p>
+                {/* <-- NUEVO: Habilitamos "Mi Perfil" para el Admin en su Área Personal --> */}
+                <SidebarBtn
+                  active={activeTab === "perfil"}
+                  onClick={() => handleTabChange("perfil")}
+                  icon={<Settings className="w-5 h-5" />}
+                  label="Mi Perfil"
+                />
                 <SidebarBtn
                   active={activeTab === "mis_proyectos"}
                   onClick={() => handleTabChange("mis_proyectos")}
@@ -152,6 +161,7 @@ export default function DashboardPage() {
               </div>
             </>
           ) : (
+            // Sección Personal para Integrante
             <>
               <SidebarBtn
                 active={activeTab === "perfil"}
@@ -187,6 +197,8 @@ export default function DashboardPage() {
           </h1>
         </header>
 
+        {/* Renderizado Condicional de Componentes */}
+        {/* Gestión Admin */}
         {currentUser.role === "ADMIN" && activeTab === "usuarios" && (
           <AdminUsuariosCRUD />
         )}
@@ -199,9 +211,11 @@ export default function DashboardPage() {
         {currentUser.role === "ADMIN" && activeTab === "aprobaciones" && (
           <AdminAprobaciones />
         )}
-        {currentUser.role === "INTEGRANTE" && activeTab === "perfil" && (
-          <IntegrantePerfilCRUD />
-        )}
+
+        {/* <-- MODIFICADO: Habilitamos el Perfil CRUD para AMBOS roles cuando la tab 'perfil' esté activa --> */}
+        {activeTab === "perfil" && <IntegrantePerfilCRUD />}
+
+        {/* Habilitado para AMBOS roles */}
         {activeTab === "mis_proyectos" && <IntegranteProyectosCRUD />}
       </main>
     </div>
