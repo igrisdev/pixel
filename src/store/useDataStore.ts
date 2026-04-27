@@ -36,14 +36,14 @@ export const useDataStore = create<DataState>()(
       setCompetencies: (competencies) => set({ competencies }),
 
       addProject: async (project) => {
-        const newProject = await ApiRepository.createProyecto(project); // Deberías renombrarlo en la API a createProject luego
+        const newProject = await ApiRepository.createProject(project); // Deberías renombrarlo en la API a createProject luego
         set((state) => ({
           projects: [newProject, ...state.projects],
         }));
       },
 
       updateProject: async (id, updatedData) => {
-        await ApiRepository.updateProyecto(id, updatedData);
+        await ApiRepository.updateProject(id, updatedData);
         set((state) => ({
           projects: state.projects.map((p) =>
             p.id === id ? { ...p, ...updatedData } : p,
@@ -52,14 +52,14 @@ export const useDataStore = create<DataState>()(
       },
 
       deleteProject: async (id) => {
-        await ApiRepository.deleteProyecto(id);
+        await ApiRepository.deleteProject(id);
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
         }));
       },
 
       updateMember: async (id, updatedData) => {
-        await ApiRepository.updateStudent(id, updatedData); // Cambiar en la API a updateMember
+        await ApiRepository.updateMember(id, updatedData); // Cambiar en la API a updateMember
         set((state) => ({
           members: state.members.map((m) =>
             m.id === id ? { ...m, ...updatedData } : m,
