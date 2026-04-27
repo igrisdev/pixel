@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Code, Calendar } from "lucide-react";
 import { Project } from "@/types";
