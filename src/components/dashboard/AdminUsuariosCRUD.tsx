@@ -2,37 +2,38 @@
 
 import React, { useState } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
-import { useStore } from "@/store/useStore";
-import { Student } from "@/types";
+import { useDataStore } from "@/store/useDataStore"; // <-- CORREGIDO
+import { Member } from "@/types"; // <-- CORREGIDO: Usamos Member en vez de Student
 
 export default function AdminUsuariosCRUD() {
-  // Ahora traemos updateStudent para aprovechar el método de la API en el store
-  const { students, setStudents, updateStudent } = useStore();
+  // <-- CORREGIDO: Usamos members, setMembers y updateMember
+  const { members, setMembers, updateMember } = useDataStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
   // Estado para la gestión de cargas asíncronas
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
+  // <-- CORREGIDO: Propiedades en inglés
   const [formData, setFormData] = useState<{
-    name: string;
-    email_institucional: string;
-    password_hash: string;
-    carrera: string;
-    status: "ESTUDIANTE" | "EGRESADO";
+    fullName: string;
+    institutionalEmail: string;
+    passwordHash: string;
+    career: string;
+    academicStatus: "STUDENT" | "GRADUATE";
   }>({
-    name: "",
-    email_institucional: "",
-    password_hash: "",
-    carrera: "",
-    status: "ESTUDIANTE",
+    fullName: "",
+    institutionalEmail: "",
+    passwordHash: "",
+    career: "",
+    academicStatus: "STUDENT",
   });
 
-  const toggleVetado = async (student: Student) => {
-    setLoadingAction(`vetar-${student.id}`);
+  const toggleVetado = async (member: Member) => {
+    setLoadingAction(`vetar-${member.id}`);
     try {
-      // Usamos el método real asíncrono del store
-      await updateStudent(student.id, { vetado: !student.vetado });
+      // <-- CORREGIDO: isBanned en lugar de vetado
+      await updateMember(member.id, { isBanned: !member.isBanned });
     } finally {
       setLoadingAction(null);
     }
@@ -46,21 +47,23 @@ export default function AdminUsuariosCRUD() {
       await new Promise((resolve) => setTimeout(resolve, 600)); // Latencia simulada
 
       const nextId =
-        students.length > 0 ? Math.max(...students.map((s) => s.id)) + 1 : 1;
+        members.length > 0 ? Math.max(...members.map((m) => m.id)) + 1 : 1;
 
-      const newStudent: Student = {
+      // <-- CORREGIDO: Estructura de Member
+      const newMember: Member = {
         id: nextId,
         ...formData,
-        role: "Integrante",
+        role: "Integrante", // Cargo profesional genérico inicial
+        systemRole: "MEMBER", // Rol de permisos
         tech: [],
-        img: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1E293B&color=fff`,
-        vetado: false,
-        email_personal: "",
-        url_cv: "",
-        enlaces: [],
+        photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`,
+        isBanned: false,
+        personalEmail: "",
+        cvUrl: "",
+        links: [],
       };
 
-      setStudents([...students, newStudent]);
+      setMembers([...members, newMember]);
       setIsAdding(false);
       resetForm();
     } finally {
@@ -68,14 +71,14 @@ export default function AdminUsuariosCRUD() {
     }
   };
 
-  const startEdit = (student: Student) => {
-    setEditId(student.id);
+  const startEdit = (member: Member) => {
+    setEditId(member.id);
     setFormData({
-      name: student.name,
-      email_institucional: student.email_institucional || "",
-      password_hash: student.password_hash || "",
-      carrera: student.carrera || "",
-      status: student.status,
+      fullName: member.fullName,
+      institutionalEmail: member.institutionalEmail || "",
+      passwordHash: member.passwordHash || "",
+      career: member.career || "",
+      academicStatus: member.academicStatus as "STUDENT" | "GRADUATE",
     });
   };
 
@@ -85,7 +88,7 @@ export default function AdminUsuariosCRUD() {
 
     setLoadingAction("save");
     try {
-      await updateStudent(editId, formData);
+      await updateMember(editId, formData);
       setEditId(null);
       resetForm();
     } finally {
@@ -98,7 +101,7 @@ export default function AdminUsuariosCRUD() {
       setLoadingAction(`delete-${id}`);
       try {
         await new Promise((resolve) => setTimeout(resolve, 600)); // Latencia simulada
-        setStudents(students.filter((s) => s.id !== id));
+        setMembers(members.filter((m) => m.id !== id));
       } finally {
         setLoadingAction(null);
       }
@@ -107,11 +110,11 @@ export default function AdminUsuariosCRUD() {
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      email_institucional: "",
-      password_hash: "",
-      carrera: "",
-      status: "ESTUDIANTE",
+      fullName: "",
+      institutionalEmail: "",
+      passwordHash: "",
+      career: "",
+      academicStatus: "STUDENT",
     });
   };
 
@@ -161,9 +164,9 @@ export default function AdminUsuariosCRUD() {
                 type="text"
                 required
                 disabled={loadingAction === "save"}
-                value={formData.name}
+                value={formData.fullName}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, fullName: e.target.value })
                 }
                 className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 placeholder="Ej. Isabella Velasco"
@@ -176,9 +179,9 @@ export default function AdminUsuariosCRUD() {
               <select
                 required
                 disabled={loadingAction === "save"}
-                value={formData.carrera}
+                value={formData.career}
                 onChange={(e) =>
-                  setFormData({ ...formData, carrera: e.target.value })
+                  setFormData({ ...formData, career: e.target.value })
                 }
                 className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
               >
@@ -197,18 +200,18 @@ export default function AdminUsuariosCRUD() {
                 Estado
               </label>
               <select
-                value={formData.status}
+                value={formData.academicStatus}
                 disabled={loadingAction === "save"}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    status: e.target.value as "ESTUDIANTE" | "EGRESADO",
+                    academicStatus: e.target.value as "STUDENT" | "GRADUATE",
                   })
                 }
                 className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
               >
-                <option value="ESTUDIANTE">ESTUDIANTE</option>
-                <option value="EGRESADO">EGRESADO</option>
+                <option value="STUDENT">ESTUDIANTE</option>
+                <option value="GRADUATE">EGRESADO</option>
               </select>
             </div>
           </div>
@@ -222,11 +225,11 @@ export default function AdminUsuariosCRUD() {
                 type="email"
                 required
                 disabled={loadingAction === "save"}
-                value={formData.email_institucional}
+                value={formData.institutionalEmail}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    email_institucional: e.target.value,
+                    institutionalEmail: e.target.value,
                   })
                 }
                 className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
@@ -241,9 +244,9 @@ export default function AdminUsuariosCRUD() {
                 type="text"
                 required
                 disabled={loadingAction === "save"}
-                value={formData.password_hash}
+                value={formData.passwordHash}
                 onChange={(e) =>
-                  setFormData({ ...formData, password_hash: e.target.value })
+                  setFormData({ ...formData, passwordHash: e.target.value })
                 }
                 className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 placeholder="Ej. pixel2026"
@@ -277,76 +280,76 @@ export default function AdminUsuariosCRUD() {
           </tr>
         </thead>
         <tbody>
-          {students.map((s) => (
+          {members.map((m) => (
             <tr
-              key={s.id}
+              key={m.id}
               className={`border-b border-gray-200 transition ${
-                loadingAction === `delete-${s.id}`
+                loadingAction === `delete-${m.id}`
                   ? "bg-red-50 opacity-50"
                   : "hover:bg-gray-50"
               }`}
             >
               <td className="p-3 font-medium flex items-center">
                 <img
-                  src={s.img}
+                  src={m.photoUrl}
                   className="w-8 h-8 mr-3 border border-[#1E293B] object-cover"
                   alt=""
                 />
                 <div>
-                  <div className="text-[#1E293B]">{s.name}</div>
+                  <div className="text-[#1E293B]">{m.fullName}</div>
                   <div className="text-xs text-gray-500 font-mono">
-                    {s.email_institucional}
+                    {m.institutionalEmail}
                   </div>
                 </div>
               </td>
               <td className="p-3 text-gray-600">
-                {s.carrera || "No registrada"}
+                {m.career || "No registrada"}
               </td>
               <td className="p-3">
                 <span
-                  className={`px-2 py-1 text-[10px] font-mono border border-[#1E293B] ${s.status === "EGRESADO" ? "bg-[#2D5A27] text-white" : "bg-gray-100"}`}
+                  className={`px-2 py-1 text-[10px] font-mono border border-[#1E293B] ${m.academicStatus === "GRADUATE" ? "bg-[#2D5A27] text-white" : "bg-gray-100"}`}
                 >
-                  {s.status}
+                  {m.academicStatus === "GRADUATE" ? "EGRESADO" : "ESTUDIANTE"}
                 </span>
               </td>
               <td className="p-3">
                 <span
                   className={
-                    s.vetado
+                    m.isBanned
                       ? "text-red-600 font-bold"
                       : "text-green-600 font-semibold"
                   }
                 >
-                  {s.vetado ? "SÍ" : "NO"}
+                  {m.isBanned ? "SÍ" : "NO"}
                 </span>
               </td>
               <td className="p-3 flex justify-end space-x-2">
                 <button
-                  onClick={() => toggleVetado(s)}
+                  onClick={() => toggleVetado(m)}
                   disabled={loadingAction !== null}
-                  className={`${s.vetado ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"} text-white px-3 py-1 text-xs font-bold border border-[#1E293B] min-w-[80px] flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed`}
+                  className={`${m.isBanned ? "bg-green-600 hover:bg-green-700" : "bg-orange-500 hover:bg-orange-600"} text-white px-3 py-1 text-xs font-bold border border-[#1E293B] min-w-[80px] flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
-                  {loadingAction === `vetar-${s.id}` ? (
+                  {loadingAction === `vetar-${m.id}` ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : s.vetado ? (
+                  ) : m.isBanned ? (
                     "Desvetar"
                   ) : (
                     "Vetar"
                   )}
                 </button>
                 <button
-                  onClick={() => startEdit(s)}
+                  onClick={() => startEdit(m)}
                   disabled={loadingAction !== null}
                   className="bg-gray-200 p-2 border border-gray-400 hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Edit className="w-4 h-4 text-gray-700" />
                 </button>
                 <button
-                  onClick={() => handleDelete(s.id)}
+                  onClick={() => handleDelete(m.id)}
                   disabled={loadingAction !== null}
                   className="bg-red-100 text-red-600 p-2 border border-red-300 hover:bg-red-200 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {loadingAction === `delete-${s.id}` ? (
+                  {loadingAction === `delete-${m.id}` ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Trash2 className="w-4 h-4" />

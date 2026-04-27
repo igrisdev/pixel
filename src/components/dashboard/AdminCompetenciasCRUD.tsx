@@ -2,24 +2,25 @@
 
 import React, { useState } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
-import { useStore } from "@/store/useStore";
+import { useDataStore } from "@/store/useDataStore"; // <-- IMPORTACIÓN CORREGIDA
 
 export default function AdminCompetenciasCRUD() {
-  const { competencies, setCompetencies } = useStore();
+  const { competencies, setCompetencies } = useDataStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  // NUEVO: Estado para gestionar cargas individuales
+  // Estado para gestionar cargas individuales
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
+  // <-- CORREGIDO: Propiedades en inglés (name, description, type)
   const [formData, setFormData] = useState<{
-    nombre: string;
-    descripcion: string;
-    tipo: "TECNICA" | "TRANSVERSAL";
+    name: string;
+    description: string;
+    type: "TECHNICAL" | "SOFT";
   }>({
-    nombre: "",
-    descripcion: "",
-    tipo: "TECNICA",
+    name: "",
+    description: "",
+    type: "TECHNICAL",
   });
 
   const handleSave = async (e: React.FormEvent) => {
@@ -27,7 +28,7 @@ export default function AdminCompetenciasCRUD() {
     setLoadingAction("save");
 
     try {
-      // Simulamos la latencia de la API (puedes quitar esto cuando uses ApiRepository)
+      // Simulamos la latencia de la API
       await new Promise((resolve) => setTimeout(resolve, 600));
 
       if (editId) {
@@ -41,7 +42,8 @@ export default function AdminCompetenciasCRUD() {
         setCompetencies([{ id: Date.now(), ...formData }, ...competencies]);
         setIsAdding(false);
       }
-      setFormData({ nombre: "", descripcion: "", tipo: "TECNICA" });
+      // Reiniciamos con valores en inglés
+      setFormData({ name: "", description: "", type: "TECHNICAL" });
     } finally {
       setLoadingAction(null);
     }
@@ -50,9 +52,9 @@ export default function AdminCompetenciasCRUD() {
   const startEdit = (comp: any) => {
     setEditId(comp.id);
     setFormData({
-      nombre: comp.nombre,
-      descripcion: comp.descripcion,
-      tipo: comp.tipo,
+      name: comp.name,
+      description: comp.description,
+      type: comp.type,
     });
   };
 
@@ -102,9 +104,9 @@ export default function AdminCompetenciasCRUD() {
               type="text"
               required
               disabled={loadingAction === "save"}
-              value={formData.nombre}
+              value={formData.name}
               onChange={(e) =>
-                setFormData({ ...formData, nombre: e.target.value })
+                setFormData({ ...formData, name: e.target.value })
               }
               className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none disabled:bg-gray-100"
             />
@@ -115,9 +117,9 @@ export default function AdminCompetenciasCRUD() {
               type="text"
               required
               disabled={loadingAction === "save"}
-              value={formData.descripcion}
+              value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, descripcion: e.target.value })
+                setFormData({ ...formData, description: e.target.value })
               }
               className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none disabled:bg-gray-100"
             />
@@ -126,15 +128,16 @@ export default function AdminCompetenciasCRUD() {
             <div className="flex-1">
               <label className="block text-xs font-mono mb-1">Tipo</label>
               <select
-                value={formData.tipo}
+                value={formData.type}
                 disabled={loadingAction === "save"}
                 onChange={(e) =>
-                  setFormData({ ...formData, tipo: e.target.value as any })
+                  setFormData({ ...formData, type: e.target.value as any })
                 }
                 className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] disabled:bg-gray-100"
               >
-                <option value="TECNICA">TÉCNICA</option>
-                <option value="TRANSVERSAL">TRANSVERSAL</option>
+                {/* <-- CORREGIDO: Valores en inglés en los options --> */}
+                <option value="TECHNICAL">TÉCNICA</option>
+                <option value="SOFT">TRANSVERSAL</option>
               </select>
             </div>
             <button
@@ -164,14 +167,15 @@ export default function AdminCompetenciasCRUD() {
                 : "border-gray-200 hover:border-[#1E293B]"
             }`}
           >
+            {/* <-- CORREGIDO: Evaluamos c.type contra "TECHNICAL" --> */}
             <span
-              className={`text-[10px] font-mono font-bold px-2 py-1 mb-3 inline-block border ${c.tipo === "TECNICA" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300"}`}
+              className={`text-[10px] font-mono font-bold px-2 py-1 mb-3 inline-block border ${c.type === "TECHNICAL" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300"}`}
             >
-              {c.tipo}
+              {c.type === "TECHNICAL" ? "TÉCNICA" : "TRANSVERSAL"}
             </span>
-            <h3 className="font-bold text-[#1E293B] text-lg">{c.nombre}</h3>
+            <h3 className="font-bold text-[#1E293B] text-lg">{c.name}</h3>
             <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-              {c.descripcion}
+              {c.description}
             </p>
             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex space-x-2 bg-[#F8F9FA] pl-2">
               <button

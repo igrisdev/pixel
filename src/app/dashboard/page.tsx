@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useStore } from "@/store/useStore";
 import {
   LogOut,
   User,
@@ -22,10 +21,11 @@ import AdminCompetenciasCRUD from "@/components/dashboard/AdminCompetenciasCRUD"
 import AdminAuditoriaCRUD from "@/components/dashboard/AdminAuditoriaCRUD";
 import IntegrantePerfilCRUD from "@/components/dashboard/IntegrantePerfilCRUD";
 import IntegranteProyectosCRUD from "@/components/dashboard/IntegranteProyectosCRUD";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { currentUser, logout } = useStore();
+  const { currentUser, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState("");
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -123,7 +123,7 @@ export default function DashboardPage() {
               <SidebarBtn
                 active={activeTab === "aprobaciones"}
                 onClick={() => handleTabChange("aprobaciones")}
-                icon={<CheckSquare className="w-5 h-5 text-yellow-400" />}
+                icon={<CheckSquare className="w-5 h-5" />}
                 label="Aprobaciones Pendientes"
               />
 

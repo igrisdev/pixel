@@ -1,20 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trash2, Search, Eye, Edit3, Loader2 } from "lucide-react"; // Añadimos Loader2
+import { Trash2, Search, Eye, Edit3, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useStore } from "@/store/useStore";
 import BadgeEstado from "@/components/ui/BadgeEstado";
+import { useDataStore } from "@/store/useDataStore"; // <-- IMPORTACIÓN CORREGIDA
 
 export default function AdminAuditoriaCRUD() {
-  const { proyectos, deleteProyecto, updateProyecto } = useStore();
+  // <-- Usamos projects en lugar de proyectos
+  const { projects, deleteProject, updateProject } = useDataStore();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterEstado, setFilterEstado] = useState<
-    "TODOS" | "ACTIVO" | "PENDIENTE" | "RECHAZADO"
-  >("TODOS");
+  const [filterStatus, setFilterStatus] = useState<
+    "ALL" | "ACTIVE" | "PENDING" | "REJECTED"
+  >("ALL");
 
-  // NUEVO: Estado para bloqueos asíncronos
+  // Estado para bloqueos asíncronos
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   const handleDelete = async (id: number) => {
@@ -25,7 +26,7 @@ export default function AdminAuditoriaCRUD() {
     ) {
       setLoadingAction(`eliminar-${id}`);
       try {
-        await deleteProyecto(id);
+        await deleteProject(id);
       } finally {
         setLoadingAction(null);
       }
@@ -34,7 +35,7 @@ export default function AdminAuditoriaCRUD() {
 
   const handleCambiarEstado = async (
     id: number,
-    nuevoEstado: "ACTIVO" | "PENDIENTE" | "RECHAZADO",
+    nuevoEstado: "ACTIVE" | "PENDING" | "REJECTED",
   ) => {
     if (
       window.confirm(
@@ -43,19 +44,21 @@ export default function AdminAuditoriaCRUD() {
     ) {
       setLoadingAction(`estado-${id}`);
       try {
-        await updateProyecto(id, { estado_aprobacion: nuevoEstado });
+        // <-- CORREGIDO: Usamos approvalStatus en lugar de estado_aprobacion
+        await updateProject(id, { approvalStatus: nuevoEstado });
       } finally {
         setLoadingAction(null);
       }
     }
   };
 
-  const proyectosFiltrados = proyectos.filter((p) => {
-    const coincideBusqueda = p.titulo
+  const proyectosFiltrados = projects.filter((p) => {
+    // <-- CORREGIDO: p.title y p.approvalStatus
+    const coincideBusqueda = p.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const coincideEstado =
-      filterEstado === "TODOS" || p.estado_aprobacion === filterEstado;
+      filterStatus === "ALL" || p.approvalStatus === filterStatus;
     return coincideBusqueda && coincideEstado;
   });
 
@@ -63,12 +66,11 @@ export default function AdminAuditoriaCRUD() {
     <div className="bg-white pixel-border p-6 shadow-sm">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-xl font-bold text-[#1E293B]">
-          Auditoría Global de Proyectos ({proyectos.length})
+          Auditoría Global de Proyectos ({projects.length})
         </h2>
 
         {/* BUSCADOR Y FILTROS */}
         <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          {/* ... (Mismo código de filtros) ... */}
           <div className="relative flex-1 sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
             <input
@@ -80,14 +82,14 @@ export default function AdminAuditoriaCRUD() {
             />
           </div>
           <select
-            value={filterEstado}
-            onChange={(e) => setFilterEstado(e.target.value as any)}
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as any)}
             className="border border-gray-300 px-3 py-2 text-sm bg-white outline-none focus:border-[#F37021] cursor-pointer"
           >
-            <option value="TODOS">Todos los estados</option>
-            <option value="ACTIVO">Solo Activos</option>
-            <option value="PENDIENTE">Solo Pendientes</option>
-            <option value="RECHAZADO">Solo Rechazados</option>
+            <option value="ALL">Todos los estados</option>
+            <option value="ACTIVE">Solo Activos</option>
+            <option value="PENDING">Solo Pendientes</option>
+            <option value="REJECTED">Solo Rechazados</option>
           </select>
         </div>
       </div>
@@ -98,24 +100,27 @@ export default function AdminAuditoriaCRUD() {
             key={p.id}
             className={`flex flex-col xl:flex-row justify-between items-start xl:items-center border-2 p-4 transition gap-4 ${
               loadingAction?.includes(p.id.toString())
-                ? "border-gray-300 bg-gray-100 opacity-70" // Estilo si está cargando
+                ? "border-gray-300 bg-gray-100 opacity-70"
                 : "border-gray-200 bg-[#F8F9FA] hover:border-[#F37021]"
             }`}
           >
             <div className="flex items-center gap-4 w-full xl:w-auto">
+              {/* <-- CORREGIDO: p.coverImageUrl */}
               <img
-                src={p.img || undefined}
-                alt={p.titulo}
+                src={p.coverImageUrl || undefined}
+                alt={p.title}
                 className="w-16 h-16 object-cover border border-[#1E293B] hidden sm:block bg-gray-200"
               />
               <div className="flex-1">
                 <h3 className="font-bold text-[#1E293B] text-lg flex items-center gap-2 flex-wrap">
-                  {p.titulo}
-                  <BadgeEstado estado={p.estado_aprobacion} />
+                  {/* <-- CORREGIDO: p.title y p.approvalStatus */}
+                  {p.title}
+                  <BadgeEstado estado={p.approvalStatus as any} />
                 </h3>
                 <p className="text-xs text-gray-500 font-mono mt-1 bg-white px-2 py-1 inline-block border border-gray-200">
-                  ID: {p.id} | Fecha inicio: {p.fecha_inicio} | Productos:{" "}
-                  {p.productos?.length || 0}
+                  {/* <-- CORREGIDO: p.startDate y p.products */}
+                  ID: {p.id} | Fecha inicio: {p.startDate} | Productos:{" "}
+                  {p.products?.length || 0}
                 </p>
               </div>
             </div>
@@ -136,16 +141,16 @@ export default function AdminAuditoriaCRUD() {
                   <Edit3 className="w-4 h-4 text-gray-500 mr-2" />
                 )}
                 <select
-                  value={p.estado_aprobacion}
+                  value={p.approvalStatus}
                   disabled={loadingAction !== null}
                   onChange={(e) =>
                     handleCambiarEstado(p.id, e.target.value as any)
                   }
                   className="w-full text-xs font-bold text-[#1E293B] py-2 outline-none bg-transparent cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <option value="ACTIVO">Hacer ACTIVO</option>
-                  <option value="PENDIENTE">Pasar a PENDIENTE</option>
-                  <option value="RECHAZADO">Marcar RECHAZADO</option>
+                  <option value="ACTIVE">Hacer ACTIVO</option>
+                  <option value="PENDING">Pasar a PENDIENTE</option>
+                  <option value="REJECTED">Marcar RECHAZADO</option>
                 </select>
               </div>
 

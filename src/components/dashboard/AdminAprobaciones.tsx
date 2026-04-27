@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useStore } from "@/store/useStore";
+import { useState } from "react";
 import {
   CheckCircle,
   XCircle,
@@ -11,22 +10,23 @@ import {
   Loader2, // NUEVO: Importamos el spinner
 } from "lucide-react";
 import BadgeEstado from "@/components/ui/BadgeEstado";
+import { useDataStore } from "@/store/useDataStore";
 
 export default function AdminAprobaciones() {
-  const { proyectos, students, updateProyecto } = useStore();
+  const { projects, members, updateProject } = useDataStore();
 
   // NUEVO: Estado para saber qué botón específico está cargando
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  const proyectosPendientes = proyectos.filter(
-    (p) => p.estado_aprobacion === "PENDIENTE",
+  const proyectosPendientes = projects.filter(
+    (p) => p.approvalStatus === "PENDING",
   );
 
-  const productosPendientes = proyectos.flatMap((p) => {
-    const pendientes = (p.productos || []).filter(
-      (prod) => prod.estado_aprobacion === "PENDIENTE",
+  const productosPendientes = projects.flatMap((p) => {
+    const pending = (p.products || []).filter(
+      (prod) => prod.approvalStatus === "PENDING",
     );
-    return pendientes.map((prod) => ({ ...prod, proyecto_padre: p }));
+    return pending.map((prod) => ({ ...prod, proyecto_padre: p }));
   });
 
   // --- LÓGICA DE APROBACIÓN / RECHAZO (AHORA ASÍNCRONA) ---
@@ -37,7 +37,7 @@ export default function AdminAprobaciones() {
     ) {
       setLoadingAction(`aprobar-proy-${id}`); // Bloqueamos este botón
       try {
-        await updateProyecto(id, { estado_aprobacion: "ACTIVO" });
+        await updateProject(id, { approvalStatus: "ACTIVE" });
       } finally {
         setLoadingAction(null); // Liberamos
       }
@@ -50,7 +50,7 @@ export default function AdminAprobaciones() {
     ) {
       setLoadingAction(`rechazar-proy-${id}`);
       try {
-        await updateProyecto(id, { estado_aprobacion: "RECHAZADO" });
+        await updateProject(id, { approvalStatus: "REJECTED" });
       } finally {
         setLoadingAction(null);
       }
@@ -62,17 +62,17 @@ export default function AdminAprobaciones() {
     idProducto: number,
   ) => {
     if (window.confirm("¿Estás seguro de APROBAR este producto académico?")) {
-      const project = proyectos.find((p) => p.id === idProyecto);
+      const project = projects.find((p) => p.id === idProyecto);
       if (!project) return;
 
       setLoadingAction(`aprobar-prod-${idProducto}`);
       try {
-        const updatedProductos = (project.productos || []).map((prod) =>
+        const updatedProducts = (project.products || []).map((prod) =>
           prod.id === idProducto
-            ? { ...prod, estado_aprobacion: "ACTIVO" as const }
+            ? { ...prod, approvalStatus: "ACTIVE" as const }
             : prod,
         );
-        await updateProyecto(idProyecto, { productos: updatedProductos });
+        await updateProject(idProyecto, { products: updatedProducts });
       } finally {
         setLoadingAction(null);
       }
@@ -84,17 +84,17 @@ export default function AdminAprobaciones() {
     idProducto: number,
   ) => {
     if (window.confirm("¿Rechazar este producto académico?")) {
-      const project = proyectos.find((p) => p.id === idProyecto);
+      const project = projects.find((p) => p.id === idProyecto);
       if (!project) return;
 
       setLoadingAction(`rechazar-prod-${idProducto}`);
       try {
-        const updatedProductos = (project.productos || []).map((prod) =>
+        const updatedProducts = (project.products || []).map((prod) =>
           prod.id === idProducto
-            ? { ...prod, estado_aprobacion: "RECHAZADO" as const }
+            ? { ...prod, approvalStatus: "REJECTED" as const }
             : prod,
         );
-        await updateProyecto(idProyecto, { productos: updatedProductos });
+        await updateProject(idProyecto, { products: updatedProducts });
       } finally {
         setLoadingAction(null);
       }
@@ -102,8 +102,8 @@ export default function AdminAprobaciones() {
   };
 
   const getAutor = (idCreador: number) => {
-    const student = students.find((s) => s.id === idCreador);
-    return student ? student.name : "Usuario Desconocido";
+    const student = members.find((s) => s.id === idCreador);
+    return student ? student.fullName : "Usuario Desconocido";
   };
 
   return (
@@ -120,7 +120,7 @@ export default function AdminAprobaciones() {
 
         {proyectosPendientes.length === 0 ? (
           <p className="text-gray-500 italic text-sm">
-            No hay proyectos macro pendientes de revisión.
+            No hay projects macro pending de revisión.
           </p>
         ) : (
           <div className="space-y-4">
@@ -129,20 +129,19 @@ export default function AdminAprobaciones() {
                 key={p.id}
                 className="border-2 border-gray-200 p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 bg-gray-50"
               >
-                {/* ... (código de visualización igual) ... */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-bold text-lg text-[#1E293B]">
-                      {p.titulo}
+                      {p.title}
                     </h3>
-                    <BadgeEstado estado={p.estado_aprobacion} />
+                    <BadgeEstado estado={p.approvalStatus} />
                   </div>
                   <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                    {p.objetivo}
+                    {p.objective}
                   </p>
                   <p className="text-xs font-mono text-gray-400 flex items-center">
                     <User className="w-3 h-3 mr-1" /> Autor:{" "}
-                    {getAutor(p.creado_por)}
+                    {getAutor(p.createdBy)}
                   </p>
                 </div>
 
@@ -190,7 +189,7 @@ export default function AdminAprobaciones() {
 
         {productosPendientes.length === 0 ? (
           <p className="text-gray-500 italic text-sm">
-            No hay productos académicos pendientes de revisión.
+            No hay productos académicos pending de revisión.
           </p>
         ) : (
           <div className="space-y-4">
@@ -203,21 +202,21 @@ export default function AdminAprobaciones() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.tipo_categoria === "DESARROLLO" ? "bg-blue-600" : prod.tipo_categoria === "ESCRITO" ? "bg-purple-600" : "bg-[#F37021]"}`}
+                      className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.categoryType === "DEVELOPMENT" ? "bg-blue-600" : prod.categoryType === "WRITING" ? "bg-purple-600" : "bg-[#F37021]"}`}
                     >
-                      {prod.tipo_categoria}
+                      {prod.categoryType}
                     </span>
                     <h3 className="font-bold text-lg text-[#1E293B]">
-                      {prod.titulo}
+                      {prod.title}
                     </h3>
-                    <BadgeEstado estado={prod.estado_aprobacion} />
+                    <BadgeEstado estado={prod.approvalStatus} />
                   </div>
                   <p className="text-sm text-gray-600 line-clamp-1 mb-2">
-                    {prod.descripcion}
+                    {prod.description}
                   </p>
                   <p className="text-xs font-mono text-gray-400 flex items-center">
                     <Folder className="w-3 h-3 mr-1" /> Pertenece a:{" "}
-                    {prod.proyecto_padre.titulo}
+                    {prod.proyecto_padre.title}
                   </p>
                 </div>
 

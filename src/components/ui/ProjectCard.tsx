@@ -1,22 +1,22 @@
 import React from "react";
 import Link from "next/link";
 import { Code, Calendar } from "lucide-react";
-import { Proyecto } from "@/types";
+import { Project } from "@/types";
 
-export default function ProjectCard({ project }: { project: Proyecto }) {
-  const productos = project.productos || [];
-  const primerProducto = productos[0];
+export default function ProjectCard({ project }: { project: Project }) {
+  const projects = project.products || [];
+  const primerProducto = projects[0];
 
-  // Extraemos y combinamos todas las tecnologías de los productos tipo DESARROLLO
-  const todasLasTech = productos
-    .filter((p) => p.tipo_categoria === "DESARROLLO")
-    .flatMap((p) => p.tecnologias || []);
+  // Extraemos y combinamos todas las tecnologías de los projects tipo DESARROLLO
+  const todasLasTech = projects
+    .filter((p) => p.categoryType === "DEVELOPMENT")
+    .flatMap((p) => p.technologies || []);
   const uniqueTech = Array.from(new Set(todasLasTech)).slice(0, 3); // Mostramos solo 3
 
   // Extraemos y combinamos todo el equipo (sin repetir integrantes)
-  const todosLosIntegrantes = productos.flatMap((p) => p.participaciones || []);
+  const todosLosIntegrantes = projects.flatMap((p) => p.participations || []);
   const uniqueTeam = Array.from(
-    new Map(todosLosIntegrantes.map((p) => [p.id_integrante, p])).values(),
+    new Map(todosLosIntegrantes.map((p) => [p.memberId, p])).values(),
   );
 
   return (
@@ -26,22 +26,22 @@ export default function ProjectCard({ project }: { project: Proyecto }) {
     >
       <div className="h-48 relative overflow-hidden bg-[#1E293B]">
         <img
-          src={project.img || undefined}
-          alt={project.titulo}
+          src={project.coverImageUrl || undefined}
+          alt={project.title}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90"
         />
         {primerProducto && (
           <div className="absolute top-3 left-3 bg-[#F37021] text-white text-[10px] font-mono px-2 py-1 font-bold shadow-md">
-            {primerProducto.tipo_categoria}
+            {primerProducto.categoryType}
           </div>
         )}
       </div>
       <div className="p-6 flex flex-col flex-1">
         <h3 className="text-xl font-bold text-[#1E293B] mb-2 group-hover:text-[#F37021] transition line-clamp-2">
-          {project.titulo}
+          {project.title}
         </h3>
         <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
-          {project.objetivo}
+          {project.objective}
         </p>
 
         <div className="mt-auto space-y-4">
@@ -68,10 +68,10 @@ export default function ProjectCard({ project }: { project: Proyecto }) {
               {uniqueTeam.slice(0, 4).map((member, i) => (
                 <img
                   key={i}
-                  src={member.integrante_img || undefined}
-                  alt={member.integrante_nombre}
+                  src={member.memberPhotoUrl || undefined}
+                  alt={member.memberName}
                   className="w-8 h-8 rounded-none border border-[#1E293B] bg-white object-cover"
-                  title={member.integrante_nombre}
+                  title={member.memberName}
                 />
               ))}
               {uniqueTeam.length > 4 && (
@@ -82,7 +82,7 @@ export default function ProjectCard({ project }: { project: Proyecto }) {
             </div>
             <span className="text-xs font-mono text-gray-400 flex items-center">
               <Calendar className="w-3 h-3 mr-1" />{" "}
-              {project.fecha_inicio.substring(0, 4)}
+              {project.startDate.substring(0, 4)}
             </span>
           </div>
         </div>

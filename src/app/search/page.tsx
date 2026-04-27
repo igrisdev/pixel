@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Filter, X } from "lucide-react";
-import { useStore } from "@/store/useStore";
+import { useDataStore } from "@/store/useDataStore"; // <-- CORREGIDO: Importamos el nuevo store de datos
 import StudentCard from "@/components/ui/StudentCard";
 import ProjectCard from "@/components/ui/ProjectCard";
 
@@ -12,8 +12,8 @@ function SearchContent() {
   const router = useRouter();
   const initialQuery = searchParams.get("query") || "";
 
-  // Consumimos 'proyectos' con el nuevo modelo
-  const { students, proyectos } = useStore();
+  // <-- CORREGIDO: Usamos el nuevo store y extraemos members y projects
+  const { members, projects } = useDataStore();
 
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [filterType, setFilterType] = useState<
@@ -36,39 +36,44 @@ function SearchContent() {
 
   const termLower = searchTerm.toLowerCase();
 
-  // Filtrado de estudiantes
-  const filteredStudents = students.filter((s) => {
-    if (s.vetado) return false;
+  // <-- CORREGIDO: Lógica de filtrado adaptada al nuevo modelo Member (Inglés)
+  const filteredMembers = members.filter((m) => {
+    if (m.isBanned) return false;
     if (filterType === "PROYECTO") return false;
-    if (filterType !== "TODO" && s.status !== filterType) return false;
+
+    // Mapeamos los filtros visuales (Español) a los datos (Inglés)
+    if (filterType === "ESTUDIANTE" && m.academicStatus !== "STUDENT")
+      return false;
+    if (filterType === "EGRESADO" && m.academicStatus !== "GRADUATE")
+      return false;
 
     return (
-      s.name.toLowerCase().includes(termLower) ||
-      (s.role && s.role.toLowerCase().includes(termLower)) || // <-- ¡CORREGIDO AQUÍ!
-      (s.tech && s.tech.some((t) => t.toLowerCase().includes(termLower)))
+      m.fullName.toLowerCase().includes(termLower) ||
+      (m.role && m.role.toLowerCase().includes(termLower)) ||
+      (m.tech && m.tech.some((t) => t.toLowerCase().includes(termLower)))
     );
   });
 
-  // Filtrado de proyectos (¡Actualizado al nuevo modelo relacional!)
-  const filteredProjects = proyectos.filter((p) => {
+  // <-- CORREGIDO: Lógica de filtrado adaptada al nuevo modelo Project (Inglés)
+  const filteredProjects = projects.filter((p) => {
     if (filterType === "ESTUDIANTE" || filterType === "EGRESADO") return false;
-    if (p.estado_aprobacion !== "ACTIVO") return false;
+    if (p.approvalStatus !== "ACTIVE") return false;
 
     // 1. Buscamos en los datos del Proyecto Macro
     const matchMacro =
-      p.titulo.toLowerCase().includes(termLower) ||
-      p.objetivo.toLowerCase().includes(termLower);
+      p.title.toLowerCase().includes(termLower) ||
+      p.objective.toLowerCase().includes(termLower);
 
     // 2. Buscamos profundamente en los Productos Derivados
-    const matchProductos = p.productos?.some((prod) => {
-      if (prod.estado_aprobacion !== "ACTIVO") return false;
+    const matchProductos = p.products?.some((prod) => {
+      if (prod.approvalStatus !== "ACTIVE") return false;
 
       return (
-        prod.titulo.toLowerCase().includes(termLower) ||
-        prod.descripcion.toLowerCase().includes(termLower) ||
-        prod.tipo_categoria.toLowerCase().includes(termLower) ||
-        (prod.tecnologias &&
-          prod.tecnologias.some((t) => t.toLowerCase().includes(termLower)))
+        prod.title.toLowerCase().includes(termLower) ||
+        prod.description.toLowerCase().includes(termLower) ||
+        prod.categoryType.toLowerCase().includes(termLower) ||
+        (prod.technologies &&
+          prod.technologies.some((t) => t.toLowerCase().includes(termLower)))
       );
     });
 
@@ -129,15 +134,15 @@ function SearchContent() {
           </div>
         </div>
 
-        {/* Resultados: Estudiantes */}
-        {filteredStudents.length > 0 && (
+        {/* Resultados: Miembros / Estudiantes */}
+        {filteredMembers.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
-              Talento ({filteredStudents.length})
+              Talento ({filteredMembers.length})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredStudents.map((student) => (
-                <StudentCard key={student.id} student={student} />
+              {filteredMembers.map((member) => (
+                <StudentCard key={member.id} member={member} />
               ))}
             </div>
           </div>
@@ -150,14 +155,14 @@ function SearchContent() {
               Proyectos ({filteredProjects.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {filteredProjects.map((proyecto) => (
-                <ProjectCard key={proyecto.id} project={proyecto} />
+              {filteredProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
               ))}
             </div>
           </div>
         )}
 
-        {filteredStudents.length === 0 && filteredProjects.length === 0 && (
+        {filteredMembers.length === 0 && filteredProjects.length === 0 && (
           <div className="text-center py-20 bg-white pixel-border">
             <p className="text-xl font-bold text-[#334155] mb-2">
               No se encontraron resultados.

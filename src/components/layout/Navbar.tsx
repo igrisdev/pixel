@@ -4,14 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { User, LogOut } from "lucide-react";
-import { useStore } from "@/store/useStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
   // Consumimos el estado de Zustand
-  const { userRole, logout } = useStore();
+  const { userRole, logout } = useAuthStore();
 
   // No mostramos el Navbar en la página de Login
   if (pathname === "/login") return null;

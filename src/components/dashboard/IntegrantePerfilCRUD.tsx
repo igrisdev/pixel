@@ -10,30 +10,34 @@ import {
   Image as ImageIcon,
   Loader2,
 } from "lucide-react";
-import { useStore } from "@/store/useStore";
+import { useDataStore } from "@/store/useDataStore"; // <-- IMPORTACIÓN CORREGIDA
+import { useAuthStore } from "@/store/useAuthStore"; // <-- IMPORTACIÓN CORREGIDA
 
 export default function IntegrantePerfilCRUD() {
-  const { students, currentUser, updateStudent } = useStore();
+  // <-- CORREGIDO: Extraemos de los nuevos stores
+  const { members, updateMember } = useDataStore();
+  const { currentUser } = useAuthStore();
 
-  // Buscar data actualizada
+  // Buscar data actualizada (ahora usamos 'members')
   const user =
-    students.find((s) => s.id === currentUser?.id) || (currentUser as any);
+    members.find((m) => m.id === currentUser?.id) || (currentUser as any);
 
+  // <-- CORREGIDO: Propiedades en inglés
   const [formData, setFormData] = useState({
-    name: user.name || "",
+    fullName: user.fullName || "",
     role: user.role || "",
-    email_personal: user.email_personal || "",
-    url_cv: user.url_cv || "",
-    img: user.img || "",
-    password_hash: user.password_hash || "",
+    personalEmail: user.personalEmail || "",
+    cvUrl: user.cvUrl || "",
+    photoUrl: user.photoUrl || "",
+    passwordHash: user.passwordHash || "",
   });
 
-  const [enlaces, setEnlaces] = useState<
-    { id: number; plataforma: string; url: string }[]
-  >(user.enlaces || []);
-  const [newEnlace, setNewEnlace] = useState({ plataforma: "GitHub", url: "" });
+  // <-- CORREGIDO: 'enlaces' -> 'links' y 'plataforma' -> 'platform'
+  const [links, setLinks] = useState<
+    { id: number; platform: string; url: string }[]
+  >(user.links || []);
+  const [newLink, setNewLink] = useState({ platform: "GitHub", url: "" });
 
-  // NUEVO: Estados para manejar la carga asíncrona y el éxito
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -43,8 +47,8 @@ export default function IntegrantePerfilCRUD() {
 
     setIsSaving(true);
     try {
-      // Usamos el método asíncrono updateStudent de nuestro store
-      await updateStudent(currentUser.id, { ...formData, enlaces });
+      // <-- CORREGIDO: Usamos updateMember y enviamos los links
+      await updateMember(currentUser.id, { ...formData, links });
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -53,18 +57,17 @@ export default function IntegrantePerfilCRUD() {
     }
   };
 
-  const addEnlace = (e: React.FormEvent) => {
+  const addLink = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newEnlace.url.trim()) {
+    if (newLink.url.trim()) {
       const nextId =
-        enlaces.length > 0 ? Math.max(...enlaces.map((en) => en.id)) + 1 : 1;
-      setEnlaces([...enlaces, { id: nextId, ...newEnlace }]);
-      setNewEnlace({ plataforma: "GitHub", url: "" });
+        links.length > 0 ? Math.max(...links.map((l) => l.id)) + 1 : 1;
+      setLinks([...links, { id: nextId, ...newLink }]);
+      setNewLink({ platform: "GitHub", url: "" });
     }
   };
 
-  const deleteEnlace = (id: number) =>
-    setEnlaces(enlaces.filter((e) => e.id !== id));
+  const deleteLink = (id: number) => setLinks(links.filter((l) => l.id !== id));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -85,7 +88,8 @@ export default function IntegrantePerfilCRUD() {
                 Correo:
               </span>
               <span className="text-sm font-mono text-[#1E293B]">
-                {user.email_institucional}
+                {/* <-- CORREGIDO */}
+                {user.institutionalEmail}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -93,7 +97,8 @@ export default function IntegrantePerfilCRUD() {
                 Carrera:
               </span>
               <span className="text-sm font-mono text-[#1E293B]">
-                {user.carrera}
+                {/* <-- CORREGIDO */}
+                {user.career}
               </span>
             </div>
           </div>
@@ -104,13 +109,13 @@ export default function IntegrantePerfilCRUD() {
           <div className="flex gap-4 items-center p-4 border-2 border-gray-200 bg-[#F8F9FA]">
             <img
               src={
-                formData.img ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=1E293B&color=fff`
+                formData.photoUrl ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`
               }
               alt="Perfil"
               className="w-16 h-16 border-2 border-[#1E293B] object-cover bg-white"
               onError={(e) =>
-                (e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || "User")}&background=1E293B&color=fff`)
+                (e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName || "User")}&background=1E293B&color=fff`)
               }
             />
             <div className="flex-1">
@@ -120,9 +125,9 @@ export default function IntegrantePerfilCRUD() {
               <input
                 type="url"
                 disabled={isSaving}
-                value={formData.img}
+                value={formData.photoUrl}
                 onChange={(e) =>
-                  setFormData({ ...formData, img: e.target.value })
+                  setFormData({ ...formData, photoUrl: e.target.value })
                 }
                 className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="https://..."
@@ -137,9 +142,9 @@ export default function IntegrantePerfilCRUD() {
             <input
               type="text"
               disabled={isSaving}
-              value={formData.name}
+              value={formData.fullName}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, fullName: e.target.value })
               }
               className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
@@ -167,9 +172,9 @@ export default function IntegrantePerfilCRUD() {
             <input
               type="email"
               disabled={isSaving}
-              value={formData.email_personal}
+              value={formData.personalEmail}
               onChange={(e) =>
-                setFormData({ ...formData, email_personal: e.target.value })
+                setFormData({ ...formData, personalEmail: e.target.value })
               }
               className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="Para que te contacten empresas..."
@@ -182,9 +187,9 @@ export default function IntegrantePerfilCRUD() {
             <input
               type="url"
               disabled={isSaving}
-              value={formData.url_cv}
+              value={formData.cvUrl}
               onChange={(e) =>
-                setFormData({ ...formData, url_cv: e.target.value })
+                setFormData({ ...formData, cvUrl: e.target.value })
               }
               placeholder="https://..."
               className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -198,9 +203,9 @@ export default function IntegrantePerfilCRUD() {
             <input
               type="password"
               disabled={isSaving}
-              value={formData.password_hash}
+              value={formData.passwordHash}
               onChange={(e) =>
-                setFormData({ ...formData, password_hash: e.target.value })
+                setFormData({ ...formData, passwordHash: e.target.value })
               }
               placeholder="Escribe tu nueva contraseña..."
               className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -239,12 +244,12 @@ export default function IntegrantePerfilCRUD() {
           Añade enlaces a tu portafolio, repositorios o perfiles de LinkedIn.
         </p>
 
-        <form onSubmit={addEnlace} className="flex gap-2 mb-8">
+        <form onSubmit={addLink} className="flex gap-2 mb-8">
           <select
             disabled={isSaving}
-            value={newEnlace.plataforma}
+            value={newLink.platform}
             onChange={(e) =>
-              setNewEnlace({ ...newEnlace, plataforma: e.target.value })
+              setNewLink({ ...newLink, platform: e.target.value })
             }
             className="border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
@@ -258,10 +263,8 @@ export default function IntegrantePerfilCRUD() {
             disabled={isSaving}
             placeholder="https://..."
             required
-            value={newEnlace.url}
-            onChange={(e) =>
-              setNewEnlace({ ...newEnlace, url: e.target.value })
-            }
+            value={newLink.url}
+            onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
             className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           <button
@@ -274,21 +277,21 @@ export default function IntegrantePerfilCRUD() {
         </form>
 
         <ul className="space-y-3">
-          {enlaces.map((e) => (
+          {links.map((l) => (
             <li
-              key={e.id}
+              key={l.id}
               className={`flex justify-between items-center p-4 border-2 transition ${isSaving ? "border-gray-200 bg-gray-100 opacity-60" : "border-gray-200 bg-[#F8F9FA] hover:border-[#1E293B]"}`}
             >
               <div className="overflow-hidden pr-4">
                 <strong className="text-[#1E293B] block text-sm">
-                  {e.plataforma}
+                  {l.platform}
                 </strong>
                 <span className="text-xs text-gray-500 font-mono truncate block w-full">
-                  {e.url}
+                  {l.url}
                 </span>
               </div>
               <button
-                onClick={() => deleteEnlace(e.id)}
+                onClick={() => deleteLink(l.id)}
                 disabled={isSaving}
                 className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:cursor-not-allowed disabled:bg-gray-200"
               >
@@ -296,7 +299,7 @@ export default function IntegrantePerfilCRUD() {
               </button>
             </li>
           ))}
-          {enlaces.length === 0 && (
+          {links.length === 0 && (
             <div className="text-center py-10 border-2 border-dashed border-gray-300 bg-gray-50">
               <p className="text-gray-500 text-sm">
                 No tienes enlaces registrados.

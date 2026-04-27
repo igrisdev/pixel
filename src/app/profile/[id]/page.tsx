@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useStore } from "@/store/useStore";
 import { ExternalLink, Download, Code, MapPin, Trophy } from "lucide-react";
+import { useDataStore } from "@/store/useDataStore";
 
 // Actualizamos el tipo para incluir projectId y que sirva para la redirección
 type ParticipationData = {
@@ -24,12 +23,12 @@ export default function ProfilePage() {
   const { id } = useParams();
   const router = useRouter();
 
-  // Extraemos students y proyectos del store global
-  const { students, proyectos } = useStore();
+  // Extraemos members y projects del store global
+  const { members, projects } = useDataStore();
 
-  const student = students.find((s) => s.id === Number(id));
+  const student = members.find((s) => s.id === Number(id));
 
-  if (!student || student.vetado) {
+  if (!student || student.isBanned) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold text-[#1E293B] mb-4">
@@ -46,33 +45,33 @@ export default function ProfilePage() {
   }
 
   // --- LÓGICA RELACIONAL: BUSCAR PARTICIPACIONES REALES ---
-  const participacionesReales: ParticipationData[] = proyectos.flatMap(
-    (proyecto) => {
-      // 1. Buscamos los productos de este proyecto donde el estudiante haya participado
-      const productosDelEstudiante = (proyecto.productos || []).filter((prod) =>
-        (prod.participaciones || []).some(
-          (part) => part.id_integrante === student.id,
+  const participacionesReales: ParticipationData[] = projects.flatMap(
+    (project) => {
+      // 1. Buscamos los productos de este project donde el estudiante haya participado
+      const productosDelEstudiante = (project.products || []).filter((prod) =>
+        (prod.participations || []).some(
+          (part) => part.memberId === student.id,
         ),
       );
 
       // 2. Mapeamos esos productos a la estructura visual de la tarjeta
       return productosDelEstudiante.map((prod) => {
         // Extraemos exactamente el rol y fechas de la participación de ESTE estudiante en ESTE producto
-        const participacion = prod.participaciones!.find(
-          (part) => part.id_integrante === student.id,
+        const participation = prod.participations!.find(
+          (part) => part.memberId === student.id,
         )!;
 
         return {
           id: prod.id,
-          projectId: proyecto.id, // Fundamental para la redirección
-          title: prod.titulo,
-          type: prod.tipo_categoria,
-          role: participacion.rol_en_producto,
-          date: `${participacion.fecha_inicio_rol} - ${participacion.fecha_fin_rol || "Presente"}`,
-          tech: prod.tecnologias || [],
-          source: prod.fuente_publicacion || "",
-          location: prod.localidad || "",
-          isProjectHead: proyecto.creado_por === student.id, // Es líder si creó el Proyecto Macro
+          projectId: project.id, // Fundamental para la redirección
+          title: prod.title,
+          type: prod.categoryType,
+          role: participation.productRole,
+          date: `${participation.startDate} - ${participation.endDate || "Presente"}`,
+          tech: prod.technologies || [],
+          source: prod.publicationSource || "",
+          location: prod.location || "",
+          isProjectHead: project.createdBy === student.id, // Es líder si creó el Proyecto Macro
         };
       });
     },
@@ -82,8 +81,8 @@ export default function ProfilePage() {
   const mockProfile = {
     ...student,
     email:
-      student.email_personal ||
-      student.name.split(" ")[0].toLowerCase() + "@unimayor.edu.co",
+      student.personalEmail ||
+      student.fullName.split(" ")[0].toLowerCase() + "@unimayor.edu.co",
     bio: "Apasionado por la tecnología y la investigación aplicada. Investigador en el semillero Pixel participando activamente en el desarrollo de soluciones de software.",
     skillsHard:
       (student.tech || []).length > 0
@@ -113,25 +112,29 @@ export default function ProfilePage() {
           <div className="bg-white pixel-border p-6 sticky top-24">
             <div className="flex flex-col items-center text-center">
               <img
-                src={mockProfile.img}
-                alt={mockProfile.name}
+                src={mockProfile.photoUrl}
+                alt={mockProfile.fullName}
                 className="w-32 h-32 border-4 border-[#1E293B] mb-4 object-cover"
               />
               <span
                 className={`text-[10px] font-mono px-2 py-1 border border-[#1E293B] mb-3 ${
-                  mockProfile.status === "EGRESADO"
+                  mockProfile.academicStatus === "GRADUATE"
                     ? "bg-[#2D5A27] text-white"
                     : "bg-gray-100 text-[#334155]"
                 }`}
               >
-                {mockProfile.status}
+                {mockProfile.academicStatus}
               </span>
               <h1 className="text-2xl font-bold text-[#2D5A27] mb-1">
-                {mockProfile.name}
+                {mockProfile.fullName}
               </h1>
-              <h2 className="text-[#334155] font-medium mb-6">
+              <h2 className="text-[#334155] font-medium mb-1">
                 {mockProfile.role}
               </h2>
+              {/* --- NUEVO: CARRERA AGREGADA AQUÍ --- */}
+              <p className="text-xs font-mono text-gray-500 mb-6 uppercase">
+                {mockProfile.career}
+              </p>
 
               <button className="w-full bg-[#F37021] text-white font-bold py-3 pixel-border flex items-center justify-center hover:bg-[#e06015] hover-lift mb-6">
                 <Download className="w-5 h-5 mr-2" /> DESCARGAR CV
@@ -142,18 +145,18 @@ export default function ProfilePage() {
                   ENLACES PROFESIONALES
                 </p>
                 <div className="flex flex-col space-y-3">
-                  {mockProfile.enlaces && mockProfile.enlaces.length > 0 ? (
-                    mockProfile.enlaces.map((enlace) => (
+                  {mockProfile.links && mockProfile.links.length > 0 ? (
+                    mockProfile.links.map((link) => (
                       <a
-                        key={enlace.id}
-                        href={enlace.url}
+                        key={link.id}
+                        href={link.url}
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group"
                       >
                         <ExternalLink className="w-5 h-5 mr-3 group-hover:scale-110 transition" />
                         <span className="text-sm font-medium">
-                          {enlace.plataforma}
+                          {link.platform}
                         </span>
                       </a>
                     ))

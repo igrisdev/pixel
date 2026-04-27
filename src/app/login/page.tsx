@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link"; // NUEVO: Importamos Link
-import { useStore } from "@/store/useStore";
 import { Lock, Mail, AlertCircle, Loader2, ArrowLeft } from "lucide-react"; // NUEVO: Importamos ArrowLeft
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, currentUser } = useStore();
+  const { login, currentUser } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

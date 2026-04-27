@@ -3,15 +3,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ChevronRight } from "lucide-react";
-import { useStore } from "@/store/useStore";
 import StudentCard from "@/components/ui/StudentCard";
 import ProjectCard from "@/components/ui/ProjectCard";
 import EscalatorCard from "@/components/ui/EscalatorCard";
-import gsap from "gsap"; // Importamos GSAP nativamente desde npm
+import { useDataStore } from "@/store/useDataStore";
+import gsap from "gsap";
 
 export default function HomePage() {
   const router = useRouter();
-  const { students, proyectos } = useStore();
+  const { members, projects } = useDataStore();
   const [searchInput, setSearchInput] = useState("");
 
   // Referencias para GSAP
@@ -19,10 +19,10 @@ export default function HomePage() {
   const metricsRef = useRef<HTMLDivElement>(null);
 
   // Asegurarnos de que solo renderizamos talento activo
-  const activeStudents = students.filter((s) => !s.vetado);
+  const activeStudents = members.filter((s) => !s.isBanned);
 
-  const proyectosActivos = proyectos.filter(
-    (p) => p.estado_aprobacion === "ACTIVO",
+  const proyectosActivos = projects.filter(
+    (p) => p.approvalStatus === "ACTIVE",
   );
 
   // Lógica de Búsqueda
@@ -53,7 +53,7 @@ export default function HomePage() {
         tl.kill();
       };
     }
-  }, [students]);
+  }, [members]);
 
   // Efecto GSAP - Contadores
   useEffect(() => {
@@ -155,10 +155,10 @@ export default function HomePage() {
                 className="flex flex-col gap-4 px-6 pt-4 w-full"
               >
                 {[...activeStudents.slice(0, 4)].map((student) => (
-                  <EscalatorCard key={`a-${student.id}`} student={student} />
+                  <EscalatorCard key={`a-${student.id}`} member={student} />
                 ))}
                 {[...activeStudents.slice(0, 4)].map((student) => (
-                  <EscalatorCard key={`b-${student.id}`} student={student} />
+                  <EscalatorCard key={`b-${student.id}`} member={student} />
                 ))}
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {activeStudents.map((student) => (
-              <StudentCard key={student.id} student={student} />
+              <StudentCard key={student.id} member={student} />
             ))}
           </div>
         </div>
@@ -259,7 +259,7 @@ export default function HomePage() {
             <div>
               <div
                 className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                data-value={students.length}
+                data-value={members.length}
               >
                 0
               </div>
@@ -271,7 +271,7 @@ export default function HomePage() {
               <div
                 className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
                 data-value={
-                  students.filter((s) => s.status === "EGRESADO").length
+                  members.filter((s) => s.academicStatus === "GRADUATE").length
                 }
               >
                 0
