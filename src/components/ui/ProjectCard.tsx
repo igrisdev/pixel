@@ -69,7 +69,7 @@ export default function ProjectCard({ project }: { project: Project }) {
                   key={i}
                   src={member.memberPhotoUrl || undefined}
                   alt={member.memberName}
-                  className="w-8 h-8 rounded-none border border-[#1E293B] bg-white object-cover"
+                  className="w-8 h-8 rounded-full border border-[#1E293B] bg-white object-cover"
                   title={member.memberName}
                 />
               ))}
