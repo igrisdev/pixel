@@ -146,7 +146,7 @@ export default function HomePage() {
             </div>
 
             {/* GSAP Escalera Eléctrica */}
-            <div className="col-span-1 lg:col-span-5 h-[500px] relative overflow-hidden hidden md:block border-4 border-[#1E293B] bg-white rounded-sm shadow-xl mask-image-gradient">
+            <div className="col-span-1 lg:col-span-5 h-[500px] relative overflow-hidden hidden md:block rounded-sm shadow-xl mask-image-gradient">
               <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none"></div>
               <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none"></div>
 
