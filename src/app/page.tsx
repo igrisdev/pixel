@@ -19,11 +19,13 @@ export default function HomePage() {
   const metricsRef = useRef<HTMLDivElement>(null);
 
   // Asegurarnos de que solo renderizamos talento activo
-  const activeStudents = members.filter((s) => !s.isBanned);
+  const activeStudents = members.filter(
+    (s) => !s.isBanned && s.systemRole !== "ADMIN",
+  ).splice(0, 8);
 
   const proyectosActivos = projects.filter(
     (p) => p.approvalStatus === "ACTIVE",
-  );
+  ).splice(0, 6);
 
   // Lógica de Búsqueda
   const handleSearchSubmit = () => {
@@ -187,7 +189,7 @@ export default function HomePage() {
               </p>
             </div>
             <button
-              onClick={() => handleQuickFilter("Estudiante")}
+              onClick={() => handleQuickFilter("")}
               className="hidden sm:flex items-center text-white font-mono text-sm hover:text-[#F37021] transition"
             >
               Ver todos <ChevronRight className="w-4 h-4 ml-1" />

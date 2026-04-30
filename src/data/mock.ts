@@ -25,7 +25,7 @@ export const INITIAL_MEMBERS: Member[] = [
     passwordHash: "est123",
     career: "Ingeniería Informática",
     role: "Arquitecto de Software",
-    systemRole: "MEMBER",
+    systemRole: "ADMIN",
     academicStatus: "STUDENT",
     tech: ["Node.js", "Docker", "MySQL"],
     photoUrl:
