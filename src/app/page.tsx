@@ -3,29 +3,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ChevronRight } from "lucide-react";
-import StudentCard from "@/components/ui/StudentCard";
 import ProjectCard from "@/components/ui/ProjectCard";
 import EscalatorCard from "@/components/ui/EscalatorCard";
 import { useDataStore } from "@/store/useDataStore";
 import gsap from "gsap";
+import MemberCard from "@/components/ui/MemberCard";
 
 export default function HomePage() {
   const router = useRouter();
   const { members, projects } = useDataStore();
   const [searchInput, setSearchInput] = useState("");
 
-  // Referencias para GSAP
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
 
-  // Asegurarnos de que solo renderizamos talento activo
-  const activeStudents = members.filter(
-    (s) => !s.isBanned && s.systemRole !== "ADMIN",
-  ).splice(0, 8);
+  const activeStudents = members
+    .filter((s) => !s.isBanned && s.systemRole !== "ADMIN")
+    .splice(0, 8);
 
-  const proyectosActivos = projects.filter(
-    (p) => p.approvalStatus === "ACTIVE",
-  ).splice(0, 6);
+  const proyectosActivos = projects
+    .filter((p) => p.approvalStatus === "ACTIVE")
+    .splice(0, 6);
 
   // Lógica de Búsqueda
   const handleSearchSubmit = () => {
@@ -40,6 +38,10 @@ export default function HomePage() {
 
   const handleQuickFilter = (badge: string) => {
     router.push(`/search?query=${encodeURIComponent(badge)}`);
+  };
+
+  const handleNavigateWithFilter = (type: string) => {
+    router.push(`/search?type=${type}`);
   };
 
   // Efecto GSAP - Animación Escalera
@@ -189,7 +191,7 @@ export default function HomePage() {
               </p>
             </div>
             <button
-              onClick={() => handleQuickFilter("")}
+              onClick={() => handleNavigateWithFilter("EGRESADO")}
               className="hidden sm:flex items-center text-white font-mono text-sm hover:text-[#F37021] transition"
             >
               Ver todos <ChevronRight className="w-4 h-4 ml-1" />
@@ -198,7 +200,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {activeStudents.map((student) => (
-              <StudentCard key={student.id} member={student} />
+              <MemberCard key={student.id} member={student} />
             ))}
           </div>
         </div>
@@ -226,8 +228,8 @@ export default function HomePage() {
 
           <div className="text-center mt-12">
             <button
-              onClick={() => handleQuickFilter("Proyecto")}
-              className="bg-transparent border-2 border-[#2D5A27] text-[#2D5A27] px-8 py-3 font-bold hover:bg-[#2D5A27] hover:text-white transition pixel-border"
+              onClick={() => handleNavigateWithFilter("PROYECTO")}
+              className="bg-transparent border-2 cursor-pointer border-[#2D5A27] text-[#2D5A27] px-8 py-3 font-bold hover:bg-[#2D5A27] hover:text-white transition pixel-border"
             >
               EXPLORAR MÁS PROYECTOS
             </button>

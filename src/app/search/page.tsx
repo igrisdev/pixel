@@ -3,45 +3,62 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Filter, X } from "lucide-react";
-import { useDataStore } from "@/store/useDataStore"; // <-- CORREGIDO: Importamos el nuevo store de datos
-import StudentCard from "@/components/ui/StudentCard";
+import { useDataStore } from "@/store/useDataStore";
 import ProjectCard from "@/components/ui/ProjectCard";
+import MemberCard from "@/components/ui/MemberCard";
+
+type FilterOption = "TODO" | "ESTUDIANTE" | "EGRESADO" | "PROYECTO";
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams.get("query") || "";
 
-  // <-- CORREGIDO: Usamos el nuevo store y extraemos members y projects
+  const initialQuery = searchParams.get("query") || "";
+  const initialType = (searchParams.get("type") as FilterOption) || "TODO";
+
   const { members, projects } = useDataStore();
 
   const [searchTerm, setSearchTerm] = useState(initialQuery);
-  const [filterType, setFilterType] = useState<
-    "TODO" | "ESTUDIANTE" | "EGRESADO" | "PROYECTO"
-  >("TODO");
+  const [filterType, setFilterType] = useState<FilterOption>(initialType);
 
   useEffect(() => {
     setSearchTerm(initialQuery);
-  }, [initialQuery]);
+    if (["TODO", "ESTUDIANTE", "EGRESADO", "PROYECTO"].includes(initialType)) {
+      setFilterType(initialType);
+    }
+  }, [initialQuery, initialType]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/search?query=${encodeURIComponent(searchTerm)}`);
+    router.push(
+      `/search?query=${encodeURIComponent(searchTerm)}&type=${filterType}`,
+    );
   };
 
   const clearSearch = () => {
     setSearchTerm("");
-    router.push("/search");
+    router.push(`/search?type=${filterType}`);
+  };
+
+  const handleFilterChange = (type: FilterOption) => {
+    setFilterType(type);
+    if (searchTerm) {
+      router.push(
+        `/search?query=${encodeURIComponent(searchTerm)}&type=${type}`,
+      );
+    } else {
+      router.push(`/search?type=${type}`);
+    }
   };
 
   const termLower = searchTerm.toLowerCase();
 
-  // <-- CORREGIDO: Lógica de filtrado adaptada al nuevo modelo Member (Inglés)
   const filteredMembers = members.filter((m) => {
     if (m.isBanned) return false;
+    if (m.systemRole === "ADMIN") return false;
+
     if (filterType === "PROYECTO") return false;
 
-    // Mapeamos los filtros visuales (Español) a los datos (Inglés)
     if (filterType === "ESTUDIANTE" && m.academicStatus !== "STUDENT")
       return false;
     if (filterType === "EGRESADO" && m.academicStatus !== "GRADUATE")
@@ -54,17 +71,14 @@ function SearchContent() {
     );
   });
 
-  // <-- CORREGIDO: Lógica de filtrado adaptada al nuevo modelo Project (Inglés)
   const filteredProjects = projects.filter((p) => {
     if (filterType === "ESTUDIANTE" || filterType === "EGRESADO") return false;
     if (p.approvalStatus !== "ACTIVE") return false;
 
-    // 1. Buscamos en los datos del Proyecto Macro
     const matchMacro =
       p.title.toLowerCase().includes(termLower) ||
       p.objective.toLowerCase().includes(termLower);
 
-    // 2. Buscamos profundamente en los Productos Derivados
     const matchProductos = p.products?.some((prod) => {
       if (prod.approvalStatus !== "ACTIVE") return false;
 
@@ -77,14 +91,12 @@ function SearchContent() {
       );
     });
 
-    // Si coincide con el macro o con alguno de sus productos, lo mostramos
     return matchMacro || matchProductos;
   });
 
   return (
     <main className="min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Cabecera del Buscador */}
         <div className="bg-[#1E293B] p-8 pixel-border mb-10">
           <h1 className="text-3xl font-bold text-white mb-6 flex items-center">
             <Search className="w-8 h-8 mr-3 text-[#F37021]" /> Explorar
@@ -117,14 +129,13 @@ function SearchContent() {
             </button>
           </form>
 
-          {/* Botones de Filtro */}
           <div className="mt-6 flex flex-wrap gap-3 items-center">
             <Filter className="w-5 h-5 text-gray-400 mr-2" />
             {(["TODO", "ESTUDIANTE", "EGRESADO", "PROYECTO"] as const).map(
               (type) => (
                 <button
                   key={type}
-                  onClick={() => setFilterType(type)}
+                  onClick={() => handleFilterChange(type)}
                   className={`px-4 py-2 text-sm font-mono border-2 transition ${filterType === type ? "bg-[#2D5A27] text-white border-[#2D5A27]" : "bg-transparent text-gray-300 border-gray-600 hover:border-gray-400"}`}
                 >
                   {type}
@@ -134,7 +145,7 @@ function SearchContent() {
           </div>
         </div>
 
-        {/* Resultados: Miembros / Estudiantes */}
+        {/* ... Resto del componente (Resultados) ... */}
         {filteredMembers.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
@@ -142,13 +153,12 @@ function SearchContent() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredMembers.map((member) => (
-                <StudentCard key={member.id} member={member} />
+                <MemberCard key={member.id} member={member} />
               ))}
             </div>
           </div>
         )}
 
-        {/* Resultados: Proyectos */}
         {filteredProjects.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
@@ -177,7 +187,6 @@ function SearchContent() {
   );
 }
 
-// Envolvemos en Suspense por el uso de useSearchParams
 export default function SearchPage() {
   return (
     <Suspense
