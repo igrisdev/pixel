@@ -242,8 +242,13 @@ function SidebarBtn({
           : "text-gray-400 hover:bg-gray-800 hover:text-white border-l-4 border-transparent"
       }`}
     >
-      <span className="mr-3">{icon}</span>
-      <span className="truncate text-left text-sm md:text-base">{label}</span>
+      {/* shrink-0 evita que el icono se reduzca de tamaño si el texto ocupa mucho espacio */}
+      <span className="mr-3 shrink-0">{icon}</span>
+
+      {/* Quitamos 'truncate' y añadimos 'flex-1' y 'leading-tight' para un buen salto de línea */}
+      <span className="text-left text-sm md:text-base flex-1 leading-tight whitespace-normal break-words">
+        {label}
+      </span>
     </button>
   );
 }
