@@ -15,15 +15,30 @@ import {
   UserPlus,
   Loader2,
 } from "lucide-react";
-import { useDataStore } from "@/store/useDataStore"; // <-- CORREGIDO
-import { useAuthStore } from "@/store/useAuthStore"; // <-- CORREGIDO
-import { Project, AcademicProduct, CategoryType, Participation } from "@/types"; // <-- CORREGIDO: Tipos en inglés
+import { useDataStore } from "@/store/useDataStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Project, AcademicProduct, CategoryType, Participation } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 
+// Tipo temporal para gestionar el equipo en el formulario
+type DraftParticipant = {
+  tempId: string;
+  memberId: number;
+  memberName: string;
+  memberPhotoUrl: string;
+  productRole: string;
+};
+
 export default function IntegranteProyectosCRUD() {
-  // <-- CORREGIDO: Importamos desde DataStore y AuthStore
-  const { projects, members, addProject, updateProject, deleteProject } =
-    useDataStore();
+  // <-- MODIFICADO: Importamos también 'competencies'
+  const {
+    projects,
+    members,
+    competencies,
+    addProject,
+    updateProject,
+    deleteProject,
+  } = useDataStore();
   const { currentUser } = useAuthStore();
 
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -32,7 +47,6 @@ export default function IntegranteProyectosCRUD() {
   const [isAddingProj, setIsAddingProj] = useState(false);
   const [editProjId, setEditProjId] = useState<number | null>(null);
 
-  // <-- CORREGIDO: Propiedades en inglés
   const [projFormData, setProjFormData] = useState({
     title: "",
     objective: "",
@@ -42,13 +56,12 @@ export default function IntegranteProyectosCRUD() {
     coverImageUrl: "",
   });
 
-  // --- ESTADOS: PRODUCTOS ACADÉMICOS ---
+  // --- ESTADOS: PRODUCTOS ACADÉMICOS Y EQUIPO ---
   const [activeFormProjectId, setActiveFormProjectId] = useState<number | null>(
     null,
   );
   const [editProdId, setEditProdId] = useState<number | null>(null);
 
-  // <-- CORREGIDO: Propiedades en inglés
   const [prodFormData, setProdFormData] = useState({
     title: "",
     description: "",
@@ -61,11 +74,12 @@ export default function IntegranteProyectosCRUD() {
     location: "",
   });
 
-  // --- ESTADOS: GESTIÓN DE EQUIPO ---
-  const [managingTeamProdId, setManagingTeamProdId] = useState<number | null>(
-    null,
-  );
-  const [teamForm, setTeamForm] = useState({ memberId: "", role: "" });
+  // Estados temporales para los miembros del equipo en el formulario del producto
+  const [draftParticipants, setDraftParticipants] = useState<
+    DraftParticipant[]
+  >([]);
+  const [draftTeamMemberId, setDraftTeamMemberId] = useState("");
+  const [draftTeamRole, setDraftTeamRole] = useState("");
 
   // Filtrar proyectos del usuario actual
   const misProyectos = projects.filter((p) => p.createdBy === currentUser?.id);
@@ -139,8 +153,40 @@ export default function IntegranteProyectosCRUD() {
   };
 
   // ------------------------------------------------------------------------
-  // LÓGICA: PRODUCTOS ACADÉMICOS
+  // LÓGICA: PRODUCTOS ACADÉMICOS Y EQUIPO
   // ------------------------------------------------------------------------
+  const openNewProductForm = (projectId: number) => {
+    setActiveFormProjectId(projectId);
+    setEditProdId(null);
+    setProdFormData({
+      title: "",
+      description: "",
+      categoryType: "DEVELOPMENT",
+      technologiesString: "",
+      repositoryUrl: "",
+      demoUrl: "",
+      publicationSource: "",
+      documentUrl: "",
+      location: "",
+    });
+
+    // Añadimos por defecto al usuario actual como Líder
+    const userDetails = members.find((m) => m.id === currentUser?.id);
+    if (userDetails) {
+      setDraftParticipants([
+        {
+          tempId: `init-${Date.now()}`,
+          memberId: userDetails.id,
+          memberName: userDetails.fullName,
+          memberPhotoUrl: userDetails.photoUrl,
+          productRole: "Líder de Producto",
+        },
+      ]);
+    } else {
+      setDraftParticipants([]);
+    }
+  };
+
   const handleEditProductClick = (projectId: number, prod: AcademicProduct) => {
     setProdFormData({
       title: prod.title,
@@ -155,7 +201,43 @@ export default function IntegranteProyectosCRUD() {
     });
     setEditProdId(prod.id);
     setActiveFormProjectId(projectId);
-    setManagingTeamProdId(null);
+
+    // Cargamos los participantes actuales al borrador
+    setDraftParticipants(
+      (prod.participations || []).map((p) => ({
+        tempId: p.id.toString(),
+        memberId: p.memberId,
+        memberName: p.memberName,
+        memberPhotoUrl: p.memberPhotoUrl,
+        productRole: p.productRole,
+      })),
+    );
+  };
+
+  // <-- NUEVO: Funciones para gestionar el equipo temporal del producto
+  const handleAddDraftParticipant = () => {
+    if (!draftTeamMemberId || !draftTeamRole) return;
+    const member = members.find((m) => m.id === Number(draftTeamMemberId));
+    if (!member) return;
+
+    setDraftParticipants([
+      ...draftParticipants,
+      {
+        tempId: Date.now().toString(),
+        memberId: member.id,
+        memberName: member.fullName,
+        memberPhotoUrl: member.photoUrl,
+        productRole: draftTeamRole,
+      },
+    ]);
+
+    // Limpiamos los selectores
+    setDraftTeamMemberId("");
+    setDraftTeamRole("");
+  };
+
+  const handleRemoveDraftParticipant = (tempId: string) => {
+    setDraftParticipants(draftParticipants.filter((p) => p.tempId !== tempId));
   };
 
   const handleSaveProduct = async (e: React.FormEvent, projectId: number) => {
@@ -182,12 +264,47 @@ export default function IntegranteProyectosCRUD() {
         location: prodFormData.location,
       };
 
+      // Mapeamos los participantes del borrador al formato final
+      const allParts = projects
+        .flatMap((p) => p.products || [])
+        .flatMap((p) => p.participations || []);
+      let nextPartId =
+        allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) : 0;
+
+      const finalParticipations: Participation[] = draftParticipants.map(
+        (draft) => {
+          // Si estamos editando, revisamos si este miembro ya existía para mantener su ID
+          const existingPart = editProdId
+            ? project.products
+                ?.find((p) => p.id === editProdId)
+                ?.participations?.find((p) => p.memberId === draft.memberId)
+            : null;
+
+          if (existingPart) {
+            return { ...existingPart, productRole: draft.productRole };
+          } else {
+            nextPartId++;
+            return {
+              id: nextPartId,
+              memberId: draft.memberId,
+              productId: editProdId || 0, // Si es 0 se ajusta abajo en newProduct
+              productRole: draft.productRole,
+              startDate: project.startDate,
+              endDate: project.endDate,
+              memberName: draft.memberName,
+              memberPhotoUrl: draft.memberPhotoUrl,
+            };
+          }
+        },
+      );
+
       if (editProdId) {
         const updatedProducts = (project.products || []).map((p) =>
           p.id === editProdId
             ? {
                 ...p,
                 ...baseProductData,
+                participations: finalParticipations,
                 approvalStatus: "PENDING" as const,
               }
             : p,
@@ -197,47 +314,26 @@ export default function IntegranteProyectosCRUD() {
         const allProds = projects.flatMap((p) => p.products || []);
         const nextProdId =
           allProds.length > 0 ? Math.max(...allProds.map((p) => p.id)) + 1 : 1;
-        const allParts = allProds.flatMap((p) => p.participations || []);
-        const nextPartId =
-          allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
-        const userDetails = members.find((m) => m.id === currentUser.id);
+
+        // Ajustamos el productId de las participaciones nuevas
+        finalParticipations.forEach((p) => (p.productId = nextProdId));
 
         const newProduct: AcademicProduct = {
           id: nextProdId,
           projectId: projectId,
           ...baseProductData,
+          participations: finalParticipations,
           approvalStatus: "PENDING",
-          participations: [
-            {
-              id: nextPartId,
-              memberId: currentUser.id,
-              productId: nextProdId,
-              productRole: "Autor/Desarrollador Principal",
-              startDate: project.startDate,
-              endDate: project.endDate,
-              memberName: currentUser.name,
-              memberPhotoUrl: userDetails?.photoUrl || "",
-            },
-          ],
         };
         await updateProject(projectId, {
           products: [...(project.products || []), newProduct],
         });
       }
 
+      // Limpiamos los estados al guardar
       setActiveFormProjectId(null);
       setEditProdId(null);
-      setProdFormData({
-        title: "",
-        description: "",
-        categoryType: "DEVELOPMENT",
-        technologiesString: "",
-        repositoryUrl: "",
-        demoUrl: "",
-        publicationSource: "",
-        documentUrl: "",
-        location: "",
-      });
+      setDraftParticipants([]);
     } finally {
       setLoadingAction(null);
     }
@@ -258,87 +354,6 @@ export default function IntegranteProyectosCRUD() {
           setLoadingAction(null);
         }
       }
-    }
-  };
-
-  // ------------------------------------------------------------------------
-  // LÓGICA: PARTICIPACIONES (EQUIPO)
-  // ------------------------------------------------------------------------
-  const handleAddTeamMember = async (
-    e: React.FormEvent,
-    projectId: number,
-    productId: number,
-  ) => {
-    e.preventDefault();
-    if (!teamForm.memberId || !teamForm.role) return;
-
-    const project = projects.find((p) => p.id === projectId);
-    const product = project?.products?.find((p) => p.id === productId);
-    const memberToAdd = members.find((m) => m.id === Number(teamForm.memberId));
-    if (!project || !product || !memberToAdd) return;
-
-    setLoadingAction(`add-team-${productId}`);
-
-    try {
-      const allParts = projects
-        .flatMap((p) => p.products || [])
-        .flatMap((p) => p.participations || []);
-      const nextPartId =
-        allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) + 1 : 1;
-
-      const newParticipation: Participation = {
-        id: nextPartId,
-        memberId: memberToAdd.id,
-        productId: productId,
-        productRole: teamForm.role,
-        startDate: project.startDate,
-        endDate: project.endDate,
-        memberName: memberToAdd.fullName,
-        memberPhotoUrl: memberToAdd.photoUrl,
-      };
-
-      const updatedProducts = (project.products || []).map((p) => {
-        if (p.id === productId) {
-          return {
-            ...p,
-            participations: [...(p.participations || []), newParticipation],
-          };
-        }
-        return p;
-      });
-
-      await updateProject(projectId, { products: updatedProducts });
-      setTeamForm({ memberId: "", role: "" });
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
-  const handleRemoveTeamMember = async (
-    projectId: number,
-    productId: number,
-    participationId: number,
-  ) => {
-    const project = projects.find((p) => p.id === projectId);
-    if (!project) return;
-
-    setLoadingAction(`remove-team-${participationId}`);
-
-    try {
-      const updatedProducts = (project.products || []).map((p) => {
-        if (p.id === productId) {
-          return {
-            ...p,
-            participations: (p.participations || []).filter(
-              (part) => part.id !== participationId,
-            ),
-          };
-        }
-        return p;
-      });
-      await updateProject(projectId, { products: updatedProducts });
-    } finally {
-      setLoadingAction(null);
     }
   };
 
@@ -367,7 +382,7 @@ export default function IntegranteProyectosCRUD() {
         </button>
       </div>
 
-      {/* FORMULARIO DE PROYECTO MACRO */}
+      {/* FORMULARIO DE PROYECTO MACRO (Sin cambios) */}
       {(isAddingProj || editProjId) && (
         <form
           onSubmit={handleSaveProject}
@@ -508,322 +523,450 @@ export default function IntegranteProyectosCRUD() {
 
       {/* LISTADO DE PROYECTOS Y SUS PRODUCTOS */}
       <div className="space-y-12">
-        {misProyectos.map((p) => (
-          <div
-            key={p.id}
-            className={`border-4 transition ${loadingAction === `delete-proj-${p.id}` ? "border-red-300 opacity-50" : "border-[#1E293B]"} overflow-hidden`}
-          >
-            {/* Cabecera del Proyecto Macro */}
-            <div className="bg-[#F8F9FA] p-6 border-b-2 border-gray-200 flex flex-col md:flex-row justify-between md:items-start gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
-                    PROYECTO MACRO
-                  </span>
-                  <BadgeEstado estado={p.approvalStatus as any} />
+        {misProyectos.map((p) => {
+          // Pre-cálculos para la selección de equipo en el formulario
+          const draftMemberIds = draftParticipants.map((part) => part.memberId);
+          const availableMembers = members.filter(
+            (m) => !draftMemberIds.includes(m.id) && m.systemRole !== "ADMIN",
+          );
+
+          return (
+            <div
+              key={p.id}
+              className={`border-4 transition ${loadingAction === `delete-proj-${p.id}` ? "border-red-300 opacity-50" : "border-[#1E293B]"} overflow-hidden`}
+            >
+              {/* Cabecera del Proyecto Macro */}
+              <div className="bg-[#F8F9FA] p-6 border-b-2 border-gray-200 flex flex-col md:flex-row justify-between md:items-start gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
+                      PROYECTO MACRO
+                    </span>
+                    <BadgeEstado estado={p.approvalStatus as any} />
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-[#1E293B] mb-2">
+                    {p.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 max-w-3xl">
+                    {p.objective}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => handleEditProjectClick(p)}
+                    disabled={loadingAction !== null}
+                    className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Editar Proyecto"
+                  >
+                    <Edit className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProject(p.id)}
+                    disabled={loadingAction !== null}
+                    className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[38px]"
+                    title="Eliminar todo el proyecto"
+                  >
+                    {loadingAction === `delete-proj-${p.id}` ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-sección: Productos Académicos */}
+              <div className="p-6 bg-white">
+                <div className="flex justify-between items-center mb-6">
+                  <h4 className="font-bold text-gray-700 flex items-center">
+                    <ChevronDown className="w-5 h-5 mr-1" /> Entregables y
+                    Productos ({p.products?.length || 0})
+                  </h4>
+                  <button
+                    onClick={() =>
+                      activeFormProjectId === p.id && !editProdId
+                        ? setActiveFormProjectId(null)
+                        : openNewProductForm(p.id)
+                    }
+                    disabled={loadingAction !== null}
+                    className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {activeFormProjectId === p.id && !editProdId
+                      ? "CANCELAR"
+                      : "+ AÑADIR PRODUCTO"}
+                  </button>
                 </div>
 
-                <h3 className="text-2xl font-bold text-[#1E293B] mb-2">
-                  {p.title}
-                </h3>
-                <p className="text-sm text-gray-600 max-w-3xl">{p.objective}</p>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button
-                  onClick={() => handleEditProjectClick(p)}
-                  disabled={loadingAction !== null}
-                  className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Editar Proyecto"
-                >
-                  <Edit className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => handleDeleteProject(p.id)}
-                  disabled={loadingAction !== null}
-                  className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[38px]"
-                  title="Eliminar todo el proyecto"
-                >
-                  {loadingAction === `delete-proj-${p.id}` ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
+                {/* --- FORMULARIO ANIDADO PARA PRODUCTO Y EQUIPO --- */}
+                {activeFormProjectId === p.id && (
+                  <form
+                    onSubmit={(e) => handleSaveProduct(e, p.id)}
+                    className="mb-8 bg-gray-50 border-2 border-dashed border-[#F37021] relative"
+                  >
+                    {editProdId && (
+                      <div className="absolute top-0 right-0 bg-[#F37021] text-white text-[10px] font-mono px-3 py-1 font-bold z-10">
+                        MODO EDICIÓN
+                      </div>
+                    )}
 
-            {/* Sub-sección: Productos Académicos */}
-            <div className="p-6 bg-white">
-              <div className="flex justify-between items-center mb-6">
-                <h4 className="font-bold text-gray-700 flex items-center">
-                  <ChevronDown className="w-5 h-5 mr-1" /> Entregables y
-                  Productos ({p.products?.length || 0})
-                </h4>
-                <button
-                  onClick={() => {
-                    setActiveFormProjectId(
-                      activeFormProjectId === p.id && !editProdId ? null : p.id,
-                    );
-                    setEditProdId(null);
-                    setProdFormData({
-                      title: "",
-                      description: "",
-                      categoryType: "DEVELOPMENT",
-                      technologiesString: "",
-                      repositoryUrl: "",
-                      demoUrl: "",
-                      publicationSource: "",
-                      documentUrl: "",
-                      location: "",
-                    });
-                    setManagingTeamProdId(null);
-                  }}
-                  disabled={loadingAction !== null}
-                  className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  + AÑADIR PRODUCTO
-                </button>
-              </div>
+                    {/* PARTE 1: DATOS DEL PRODUCTO */}
+                    <div className="p-6 space-y-4 border-b-2 border-dashed border-gray-300">
+                      <h5 className="font-bold text-[#F37021] mb-2 flex items-center">
+                        <Folder className="w-4 h-4 mr-2" />
+                        {editProdId
+                          ? "Datos del Producto"
+                          : `Nuevo Producto para ${p.title}`}
+                      </h5>
 
-              {/* Formulario anidado para Producto (Crear o Editar) */}
-              {activeFormProjectId === p.id && (
-                <form
-                  onSubmit={(e) => handleSaveProduct(e, p.id)}
-                  className="mb-8 p-6 bg-gray-50 border-2 border-dashed border-[#F37021] space-y-4 relative"
-                >
-                  {editProdId && (
-                    <div className="absolute top-0 right-0 bg-[#F37021] text-white text-[10px] font-mono px-3 py-1 font-bold">
-                      MODO EDICIÓN
-                    </div>
-                  )}
-                  <h5 className="font-bold text-[#F37021] mb-2">
-                    {editProdId
-                      ? "Editando Producto"
-                      : `Añadir Nuevo Producto a ${p.title}`}
-                  </h5>
-
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                      <label className="block text-xs font-mono text-gray-500 mb-1">
-                        TÍTULO DEL PRODUCTO
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        disabled={loadingAction === `save-prod-${p.id}`}
-                        value={prodFormData.title}
-                        onChange={(e) =>
-                          setProdFormData({
-                            ...prodFormData,
-                            title: e.target.value,
-                          })
-                        }
-                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                      />
-                    </div>
-                    <div className="w-full md:w-64">
-                      <label className="block text-xs font-mono text-gray-500 mb-1">
-                        CATEGORÍA
-                      </label>
-                      <select
-                        value={prodFormData.categoryType}
-                        onChange={(e) =>
-                          setProdFormData({
-                            ...prodFormData,
-                            categoryType: e.target.value as CategoryType,
-                          })
-                        }
-                        className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white disabled:bg-gray-100"
-                        disabled={
-                          !!editProdId || loadingAction === `save-prod-${p.id}`
-                        }
-                      >
-                        <option value="DEVELOPMENT">
-                          Software / Desarrollo
-                        </option>
-                        <option value="WRITING">Artículo / Memoria</option>
-                        <option value="EVENT">Evento</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-mono text-gray-500 mb-1">
-                      DESCRIPCIÓN BREVE
-                    </label>
-                    <textarea
-                      required
-                      disabled={loadingAction === `save-prod-${p.id}`}
-                      value={prodFormData.description}
-                      onChange={(e) =>
-                        setProdFormData({
-                          ...prodFormData,
-                          description: e.target.value,
-                        })
-                      }
-                      rows={2}
-                      className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                    />
-                  </div>
-
-                  {/* Campos dinámicos según Categoría */}
-                  <div className="p-4 border border-gray-200 bg-white">
-                    {prodFormData.categoryType === "DEVELOPMENT" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                          <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                            <FileCode className="w-3 h-3 mr-1" /> TECNOLOGÍAS
-                            (Separadas por coma)
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-mono text-gray-500 mb-1">
+                            TÍTULO DEL PRODUCTO
                           </label>
                           <input
                             type="text"
+                            required
                             disabled={loadingAction === `save-prod-${p.id}`}
-                            value={prodFormData.technologiesString}
+                            value={prodFormData.title}
                             onChange={(e) =>
                               setProdFormData({
                                 ...prodFormData,
-                                technologiesString: e.target.value,
+                                title: e.target.value,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                            className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                           />
                         </div>
-                        <div>
+                        <div className="w-full md:w-64">
                           <label className="block text-xs font-mono text-gray-500 mb-1">
-                            URL REPOSITORIO
+                            CATEGORÍA
                           </label>
-                          <input
-                            type="url"
-                            disabled={loadingAction === `save-prod-${p.id}`}
-                            value={prodFormData.repositoryUrl}
+                          <select
+                            value={prodFormData.categoryType}
                             onChange={(e) =>
                               setProdFormData({
                                 ...prodFormData,
-                                repositoryUrl: e.target.value,
+                                categoryType: e.target.value as CategoryType,
                               })
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-mono text-gray-500 mb-1">
-                            URL DEMO
-                          </label>
-                          <input
-                            type="url"
-                            disabled={loadingAction === `save-prod-${p.id}`}
-                            value={prodFormData.demoUrl}
-                            onChange={(e) =>
-                              setProdFormData({
-                                ...prodFormData,
-                                demoUrl: e.target.value,
-                              })
+                            className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white disabled:bg-gray-100"
+                            disabled={
+                              !!editProdId ||
+                              loadingAction === `save-prod-${p.id}`
                             }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                          />
+                          >
+                            <option value="DEVELOPMENT">
+                              Software / Desarrollo
+                            </option>
+                            <option value="WRITING">Artículo / Memoria</option>
+                            <option value="EVENT">Evento</option>
+                          </select>
                         </div>
                       </div>
-                    )}
-                    {prodFormData.categoryType === "WRITING" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                            <FileText className="w-3 h-3 mr-1" /> FUENTE DE
-                            PUBLICACIÓN
-                          </label>
-                          <input
-                            type="text"
-                            disabled={loadingAction === `save-prod-${p.id}`}
-                            value={prodFormData.publicationSource}
-                            onChange={(e) =>
-                              setProdFormData({
-                                ...prodFormData,
-                                publicationSource: e.target.value,
-                              })
-                            }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-mono text-gray-500 mb-1">
-                            URL DEL DOCUMENTO
-                          </label>
-                          <input
-                            type="url"
-                            disabled={loadingAction === `save-prod-${p.id}`}
-                            value={prodFormData.documentUrl}
-                            onChange={(e) =>
-                              setProdFormData({
-                                ...prodFormData,
-                                documentUrl: e.target.value,
-                              })
-                            }
-                            className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {prodFormData.categoryType === "EVENT" && (
                       <div>
-                        <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                          <MapPin className="w-3 h-3 mr-1" /> CIUDAD / LOCALIDAD
-                          DEL EVENTO
+                        <label className="block text-xs font-mono text-gray-500 mb-1">
+                          DESCRIPCIÓN BREVE
                         </label>
-                        <input
-                          type="text"
+                        <textarea
+                          required
                           disabled={loadingAction === `save-prod-${p.id}`}
-                          value={prodFormData.location}
+                          value={prodFormData.description}
                           onChange={(e) =>
                             setProdFormData({
                               ...prodFormData,
-                              location: e.target.value,
+                              description: e.target.value,
                             })
                           }
-                          className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                          rows={2}
+                          className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                         />
                       </div>
-                    )}
-                  </div>
-                  <div className="flex gap-3 mt-4">
-                    <button
-                      type="submit"
-                      disabled={loadingAction === `save-prod-${p.id}`}
-                      className="bg-[#1E293B] text-white px-6 py-3 font-bold hover:bg-[#2D5A27] transition flex-1 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {loadingAction === `save-prod-${p.id}` ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
-                          GUARDANDO...
-                        </>
-                      ) : editProdId ? (
-                        "GUARDAR CAMBIOS DEL PRODUCTO"
+
+                      {/* Campos dinámicos según Categoría */}
+                      <div className="p-4 border border-gray-200 bg-white">
+                        {prodFormData.categoryType === "DEVELOPMENT" && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                                <FileCode className="w-3 h-3 mr-1" />{" "}
+                                TECNOLOGÍAS (Separadas por coma)
+                              </label>
+                              <input
+                                type="text"
+                                disabled={loadingAction === `save-prod-${p.id}`}
+                                value={prodFormData.technologiesString}
+                                onChange={(e) =>
+                                  setProdFormData({
+                                    ...prodFormData,
+                                    technologiesString: e.target.value,
+                                  })
+                                }
+                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-mono text-gray-500 mb-1">
+                                URL REPOSITORIO
+                              </label>
+                              <input
+                                type="url"
+                                disabled={loadingAction === `save-prod-${p.id}`}
+                                value={prodFormData.repositoryUrl}
+                                onChange={(e) =>
+                                  setProdFormData({
+                                    ...prodFormData,
+                                    repositoryUrl: e.target.value,
+                                  })
+                                }
+                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-mono text-gray-500 mb-1">
+                                URL DEMO
+                              </label>
+                              <input
+                                type="url"
+                                disabled={loadingAction === `save-prod-${p.id}`}
+                                value={prodFormData.demoUrl}
+                                onChange={(e) =>
+                                  setProdFormData({
+                                    ...prodFormData,
+                                    demoUrl: e.target.value,
+                                  })
+                                }
+                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {prodFormData.categoryType === "WRITING" && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                                <FileText className="w-3 h-3 mr-1" /> FUENTE DE
+                                PUBLICACIÓN
+                              </label>
+                              <input
+                                type="text"
+                                disabled={loadingAction === `save-prod-${p.id}`}
+                                value={prodFormData.publicationSource}
+                                onChange={(e) =>
+                                  setProdFormData({
+                                    ...prodFormData,
+                                    publicationSource: e.target.value,
+                                  })
+                                }
+                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-mono text-gray-500 mb-1">
+                                URL DEL DOCUMENTO
+                              </label>
+                              <input
+                                type="url"
+                                disabled={loadingAction === `save-prod-${p.id}`}
+                                value={prodFormData.documentUrl}
+                                onChange={(e) =>
+                                  setProdFormData({
+                                    ...prodFormData,
+                                    documentUrl: e.target.value,
+                                  })
+                                }
+                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {prodFormData.categoryType === "EVENT" && (
+                          <div>
+                            <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                              <MapPin className="w-3 h-3 mr-1" /> CIUDAD /
+                              LOCALIDAD DEL EVENTO
+                            </label>
+                            <input
+                              type="text"
+                              disabled={loadingAction === `save-prod-${p.id}`}
+                              value={prodFormData.location}
+                              onChange={(e) =>
+                                setProdFormData({
+                                  ...prodFormData,
+                                  location: e.target.value,
+                                })
+                              }
+                              className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* PARTE 2: GESTIÓN DE EQUIPO DEL PRODUCTO */}
+                    <div className="p-6 bg-white space-y-4">
+                      <div className="flex flex-col mb-4">
+                        <h5 className="font-bold text-[#1E293B] flex items-center">
+                          <Users className="w-5 h-5 mr-2 text-[#2D5A27]" />{" "}
+                          Equipo del Producto
+                        </h5>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Añade colaboradores y asígnales un rol basado en sus
+                          competencias. Los cambios en el equipo se aplicarán al
+                          guardar el producto.
+                        </p>
+                      </div>
+
+                      {/* Lista de participantes actuales (en borrador) */}
+                      <ul className="space-y-2 mb-4">
+                        {draftParticipants.map((part) => (
+                          <li
+                            key={part.tempId}
+                            className="flex justify-between items-center bg-gray-50 border border-gray-200 p-3 text-sm"
+                          >
+                            <div className="flex items-center">
+                              <img
+                                src={part.memberPhotoUrl || undefined}
+                                alt={part.memberName}
+                                className="w-8 h-8 mr-3 object-cover border border-[#1E293B] bg-white"
+                              />
+                              <div>
+                                <span className="font-bold text-[#1E293B] block">
+                                  {part.memberName}
+                                </span>
+                                <span className="text-xs text-[#2D5A27] font-mono font-bold bg-green-50 px-1 border border-green-200">
+                                  {part.productRole}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button" // Evita que envíe el formulario
+                              onClick={() =>
+                                handleRemoveDraftParticipant(part.tempId)
+                              }
+                              disabled={loadingAction !== null}
+                              className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:opacity-50"
+                              title="Remover participante"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </li>
+                        ))}
+                        {draftParticipants.length === 0 && (
+                          <li className="text-center p-4 border border-dashed border-gray-300 text-gray-500 text-sm">
+                            No has añadido ningún integrante a este producto.
+                          </li>
+                        )}
+                      </ul>
+
+                      {/* Controles para añadir un nuevo participante al borrador */}
+                      {availableMembers.length > 0 ? (
+                        <div className="flex flex-col md:flex-row gap-2 bg-gray-100 p-4 border border-gray-200">
+                          <select
+                            value={draftTeamMemberId}
+                            onChange={(e) =>
+                              setDraftTeamMemberId(e.target.value)
+                            }
+                            className="flex-1 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
+                          >
+                            <option value="">Seleccionar compañero...</option>
+                            {availableMembers.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.fullName} ({m.career})
+                              </option>
+                            ))}
+                          </select>
+
+                          <select
+                            value={draftTeamRole}
+                            onChange={(e) => setDraftTeamRole(e.target.value)}
+                            className="flex-1 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
+                          >
+                            <option value="">
+                              Asignar un rol / competencia...
+                            </option>
+                            <option
+                              value="Líder de Producto"
+                              className="font-bold"
+                            >
+                              Líder de Producto / Autor Principal
+                            </option>
+                            <optgroup label="Competencias Técnicas">
+                              {competencies
+                                .filter((c) => c.type === "TECHNICAL")
+                                .map((c) => (
+                                  <option key={c.id} value={c.name}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                            </optgroup>
+                            <optgroup label="Competencias Transversales">
+                              {competencies
+                                .filter((c) => c.type === "SOFT")
+                                .map((c) => (
+                                  <option key={c.id} value={c.name}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                            </optgroup>
+                          </select>
+
+                          <button
+                            type="button" // MUY IMPORTANTE: type="button" para no disparar handleSaveProduct
+                            onClick={handleAddDraftParticipant}
+                            disabled={
+                              !draftTeamMemberId ||
+                              !draftTeamRole ||
+                              loadingAction !== null
+                            }
+                            className="bg-[#1E293B] text-white px-4 py-2 text-sm font-bold hover:bg-black transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" /> AÑADIR
+                          </button>
+                        </div>
                       ) : (
-                        "GUARDAR NUEVO PRODUCTO"
+                        <p className="text-xs text-gray-400 italic mt-2">
+                          No hay más integrantes disponibles para añadir.
+                        </p>
                       )}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={loadingAction === `save-prod-${p.id}`}
-                      onClick={() => setActiveFormProjectId(null)}
-                      className="bg-gray-200 text-gray-700 px-6 py-3 font-bold hover:bg-gray-300 transition disabled:opacity-50"
-                    >
-                      CANCELAR
-                    </button>
-                  </div>
-                </form>
-              )}
+                    </div>
 
-              {/* Grid de Productos Creados */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(p.products || []).map((prod) => {
-                  const membersIds = (prod.participations || []).map(
-                    (part) => part.memberId,
-                  );
-                  const availableMembers = members.filter(
-                    (m) =>
-                      !membersIds.includes(m.id) && m.systemRole !== "ADMIN", // Aquí podrías decidir si el Admin también puede ser asignado. Lo dejo excluido por ahora como estaba.
-                  );
+                    {/* BOTONES DE ACCIÓN FINAL */}
+                    <div className="flex gap-3 p-6 bg-gray-50 border-t-2 border-dashed border-[#F37021]">
+                      <button
+                        type="submit"
+                        disabled={loadingAction === `save-prod-${p.id}`}
+                        className="bg-[#F37021] text-white px-6 py-3 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] transition flex-1 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        {loadingAction === `save-prod-${p.id}` ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                            GUARDANDO...
+                          </>
+                        ) : editProdId ? (
+                          "GUARDAR CAMBIOS DEL PRODUCTO"
+                        ) : (
+                          "GUARDAR NUEVO PRODUCTO"
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={loadingAction === `save-prod-${p.id}`}
+                        onClick={() => {
+                          setActiveFormProjectId(null);
+                          setDraftParticipants([]);
+                        }}
+                        className="bg-gray-200 text-[#1E293B] border-2 border-[#1E293B] px-6 py-3 font-bold hover:bg-gray-300 transition disabled:opacity-50"
+                      >
+                        CANCELAR
+                      </button>
+                    </div>
+                  </form>
+                )}
 
-                  return (
+                {/* Grid de Productos Creados */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(p.products || []).map((prod) => (
                     <div
                       key={prod.id}
                       className={`border p-4 relative group transition flex flex-col ${
@@ -849,22 +992,10 @@ export default function IntegranteProyectosCRUD() {
                         {/* Acciones del Producto */}
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                           <button
-                            onClick={() =>
-                              setManagingTeamProdId(
-                                managingTeamProdId === prod.id ? null : prod.id,
-                              )
-                            }
-                            disabled={loadingAction !== null}
-                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-[#2D5A27] hover:text-white transition disabled:opacity-50"
-                            title="Gestionar Equipo"
-                          >
-                            <Users className="w-4 h-4" />
-                          </button>
-                          <button
                             onClick={() => handleEditProductClick(p.id, prod)}
                             disabled={loadingAction !== null}
                             className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition disabled:opacity-50"
-                            title="Editar Producto"
+                            title="Editar Producto y Equipo"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -891,153 +1022,37 @@ export default function IntegranteProyectosCRUD() {
                       </p>
 
                       {/* Resumen del equipo en la tarjeta */}
-                      <div className="flex -space-x-2 mt-auto pt-3 border-t border-gray-100">
-                        {(prod.participations || []).map((part) => (
-                          <img
-                            key={part.id}
-                            src={part.memberPhotoUrl || undefined}
-                            alt={part.memberName}
-                            title={`${part.memberName} - ${part.productRole}`}
-                            className="w-6 h-6 border border-white bg-gray-200 object-cover rounded-full"
-                          />
-                        ))}
-                      </div>
-
-                      {/* PANEL DESPLEGABLE: GESTIÓN DE EQUIPO */}
-                      {managingTeamProdId === prod.id && (
-                        <div className="mt-4 pt-4 border-t-2 border-dashed border-gray-200 bg-gray-50 p-3 -mx-4 -mb-4">
-                          <h6 className="text-xs font-bold text-[#1E293B] mb-3 flex items-center">
-                            <Users className="w-3 h-3 mr-1" /> Equipo del
-                            Producto
-                          </h6>
-                          <ul className="space-y-2 mb-4">
-                            {(prod.participations || []).map((part) => (
-                              <li
-                                key={part.id}
-                                className={`flex justify-between items-center bg-white border p-2 text-xs transition ${loadingAction === `remove-team-${part.id}` ? "border-red-300 opacity-50" : "border-gray-200"}`}
-                              >
-                                <div className="flex items-center">
-                                  <img
-                                    src={part.memberPhotoUrl || undefined}
-                                    alt=""
-                                    className="w-5 h-5 mr-2 object-cover border border-gray-300 rounded-full"
-                                  />
-                                  <span className="font-medium mr-1">
-                                    {part.memberName}
-                                  </span>
-                                  <span className="text-gray-400">
-                                    ({part.productRole})
-                                  </span>
-                                </div>
-                                {part.memberId !== currentUser?.id && (
-                                  <button
-                                    onClick={() =>
-                                      handleRemoveTeamMember(
-                                        p.id,
-                                        prod.id,
-                                        part.id,
-                                      )
-                                    }
-                                    disabled={loadingAction !== null}
-                                    className="text-red-400 hover:text-red-600 disabled:opacity-50"
-                                  >
-                                    {loadingAction ===
-                                    `remove-team-${part.id}` ? (
-                                      <Loader2 className="w-4 h-4 animate-spin text-red-600" />
-                                    ) : (
-                                      <X className="w-4 h-4" />
-                                    )}
-                                  </button>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-
-                          {availableMembers.length > 0 ? (
-                            <form
-                              onSubmit={(e) =>
-                                handleAddTeamMember(e, p.id, prod.id)
-                              }
-                              className="flex flex-col gap-2"
-                            >
-                              <select
-                                value={teamForm.memberId}
-                                disabled={
-                                  loadingAction === `add-team-${prod.id}`
-                                }
-                                onChange={(e) =>
-                                  setTeamForm({
-                                    ...teamForm,
-                                    memberId: e.target.value,
-                                  })
-                                }
-                                className="text-xs border border-gray-300 p-2 bg-white disabled:bg-gray-100"
-                                required
-                              >
-                                <option value="">
-                                  Seleccionar compañero...
-                                </option>
-                                {availableMembers.map((m) => (
-                                  <option key={m.id} value={m.id}>
-                                    {m.fullName} ({m.career})
-                                  </option>
-                                ))}
-                              </select>
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="Rol (Ej. Analista QA)"
-                                  value={teamForm.role}
-                                  disabled={
-                                    loadingAction === `add-team-${prod.id}`
-                                  }
-                                  onChange={(e) =>
-                                    setTeamForm({
-                                      ...teamForm,
-                                      role: e.target.value,
-                                    })
-                                  }
-                                  className="text-xs border border-gray-300 p-2 flex-1 disabled:bg-gray-100"
-                                  required
-                                />
-                                <button
-                                  type="submit"
-                                  disabled={
-                                    loadingAction === `add-team-${prod.id}`
-                                  }
-                                  className="bg-[#2D5A27] text-white px-3 py-2 text-xs font-bold hover:bg-[#1f3f1b] flex items-center justify-center min-w-[85px] disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                  {loadingAction === `add-team-${prod.id}` ? (
-                                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                  ) : (
-                                    <UserPlus className="w-3 h-3 mr-1" />
-                                  )}
-                                  AÑADIR
-                                </button>
-                              </div>
-                            </form>
-                          ) : (
-                            <p className="text-xs text-gray-400 italic">
-                              No hay más miembros disponibles para añadir.
-                            </p>
-                          )}
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                        <div className="flex -space-x-2">
+                          {(prod.participations || []).map((part) => (
+                            <img
+                              key={part.id}
+                              src={part.memberPhotoUrl || undefined}
+                              alt={part.memberName}
+                              title={`${part.memberName} - ${part.productRole}`}
+                              className="w-8 h-8 border-2 border-white bg-gray-200 object-cover rounded-full"
+                            />
+                          ))}
                         </div>
-                      )}
+                        <span className="text-[10px] font-mono text-gray-400">
+                          {prod.participations?.length || 0} Integrante(s)
+                        </span>
+                      </div>
                     </div>
-                  );
-                })}
+                  ))}
 
-                {(!p.products || p.products.length === 0) &&
-                  activeFormProjectId !== p.id && (
-                    <div className="col-span-2 p-6 border-2 border-dashed border-gray-300 text-center text-gray-500 text-sm">
-                      Aún no has registrado ningún producto (software, escrito o
-                      evento) para este proyecto.
-                    </div>
-                  )}
+                  {(!p.products || p.products.length === 0) &&
+                    activeFormProjectId !== p.id && (
+                      <div className="col-span-2 p-6 border-2 border-dashed border-gray-300 text-center text-gray-500 text-sm">
+                        Aún no has registrado ningún producto (software, escrito
+                        o evento) para este proyecto.
+                      </div>
+                    )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {misProyectos.length === 0 && (
           <div className="text-center py-16 border-2 border-dashed border-gray-300 bg-gray-50">
             <p className="text-gray-500 font-medium">
