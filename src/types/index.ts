@@ -2,11 +2,19 @@ export type SystemRole = "ADMIN" | "MEMBER";
 export type AcademicStatus = "STUDENT" | "GRADUATE";
 export type ApprovalStatus = "PENDING" | "ACTIVE" | "REJECTED";
 export type CategoryType = "DEVELOPMENT" | "EVENT" | "WRITING";
+export type CompetencyType = "TECHNICAL" | "SOFT"; // "TECNICA" | "TRANSVERSAL"
 
 export interface ProfessionalLink {
   id: number;
   platform: string;
   url: string;
+}
+
+export interface Competency {
+  id: number;
+  name: string;
+  description: string;
+  type: CompetencyType;
 }
 
 export interface Member {
@@ -15,11 +23,12 @@ export interface Member {
   institutionalEmail: string;
   personalEmail: string;
   passwordHash: string;
+  professionalProfile: string;
   career: string;
-  role: string; // Ej. "Frontend Developer"
+  role: string;
   systemRole: SystemRole;
   academicStatus: AcademicStatus;
-  tech: string[];
+  competencies: Competency[];
   photoUrl: string;
   isBanned: boolean;
   cvUrl: string;
@@ -33,7 +42,7 @@ export interface Participation {
   productRole: string;
   startDate: string;
   endDate?: string;
-  memberName: string; // Desnormalizado para fácil acceso en UI
+  memberName: string;
   memberPhotoUrl: string;
 }
 
@@ -64,11 +73,4 @@ export interface Project {
   coverImageUrl: string;
   approvalStatus: ApprovalStatus;
   products?: AcademicProduct[];
-}
-
-export interface Competency {
-  id: number;
-  name: string;
-  description: string;
-  type: "TECHNICAL" | "SOFT";
 }
