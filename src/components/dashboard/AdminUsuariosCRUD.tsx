@@ -50,8 +50,10 @@ export default function AdminUsuariosCRUD() {
       const newMember: Member = {
         id: nextId,
         ...formData,
-        role: "Integrante",
-        tech: [],
+        role: "Integrante", // Rol visual por defecto
+        // <-- CORRECCIÓN: Reemplazamos tech por competencies y añadimos professionalProfile
+        competencies: [],
+        professionalProfile: "",
         photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`,
         isBanned: false,
         personalEmail: "",
@@ -132,14 +134,11 @@ export default function AdminUsuariosCRUD() {
         </h2>
         <button
           onClick={() => {
-            // <-- FIX: Lógica de cancelación corregida
             if (isAdding || editId) {
-              // Si estamos creando O editando, cancelamos todo
               setIsAdding(false);
               setEditId(null);
               resetForm();
             } else {
-              // Si no, iniciamos la creación
               setIsAdding(true);
               resetForm();
             }
