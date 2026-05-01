@@ -136,9 +136,25 @@ export default function ProfilePage() {
                 {mockProfile.career}
               </p>
 
-              <button className="w-full bg-[#F37021] text-white font-bold py-3 pixel-border flex items-center justify-center hover:bg-[#e06015] hover-lift mb-6">
-                <Download className="w-5 h-5 mr-2" /> DESCARGAR CV
-              </button>
+              {/* <-- MODIFICADO: Lógica del botón de Descargar CV --> */}
+              {mockProfile.cvUrl ? (
+                <a
+                  href={mockProfile.cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#F37021] text-white font-bold py-3 pixel-border flex items-center justify-center hover:bg-[#e06015] transition hover-lift mb-6"
+                >
+                  <Download className="w-5 h-5 mr-2" /> DESCARGAR CV
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="w-full bg-gray-200 text-gray-400 font-bold py-3 pixel-border flex items-center justify-center mb-6 cursor-not-allowed"
+                  title="Este usuario aún no ha subido su CV"
+                >
+                  <Download className="w-5 h-5 mr-2" /> CV NO DISPONIBLE
+                </button>
+              )}
 
               <div className="w-full border-t border-gray-200 pt-6">
                 <p className="text-xs text-gray-500 font-mono mb-3 text-left">
@@ -253,7 +269,6 @@ export default function ProfilePage() {
                         className={`absolute -left-[11px] top-1 w-5 h-5 ${typeColor} border-2 border-[#1E293B]`}
                       ></div>
 
-                      {/* AHORA ES UN ENLACE CLICKEABLE HACIA EL PROYECTO */}
                       <Link
                         href={`/project/${part.projectId}`}
                         className="block bg-[#F8F9FA] border border-gray-200 p-5 hover:border-[#F37021] hover:shadow-md transition group cursor-pointer"
@@ -270,7 +285,6 @@ export default function ProfilePage() {
                           {part.role}
                         </p>
 
-                        {/* Fechas de Participación */}
                         <p className="text-[11px] font-mono text-gray-500 mb-3 uppercase">
                           Período: {part.date}
                         </p>
