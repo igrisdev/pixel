@@ -137,7 +137,7 @@ export default function HomePage() {
                 <span className="text-sm font-semibold text-[#334155] mr-2 mt-1">
                   Filtros rápidos:
                 </span>
-                {["React", "Node.js", "Frontend", "Egresados"].map((badge) => (
+                {["React", "Node.js", "Frontend"].map((badge) => (
                   <span
                     key={badge}
                     onClick={() => handleQuickFilter(badge)}
