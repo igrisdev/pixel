@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react"; // <-- IMPORTAMOS useRef
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
-import { useDataStore } from "@/store/useDataStore"; // <-- IMPORTACIÓN CORREGIDA
+import { useDataStore } from "@/store/useDataStore";
 
 export default function AdminCompetenciasCRUD() {
   const { competencies, setCompetencies } = useDataStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
+  // <-- NUEVO: Referencia para el scroll
+  const topRef = useRef<HTMLDivElement>(null);
+
   // Estado para gestionar cargas individuales
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  // <-- CORREGIDO: Propiedades en inglés (name, description, type)
   const [formData, setFormData] = useState<{
     name: string;
     description: string;
@@ -28,7 +30,6 @@ export default function AdminCompetenciasCRUD() {
     setLoadingAction("save");
 
     try {
-      // Simulamos la latencia de la API
       await new Promise((resolve) => setTimeout(resolve, 600));
 
       if (editId) {
@@ -37,12 +38,12 @@ export default function AdminCompetenciasCRUD() {
             c.id === editId ? { ...c, ...formData } : c,
           ),
         );
-        setEditId(null);
       } else {
         setCompetencies([{ id: Date.now(), ...formData }, ...competencies]);
-        setIsAdding(false);
       }
-      // Reiniciamos con valores en inglés
+
+      setEditId(null);
+      setIsAdding(false);
       setFormData({ name: "", description: "", type: "TECHNICAL" });
     } finally {
       setLoadingAction(null);
@@ -51,18 +52,35 @@ export default function AdminCompetenciasCRUD() {
 
   const startEdit = (comp: any) => {
     setEditId(comp.id);
+    setIsAdding(false);
     setFormData({
       name: comp.name,
       description: comp.description,
       type: comp.type,
     });
+
+    // <-- NUEVO: Hacemos scroll suave hacia arriba después de un brevísimo momento
+    // para asegurar que el formulario ya se renderizó
+    setTimeout(() => {
+      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleCancelOrAdd = () => {
+    if (isAdding || editId !== null) {
+      setIsAdding(false);
+      setEditId(null);
+      setFormData({ name: "", description: "", type: "TECHNICAL" });
+    } else {
+      setIsAdding(true);
+    }
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm("¿Borrar competencia global?")) {
       setLoadingAction(`delete-${id}`);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 600)); // Simulación de API
+        await new Promise((resolve) => setTimeout(resolve, 600));
         setCompetencies(competencies.filter((c) => c.id !== id));
       } finally {
         setLoadingAction(null);
@@ -71,16 +89,14 @@ export default function AdminCompetenciasCRUD() {
   };
 
   return (
-    <div className="bg-white pixel-border p-6 shadow-sm">
+    // <-- NUEVO: Agregamos el ref al contenedor principal
+    <div className="bg-white pixel-border p-6 shadow-sm" ref={topRef}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-[#1E293B]">
           Catálogo de Competencias
         </h2>
         <button
-          onClick={() => {
-            setIsAdding(!isAdding);
-            setEditId(null);
-          }}
+          onClick={handleCancelOrAdd}
           disabled={loadingAction !== null}
           className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] text-sm font-bold flex items-center hover:bg-[#1f3f1b] disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -93,7 +109,7 @@ export default function AdminCompetenciasCRUD() {
         </button>
       </div>
 
-      {(isAdding || editId) && (
+      {(isAdding || editId !== null) && (
         <form
           onSubmit={handleSave}
           className="mb-8 p-6 bg-[#F8F9FA] border-2 border-[#1E293B] grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
@@ -131,11 +147,13 @@ export default function AdminCompetenciasCRUD() {
                 value={formData.type}
                 disabled={loadingAction === "save"}
                 onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value as any })
+                  setFormData({
+                    ...formData,
+                    type: e.target.value as "TECHNICAL" | "SOFT",
+                  })
                 }
                 className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] disabled:bg-gray-100"
               >
-                {/* <-- CORREGIDO: Valores en inglés en los options --> */}
                 <option value="TECHNICAL">TÉCNICA</option>
                 <option value="SOFT">TRANSVERSAL</option>
               </select>
@@ -167,7 +185,6 @@ export default function AdminCompetenciasCRUD() {
                 : "border-gray-200 hover:border-[#1E293B]"
             }`}
           >
-            {/* <-- CORREGIDO: Evaluamos c.type contra "TECHNICAL" --> */}
             <span
               className={`text-[10px] font-mono font-bold px-2 py-1 mb-3 inline-block border ${c.type === "TECHNICAL" ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300"}`}
             >

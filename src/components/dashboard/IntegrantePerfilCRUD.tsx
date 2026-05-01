@@ -9,13 +9,14 @@ import {
   Lock,
   Image as ImageIcon,
   Loader2,
-  UploadCloud, // <-- NUEVO: Icono para subir archivos
+  UploadCloud,
+  Award,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function IntegrantePerfilCRUD() {
-  const { members, updateMember } = useDataStore();
+  const { members, updateMember, competencies } = useDataStore();
   const { currentUser } = useAuthStore();
 
   const user =
@@ -24,6 +25,7 @@ export default function IntegrantePerfilCRUD() {
   const [formData, setFormData] = useState({
     fullName: user.fullName || "",
     role: user.role || "",
+    professionalProfile: user.professionalProfile || "",
     personalEmail: user.personalEmail || "",
     cvUrl: user.cvUrl || "",
     photoUrl: user.photoUrl || "",
@@ -35,6 +37,10 @@ export default function IntegrantePerfilCRUD() {
   >(user.links || []);
   const [newLink, setNewLink] = useState({ platform: "GitHub", url: "" });
 
+  const [selectedCompetencies, setSelectedCompetencies] = useState<number[]>(
+    user.competencies?.map((c: any) => c.id) || [],
+  );
+
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -44,7 +50,16 @@ export default function IntegrantePerfilCRUD() {
 
     setIsSaving(true);
     try {
-      await updateMember(currentUser.id, { ...formData, links });
+      const fullSelectedCompetencies = competencies.filter((c) =>
+        selectedCompetencies.includes(c.id),
+      );
+
+      await updateMember(currentUser.id, {
+        ...formData,
+        links,
+        competencies: fullSelectedCompetencies,
+      });
+
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -64,11 +79,19 @@ export default function IntegrantePerfilCRUD() {
 
   const deleteLink = (id: number) => setLinks(links.filter((l) => l.id !== id));
 
-  // --- NUEVAS FUNCIONES PARA SIMULAR SUBIDA DE ARCHIVOS ---
+  const toggleCompetency = (id: number) => {
+    if (selectedCompetencies.includes(id)) {
+      setSelectedCompetencies(
+        selectedCompetencies.filter((compId) => compId !== id),
+      );
+    } else {
+      setSelectedCompetencies([...selectedCompetencies, id]);
+    }
+  };
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Creamos una URL temporal local para simular la subida a un servidor
       const fakeUploadedUrl = URL.createObjectURL(file);
       setFormData({ ...formData, photoUrl: fakeUploadedUrl });
     }
@@ -77,7 +100,6 @@ export default function IntegrantePerfilCRUD() {
   const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Creamos una URL temporal local para el PDF
       const fakeUploadedUrl = URL.createObjectURL(file);
       setFormData({ ...formData, cvUrl: fakeUploadedUrl });
     }
@@ -85,7 +107,7 @@ export default function IntegrantePerfilCRUD() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Col 1: Datos */}
+      {/* Col 1: Datos Básicos */}
       <div className="bg-white pixel-border p-8 shadow-sm">
         <h2 className="text-xl font-bold text-[#1E293B] mb-6">
           Información Básica
@@ -116,8 +138,12 @@ export default function IntegrantePerfilCRUD() {
           </div>
         </div>
 
-        <form onSubmit={handleSaveProfile} className="space-y-5">
-          {/* FOTO DE PERFIL CON PREVISUALIZACIÓN */}
+        <form
+          onSubmit={handleSaveProfile}
+          className="space-y-5"
+          id="profile-form"
+        >
+          {/* FOTO DE PERFIL */}
           <div className="flex gap-4 items-center p-4 border-2 border-gray-200 bg-[#F8F9FA]">
             <img
               src={
@@ -134,7 +160,6 @@ export default function IntegrantePerfilCRUD() {
               <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
                 <ImageIcon className="w-3 h-3 mr-1" /> URL DE FOTO DE PERFIL
               </label>
-              {/* <-- MODIFICADO: Agrupamos el input URL y el botón de subir imagen --> */}
               <div className="flex gap-2">
                 <input
                   type="url"
@@ -177,6 +202,7 @@ export default function IntegrantePerfilCRUD() {
               required
             />
           </div>
+
           <div>
             <label className="block text-xs font-mono text-gray-500 mb-1">
               ROL PRINCIPAL / ESPECIALIDAD (Ej. Frontend Developer)
@@ -192,6 +218,27 @@ export default function IntegrantePerfilCRUD() {
               required
             />
           </div>
+
+          <div>
+            <label className="block text-xs font-mono text-gray-500 mb-1">
+              PERFIL PROFESIONAL / BIO
+            </label>
+            <textarea
+              disabled={isSaving}
+              value={formData.professionalProfile}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  professionalProfile: e.target.value,
+                })
+              }
+              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
+              rows={4}
+              placeholder="Cuéntanos brevemente sobre tu experiencia, intereses y objetivos..."
+              required
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-mono text-gray-500 mb-1">
               EMAIL DE CONTACTO PERSONAL
@@ -207,11 +254,11 @@ export default function IntegrantePerfilCRUD() {
               placeholder="Para que te contacten empresas..."
             />
           </div>
+
           <div>
             <label className="block text-xs font-mono text-gray-500 mb-1">
               URL CURRÍCULUM (G-Drive, PDF)
             </label>
-            {/* <-- MODIFICADO: Agrupamos el input URL y el botón de subir PDF --> */}
             <div className="flex gap-2">
               <input
                 type="url"
@@ -254,101 +301,178 @@ export default function IntegrantePerfilCRUD() {
               required
             />
           </div>
-
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="w-full bg-[#F37021] text-white font-bold py-4 border-2 border-[#1E293B] hover:bg-[#e06015] transition flex justify-center items-center mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" /> GUARDANDO...
-              </>
-            ) : saved ? (
-              <>
-                <CheckCircle className="w-5 h-5 mr-2" /> PERFIL ACTUALIZADO
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-2" /> GUARDAR CAMBIOS
-              </>
-            )}
-          </button>
         </form>
       </div>
 
-      {/* Col 2: Enlaces */}
-      <div className="bg-white pixel-border p-8 shadow-sm h-fit">
-        <h2 className="text-xl font-bold text-[#1E293B] mb-2">
-          Mis Enlaces Profesionales
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          Añade enlaces a tu portafolio, repositorios o perfiles de LinkedIn.
-        </p>
+      {/* Col 2: Enlaces y Competencias */}
+      <div className="flex flex-col gap-8">
+        {/* Mis Enlaces Profesionales */}
+        <div className="bg-white pixel-border p-8 shadow-sm h-fit">
+          <h2 className="text-xl font-bold text-[#1E293B] mb-2">
+            Mis Enlaces Profesionales
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Añade enlaces a tu portafolio, repositorios o perfiles de LinkedIn.
+          </p>
 
-        <form onSubmit={addLink} className="flex gap-2 mb-8">
-          <select
-            disabled={isSaving}
-            value={newLink.platform}
-            onChange={(e) =>
-              setNewLink({ ...newLink, platform: e.target.value })
-            }
-            className="border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            <option>GitHub</option>
-            <option>LinkedIn</option>
-            <option>Portafolio Web</option>
-            <option>Dribbble</option>
-          </select>
-          <input
-            type="url"
-            disabled={isSaving}
-            placeholder="https://..."
-            required
-            value={newLink.url}
-            onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-            className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
-          />
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 border-2 border-[#2D5A27] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
-        </form>
-
-        <ul className="space-y-3">
-          {links.map((l) => (
-            <li
-              key={l.id}
-              className={`flex justify-between items-center p-4 border-2 transition ${isSaving ? "border-gray-200 bg-gray-100 opacity-60" : "border-gray-200 bg-[#F8F9FA] hover:border-[#1E293B]"}`}
+          <form onSubmit={addLink} className="flex gap-2 mb-8">
+            <select
+              disabled={isSaving}
+              value={newLink.platform}
+              onChange={(e) =>
+                setNewLink({ ...newLink, platform: e.target.value })
+              }
+              className="border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <div className="overflow-hidden pr-4">
-                <strong className="text-[#1E293B] block text-sm">
-                  {l.platform}
-                </strong>
-                <span className="text-xs text-gray-500 font-mono truncate block w-full">
-                  {l.url}
-                </span>
-              </div>
-              <button
-                onClick={() => deleteLink(l.id)}
-                disabled={isSaving}
-                className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:cursor-not-allowed disabled:bg-gray-200"
+              <option>GitHub</option>
+              <option>LinkedIn</option>
+              <option>Portafolio Web</option>
+              <option>Dribbble</option>
+            </select>
+            <input
+              type="url"
+              disabled={isSaving}
+              placeholder="https://..."
+              required
+              value={newLink.url}
+              onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+              className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
+            />
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 border-2 border-[#2D5A27] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+          </form>
+
+          <ul className="space-y-3">
+            {links.map((l) => (
+              <li
+                key={l.id}
+                className={`flex justify-between items-center p-4 border-2 transition ${isSaving ? "border-gray-200 bg-gray-100 opacity-60" : "border-gray-200 bg-[#F8F9FA] hover:border-[#1E293B]"}`}
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </li>
-          ))}
-          {links.length === 0 && (
-            <div className="text-center py-10 border-2 border-dashed border-gray-300 bg-gray-50">
-              <p className="text-gray-500 text-sm">
-                No tienes enlaces registrados.
+                <div className="overflow-hidden pr-4">
+                  <strong className="text-[#1E293B] block text-sm">
+                    {l.platform}
+                  </strong>
+                  <span className="text-xs text-gray-500 font-mono truncate block w-full">
+                    {l.url}
+                  </span>
+                </div>
+                <button
+                  onClick={() => deleteLink(l.id)}
+                  disabled={isSaving}
+                  className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:cursor-not-allowed disabled:bg-gray-200"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+            {links.length === 0 && (
+              <div className="text-center py-10 border-2 border-dashed border-gray-300 bg-gray-50">
+                <p className="text-gray-500 text-sm">
+                  No tienes enlaces registrados.
+                </p>
+              </div>
+            )}
+          </ul>
+        </div>
+
+        {/* SECCIÓN DE COMPETENCIAS MODIFICADA */}
+        <div className="bg-white pixel-border p-8 shadow-sm h-fit">
+          <div className="flex items-center gap-2 mb-2">
+            <Award className="w-6 h-6 text-[#F37021]" />
+            <h2 className="text-xl font-bold text-[#1E293B]">
+              Mis Competencias
+            </h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Selecciona las habilidades y herramientas que dominas para que
+            destaquen en tu perfil.
+          </p>
+
+          {/* LEYENDA DE COLORES */}
+          <div className="flex gap-4 mb-6 text-xs font-mono">
+            <span className="flex items-center gap-1 text-blue-800">
+              <span className="w-3 h-3 bg-blue-50 border-2 border-blue-300 inline-block"></span>
+              Técnicas
+            </span>
+            <span className="flex items-center gap-1 text-purple-800">
+              <span className="w-3 h-3 bg-purple-50 border-2 border-purple-300 inline-block"></span>
+              Transversales
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {competencies.map((comp) => {
+              const isSelected = selectedCompetencies.includes(comp.id);
+
+              // 1. Estilos base comunes para todas
+              const baseStyle =
+                "px-4 py-2 text-sm font-bold border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+
+              // 2. Estilo cuando está seleccionada (El de tu diseño original)
+              const selectedStyle =
+                "border-[#1E293B] bg-[#1E293B] text-white shadow-[2px_2px_0px_0px_rgba(243,112,33,1)]";
+
+              // 3. Estilos diferenciados por tipo (cuando NO están seleccionadas)
+              const unselectedTechnicalStyle =
+                "border-blue-300 bg-blue-50 text-blue-800 hover:border-[#1E293B] hover:text-[#1E293B]";
+              const unselectedSoftStyle =
+                "border-purple-300 bg-purple-50 text-purple-800 hover:border-[#1E293B] hover:text-[#1E293B]";
+
+              // 4. Determinar qué estilo aplicar
+              let finalStyle = isSelected
+                ? selectedStyle
+                : comp.type === "TECHNICAL"
+                  ? unselectedTechnicalStyle
+                  : unselectedSoftStyle;
+
+              return (
+                <button
+                  key={comp.id}
+                  type="button"
+                  onClick={() => toggleCompetency(comp.id)}
+                  disabled={isSaving}
+                  className={`${baseStyle} ${finalStyle}`}
+                  title={comp.description} // Mostramos la descripción al pasar el mouse
+                >
+                  {comp.name}
+                </button>
+              );
+            })}
+
+            {competencies.length === 0 && (
+              <p className="text-sm text-gray-500 italic w-full text-center py-4">
+                No hay competencias registradas en el sistema.
               </p>
-            </div>
+            )}
+          </div>
+        </div>
+
+        <button
+          form="profile-form"
+          type="submit"
+          disabled={isSaving}
+          className="w-full bg-[#F37021] text-white font-bold py-4 border-2 border-[#1E293B] hover:bg-[#e06015] transition flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed mt-auto"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" /> GUARDANDO
+              PERFIL...
+            </>
+          ) : saved ? (
+            <>
+              <CheckCircle className="w-5 h-5 mr-2" /> PERFIL ACTUALIZADO
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5 mr-2" /> GUARDAR TODOS LOS CAMBIOS
+            </>
           )}
-        </ul>
+        </button>
       </div>
     </div>
   );
