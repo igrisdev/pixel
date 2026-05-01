@@ -11,6 +11,12 @@ export default function MemberCard({ member }: MemberCardProps) {
   const statusText =
     member.academicStatus === "GRADUATE" ? "EGRESADO" : "ESTUDIANTE";
 
+  // 1. Extraemos SOLO las competencias técnicas para mostrarlas como etiquetas
+  const techSkills =
+    member.competencies
+      ?.filter((c) => c.type === "TECHNICAL")
+      .map((c) => c.name) || [];
+
   return (
     <Link
       href={`/profile/${member.id}`}
@@ -59,20 +65,20 @@ export default function MemberCard({ member }: MemberCardProps) {
         </div>
       )}
 
-      {/* Tecnologías */}
+      {/* Tecnologías (Extraídas de las competencias) */}
       <div className="flex flex-wrap gap-1 mt-auto">
-        {member.tech.slice(0, 3).map((t) => (
+        {techSkills.slice(0, 3).map((techName) => (
           <span
-            key={t}
+            key={techName}
             className="bg-gray-100 text-[#334155] text-xs px-2 py-1 font-mono border border-gray-300"
           >
-            {t}
+            {techName}
           </span>
         ))}
         {/* Indicador de que hay más tecnologías ocultas */}
-        {member.tech.length > 3 && (
+        {techSkills.length > 3 && (
           <span className="bg-gray-100 text-[#334155] text-xs px-2 py-1 font-mono border border-gray-300 font-bold">
-            +{member.tech.length - 3}
+            +{techSkills.length - 3}
           </span>
         )}
       </div>

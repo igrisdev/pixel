@@ -6,6 +6,12 @@ interface EscalatorCardProps {
 }
 
 export default function EscalatorCard({ member }: EscalatorCardProps) {
+  // Extraemos SOLO las competencias técnicas para mostrarlas como etiquetas
+  const techSkills =
+    member.competencies
+      ?.filter((c) => c.type === "TECHNICAL")
+      .map((c) => c.name) || [];
+
   return (
     <Link
       href={`/profile/${member.id}`}
@@ -40,9 +46,10 @@ export default function EscalatorCard({ member }: EscalatorCardProps) {
           {member.role}
         </p>
 
-        {member.tech && member.tech.length > 0 && (
+        {/* Reemplazamos member.tech por techSkills */}
+        {techSkills.length > 0 && (
           <div className="flex gap-1">
-            {member.tech.slice(0, 2).map((t) => (
+            {techSkills.slice(0, 2).map((t) => (
               <span
                 key={t}
                 className="text-[9px] bg-white border border-gray-300 px-1 font-bold text-gray-500 truncate max-w-[65px]"
