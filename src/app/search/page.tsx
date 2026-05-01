@@ -67,7 +67,8 @@ function SearchContent() {
     return (
       m.fullName.toLowerCase().includes(termLower) ||
       (m.role && m.role.toLowerCase().includes(termLower)) ||
-      (m.tech && m.tech.some((t) => t.toLowerCase().includes(termLower)))
+      (m.competencies &&
+        m.competencies.some((c) => c.name.toLowerCase().includes(termLower)))
     );
   });
 
