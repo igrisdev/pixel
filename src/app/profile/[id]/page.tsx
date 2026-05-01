@@ -47,11 +47,13 @@ export default function ProfilePage() {
   // --- LÓGICA RELACIONAL: BUSCAR PARTICIPACIONES REALES ---
   const participacionesReales: ParticipationData[] = projects.flatMap(
     (project) => {
-      // 1. Buscamos los productos de este project donde el estudiante haya participado
-      const productosDelEstudiante = (project.products || []).filter((prod) =>
-        (prod.participations || []).some(
-          (part) => part.memberId === student.id,
-        ),
+      // 1. Buscamos los productos donde el estudiante participó Y que NO estén pendientes
+      const productosDelEstudiante = (project.products || []).filter(
+        (prod) =>
+          prod.approvalStatus !== "PENDING" && // <-- NUEVA VALIDACIÓN AQUÍ
+          (prod.participations || []).some(
+            (part) => part.memberId === student.id,
+          ),
       );
 
       // 2. Mapeamos esos productos a la estructura visual de la tarjeta
@@ -77,23 +79,36 @@ export default function ProfilePage() {
     },
   );
 
-  // Extendemos los datos. Dejamos las bio/skills simuladas ya que aún no existen en el Modelo BD
+  // --- EXTRACCIÓN DE COMPETENCIAS ---
+  // Filtramos las competencias técnicas y transversales directamente del nuevo modelo
+  const hardSkills =
+    student.competencies
+      ?.filter((c) => c.type === "TECHNICAL")
+      .map((c) => c.name) || [];
+
+  const softSkills =
+    student.competencies?.filter((c) => c.type === "SOFT").map((c) => c.name) ||
+    [];
+
+  // Extendemos los datos. Actualizamos las skills para que usen las del BD
   const mockProfile = {
     ...student,
     email:
       student.personalEmail ||
       student.fullName.split(" ")[0].toLowerCase() + "@unimayor.edu.co",
-    bio: "Apasionado por la tecnología y la investigación aplicada. Investigador en el semillero Pixel participando activamente en el desarrollo de soluciones de software.",
+    bio:
+      student.professionalProfile ||
+      "Apasionado por la tecnología y la investigación aplicada. Investigador en el semillero Pixel participando activamente en el desarrollo de soluciones de software.",
     skillsHard:
-      (student.tech || []).length > 0
-        ? student.tech
-        : ["Git", "Scrum", "API REST"],
-    skillsSoft: [
-      "Liderazgo técnico",
-      "Resolución de problemas",
-      "Trabajo colaborativo",
-      "Redacción científica",
-    ],
+      hardSkills.length > 0 ? hardSkills : ["Git", "Scrum", "API REST"],
+    skillsSoft:
+      softSkills.length > 0
+        ? softSkills
+        : [
+            "Liderazgo técnico",
+            "Resolución de problemas",
+            "Trabajo colaborativo",
+          ],
     participations: participacionesReales,
   };
 
@@ -123,7 +138,9 @@ export default function ProfilePage() {
                     : "bg-gray-100 text-[#334155]"
                 }`}
               >
-                {mockProfile.academicStatus}
+                {mockProfile.academicStatus === "GRADUATE"
+                  ? "EGRESADO"
+                  : "ESTUDIANTE"}
               </span>
               <h1 className="text-2xl font-bold text-[#2D5A27] mb-1">
                 {mockProfile.fullName}
@@ -254,7 +271,7 @@ export default function ProfilePage() {
             {mockProfile.participations.length === 0 ? (
               <p className="text-gray-500 italic p-6 border-2 border-dashed border-gray-200 text-center">
                 Este integrante aún no tiene participaciones en productos
-                académicos.
+                académicos visibles.
               </p>
             ) : (
               <div className="relative border-l-2 border-[#1E293B] ml-3 space-y-8 pb-4">
@@ -289,7 +306,8 @@ export default function ProfilePage() {
                           Período: {part.date}
                         </p>
 
-                        {part.type === "DESARROLLO" &&
+                        {/* Modificamos part.type de "DESARROLLO" a "DEVELOPMENT" para coincidir con tu Mock */}
+                        {part.type === "DEVELOPMENT" &&
                           part.tech &&
                           part.tech.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-3">
