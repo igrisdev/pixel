@@ -9,20 +9,18 @@ import {
   Lock,
   Image as ImageIcon,
   Loader2,
+  UploadCloud, // <-- NUEVO: Icono para subir archivos
 } from "lucide-react";
-import { useDataStore } from "@/store/useDataStore"; // <-- IMPORTACIÓN CORREGIDA
-import { useAuthStore } from "@/store/useAuthStore"; // <-- IMPORTACIÓN CORREGIDA
+import { useDataStore } from "@/store/useDataStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function IntegrantePerfilCRUD() {
-  // <-- CORREGIDO: Extraemos de los nuevos stores
   const { members, updateMember } = useDataStore();
   const { currentUser } = useAuthStore();
 
-  // Buscar data actualizada (ahora usamos 'members')
   const user =
     members.find((m) => m.id === currentUser?.id) || (currentUser as any);
 
-  // <-- CORREGIDO: Propiedades en inglés
   const [formData, setFormData] = useState({
     fullName: user.fullName || "",
     role: user.role || "",
@@ -32,7 +30,6 @@ export default function IntegrantePerfilCRUD() {
     passwordHash: user.passwordHash || "",
   });
 
-  // <-- CORREGIDO: 'enlaces' -> 'links' y 'plataforma' -> 'platform'
   const [links, setLinks] = useState<
     { id: number; platform: string; url: string }[]
   >(user.links || []);
@@ -47,9 +44,7 @@ export default function IntegrantePerfilCRUD() {
 
     setIsSaving(true);
     try {
-      // <-- CORREGIDO: Usamos updateMember y enviamos los links
       await updateMember(currentUser.id, { ...formData, links });
-
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -68,6 +63,25 @@ export default function IntegrantePerfilCRUD() {
   };
 
   const deleteLink = (id: number) => setLinks(links.filter((l) => l.id !== id));
+
+  // --- NUEVAS FUNCIONES PARA SIMULAR SUBIDA DE ARCHIVOS ---
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Creamos una URL temporal local para simular la subida a un servidor
+      const fakeUploadedUrl = URL.createObjectURL(file);
+      setFormData({ ...formData, photoUrl: fakeUploadedUrl });
+    }
+  };
+
+  const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Creamos una URL temporal local para el PDF
+      const fakeUploadedUrl = URL.createObjectURL(file);
+      setFormData({ ...formData, cvUrl: fakeUploadedUrl });
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -88,7 +102,6 @@ export default function IntegrantePerfilCRUD() {
                 Correo:
               </span>
               <span className="text-sm font-mono text-[#1E293B]">
-                {/* <-- CORREGIDO */}
                 {user.institutionalEmail}
               </span>
             </div>
@@ -97,7 +110,6 @@ export default function IntegrantePerfilCRUD() {
                 Carrera:
               </span>
               <span className="text-sm font-mono text-[#1E293B]">
-                {/* <-- CORREGIDO */}
                 {user.career}
               </span>
             </div>
@@ -122,16 +134,31 @@ export default function IntegrantePerfilCRUD() {
               <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
                 <ImageIcon className="w-3 h-3 mr-1" /> URL DE FOTO DE PERFIL
               </label>
-              <input
-                type="url"
-                disabled={isSaving}
-                value={formData.photoUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, photoUrl: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                placeholder="https://..."
-              />
+              {/* <-- MODIFICADO: Agrupamos el input URL y el botón de subir imagen --> */}
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  disabled={isSaving}
+                  value={formData.photoUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, photoUrl: e.target.value })
+                  }
+                  className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  placeholder="https://..."
+                />
+                <label
+                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSaving ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+                >
+                  <UploadCloud className="w-4 h-4 mr-2" /> SUBIR
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={isSaving}
+                  />
+                </label>
+              </div>
             </div>
           </div>
 
@@ -184,16 +211,31 @@ export default function IntegrantePerfilCRUD() {
             <label className="block text-xs font-mono text-gray-500 mb-1">
               URL CURRÍCULUM (G-Drive, PDF)
             </label>
-            <input
-              type="url"
-              disabled={isSaving}
-              value={formData.cvUrl}
-              onChange={(e) =>
-                setFormData({ ...formData, cvUrl: e.target.value })
-              }
-              placeholder="https://..."
-              className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
-            />
+            {/* <-- MODIFICADO: Agrupamos el input URL y el botón de subir PDF --> */}
+            <div className="flex gap-2">
+              <input
+                type="url"
+                disabled={isSaving}
+                value={formData.cvUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, cvUrl: e.target.value })
+                }
+                placeholder="https://..."
+                className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
+              />
+              <label
+                className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSaving ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+              >
+                <UploadCloud className="w-4 h-4 mr-2" /> PDF
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={handleCvUpload}
+                  disabled={isSaving}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="pt-4 border-t-2 border-dashed border-gray-200">

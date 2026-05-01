@@ -2,37 +2,35 @@
 
 import React, { useState } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
-import { useDataStore } from "@/store/useDataStore"; // <-- CORREGIDO
-import { Member } from "@/types"; // <-- CORREGIDO: Usamos Member en vez de Student
+import { useDataStore } from "@/store/useDataStore";
+import { Member } from "@/types";
 
 export default function AdminUsuariosCRUD() {
-  // <-- CORREGIDO: Usamos members, setMembers y updateMember
   const { members, setMembers, updateMember } = useDataStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  // Estado para la gestión de cargas asíncronas
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  // <-- CORREGIDO: Propiedades en inglés
   const [formData, setFormData] = useState<{
     fullName: string;
     institutionalEmail: string;
     passwordHash: string;
     career: string;
     academicStatus: "STUDENT" | "GRADUATE";
+    systemRole: "ADMIN" | "MEMBER";
   }>({
     fullName: "",
     institutionalEmail: "",
     passwordHash: "",
     career: "",
     academicStatus: "STUDENT",
+    systemRole: "MEMBER",
   });
 
   const toggleVetado = async (member: Member) => {
     setLoadingAction(`vetar-${member.id}`);
     try {
-      // <-- CORREGIDO: isBanned en lugar de vetado
       await updateMember(member.id, { isBanned: !member.isBanned });
     } finally {
       setLoadingAction(null);
@@ -44,17 +42,15 @@ export default function AdminUsuariosCRUD() {
     setLoadingAction("save");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600)); // Latencia simulada
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       const nextId =
         members.length > 0 ? Math.max(...members.map((m) => m.id)) + 1 : 1;
 
-      // <-- CORREGIDO: Estructura de Member
       const newMember: Member = {
         id: nextId,
         ...formData,
-        role: "Integrante", // Cargo profesional genérico inicial
-        systemRole: "MEMBER", // Rol de permisos
+        role: "Integrante",
         tech: [],
         photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`,
         isBanned: false,
@@ -79,6 +75,7 @@ export default function AdminUsuariosCRUD() {
       passwordHash: member.passwordHash || "",
       career: member.career || "",
       academicStatus: member.academicStatus as "STUDENT" | "GRADUATE",
+      systemRole: member.systemRole || "MEMBER",
     });
   };
 
@@ -100,7 +97,7 @@ export default function AdminUsuariosCRUD() {
     if (window.confirm("¿Eliminar usuario del sistema?")) {
       setLoadingAction(`delete-${id}`);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 600)); // Latencia simulada
+        await new Promise((resolve) => setTimeout(resolve, 600));
         setMembers(members.filter((m) => m.id !== id));
       } finally {
         setLoadingAction(null);
@@ -115,6 +112,7 @@ export default function AdminUsuariosCRUD() {
       passwordHash: "",
       career: "",
       academicStatus: "STUDENT",
+      systemRole: "MEMBER",
     });
   };
 
@@ -134,9 +132,17 @@ export default function AdminUsuariosCRUD() {
         </h2>
         <button
           onClick={() => {
-            setIsAdding(!isAdding);
-            setEditId(null);
-            if (!isAdding) resetForm();
+            // <-- FIX: Lógica de cancelación corregida
+            if (isAdding || editId) {
+              // Si estamos creando O editando, cancelamos todo
+              setIsAdding(false);
+              setEditId(null);
+              resetForm();
+            } else {
+              // Si no, iniciamos la creación
+              setIsAdding(true);
+              resetForm();
+            }
           }}
           disabled={loadingAction !== null}
           className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] hover:bg-[#1f3f1b] flex items-center font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -155,6 +161,7 @@ export default function AdminUsuariosCRUD() {
           onSubmit={editId ? handleUpdate : handleAdd}
           className="mb-6 p-6 bg-[#F8F9FA] border-2 border-[#1E293B] flex flex-col gap-4 min-w-[600px]"
         >
+          {/* PRIMERA FILA */}
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-xs font-mono mb-1 text-gray-600">
@@ -197,7 +204,7 @@ export default function AdminUsuariosCRUD() {
             </div>
             <div className="w-40">
               <label className="block text-xs font-mono mb-1 text-gray-600">
-                Estado
+                Estado Académico
               </label>
               <select
                 value={formData.academicStatus}
@@ -216,6 +223,7 @@ export default function AdminUsuariosCRUD() {
             </div>
           </div>
 
+          {/* SEGUNDA FILA */}
           <div className="flex gap-4 items-end">
             <div className="flex-1">
               <label className="block text-xs font-mono mb-1 text-gray-600">
@@ -252,6 +260,27 @@ export default function AdminUsuariosCRUD() {
                 placeholder="Ej. pixel2026"
               />
             </div>
+
+            <div className="w-40">
+              <label className="block text-xs font-mono mb-1 text-gray-600">
+                Rol Sistema (Permisos)
+              </label>
+              <select
+                value={formData.systemRole}
+                disabled={loadingAction === "save"}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    systemRole: e.target.value as "ADMIN" | "MEMBER",
+                  })
+                }
+                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
+              >
+                <option value="MEMBER">MEMBER</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+
             <button
               type="submit"
               disabled={loadingAction === "save"}
@@ -274,6 +303,7 @@ export default function AdminUsuariosCRUD() {
           <tr>
             <th className="p-3 font-mono">NOMBRE</th>
             <th className="p-3 font-mono">CARRERA</th>
+            <th className="p-3 font-mono">PERMISOS</th>
             <th className="p-3 font-mono">ESTADO</th>
             <th className="p-3 font-mono">VETADO</th>
             <th className="p-3 font-mono text-right">ACCIONES</th>
@@ -305,6 +335,19 @@ export default function AdminUsuariosCRUD() {
               <td className="p-3 text-gray-600">
                 {m.career || "No registrada"}
               </td>
+
+              <td className="p-3">
+                <span
+                  className={`px-2 py-1 text-[10px] font-mono border border-[#1E293B] ${
+                    m.systemRole === "ADMIN"
+                      ? "bg-[#F37021] text-white"
+                      : "bg-gray-100 text-[#334155]"
+                  }`}
+                >
+                  {m.systemRole}
+                </span>
+              </td>
+
               <td className="p-3">
                 <span
                   className={`px-2 py-1 text-[10px] font-mono border border-[#1E293B] ${m.academicStatus === "GRADUATE" ? "bg-[#2D5A27] text-white" : "bg-gray-100"}`}
