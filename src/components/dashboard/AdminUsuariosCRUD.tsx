@@ -320,7 +320,7 @@ export default function AdminUsuariosCRUD() {
             >
               <td className="p-3 font-medium flex items-center">
                 <img
-                  src={m.photoUrl}
+                  src={m.photoUrl || undefined}
                   className="w-8 h-8 mr-3 border border-[#1E293B] object-cover"
                   alt=""
                 />

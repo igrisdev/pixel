@@ -16,6 +16,9 @@ interface DataState {
   setMembers: (members: Member[]) => void;
   setProjects: (projects: Project[]) => void;
   setCompetencies: (competencies: Competency[]) => void;
+  loadMembers: () => Promise<void>;
+  loadCompetencies: () => Promise<void>;
+  loadProjects: (createdBy?: number) => Promise<void>;
 
   addProject: (project: Project) => Promise<void>;
   updateProject: (id: number, project: Partial<Project>) => Promise<void>;
@@ -35,6 +38,21 @@ export const useDataStore = create<DataState>()(
       setProjects: (projects) => set({ projects }),
       setCompetencies: (competencies) => set({ competencies }),
 
+      loadMembers: async () => {
+        const members = await ApiRepository.getMembers();
+        set({ members });
+      },
+
+      loadCompetencies: async () => {
+        const competencies = await ApiRepository.getCompetencies();
+        set({ competencies });
+      },
+
+      loadProjects: async (createdBy) => {
+        const projects = await ApiRepository.getProjects(createdBy);
+        set({ projects });
+      },
+
       addProject: async (project) => {
         const newProject = await ApiRepository.createProject(project); // Deberías renombrarlo en la API a createProject luego
         set((state) => ({
@@ -43,10 +61,10 @@ export const useDataStore = create<DataState>()(
       },
 
       updateProject: async (id, updatedData) => {
-        await ApiRepository.updateProject(id, updatedData);
+        const updatedProject = await ApiRepository.updateProject(id, updatedData);
         set((state) => ({
           projects: state.projects.map((p) =>
-            p.id === id ? { ...p, ...updatedData } : p,
+            p.id === id ? updatedProject : p,
           ),
         }));
       },

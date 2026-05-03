@@ -1,33 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Edit,
   Trash2,
   X,
   Folder,
-  FileCode,
-  MapPin,
-  FileText,
   ChevronDown,
-  Users,
-  UserPlus,
   Loader2,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Project, AcademicProduct, CategoryType, Participation } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
-
-// Tipo temporal para gestionar el equipo en el formulario
-type DraftParticipant = {
-  tempId: string;
-  memberId: number;
-  memberName: string;
-  memberPhotoUrl: string;
-  productRole: string;
-};
+import ProjectMacroForm from "@/components/ui/project-crud/ProjectMacroForm";
+import ProductForm from "@/components/ui/project-crud/ProductForm";
+import ProductCard from "@/components/ui/project-crud/ProductCard";
+import {
+  DraftParticipant,
+  ProductFormData,
+  ProjectFormData,
+} from "@/components/ui/project-crud/types";
 
 export default function IntegranteProyectosCRUD() {
   // <-- MODIFICADO: Importamos también 'competencies'
@@ -35,6 +29,9 @@ export default function IntegranteProyectosCRUD() {
     projects,
     members,
     competencies,
+    loadMembers,
+    loadCompetencies,
+    loadProjects,
     addProject,
     updateProject,
     deleteProject,
@@ -42,12 +39,13 @@ export default function IntegranteProyectosCRUD() {
   const { currentUser } = useAuthStore();
 
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // --- ESTADOS: PROYECTO MACRO ---
   const [isAddingProj, setIsAddingProj] = useState(false);
   const [editProjId, setEditProjId] = useState<number | null>(null);
 
-  const [projFormData, setProjFormData] = useState({
+  const [projFormData, setProjFormData] = useState<ProjectFormData>({
     title: "",
     objective: "",
     awards: "",
@@ -62,7 +60,7 @@ export default function IntegranteProyectosCRUD() {
   );
   const [editProdId, setEditProdId] = useState<number | null>(null);
 
-  const [prodFormData, setProdFormData] = useState({
+  const [prodFormData, setProdFormData] = useState<ProductFormData>({
     title: "",
     description: "",
     categoryType: "DEVELOPMENT" as CategoryType,
@@ -84,12 +82,28 @@ export default function IntegranteProyectosCRUD() {
   // Filtrar proyectos del usuario actual
   const misProyectos = projects.filter((p) => p.createdBy === currentUser?.id);
 
+  useEffect(() => {
+    if (!currentUser) return;
+    void Promise.all([
+      loadProjects(currentUser.id),
+      loadMembers(),
+      loadCompetencies(),
+    ]).catch((error) => {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los datos del dashboard",
+      );
+    });
+  }, [currentUser, loadProjects, loadMembers, loadCompetencies]);
+
   // ------------------------------------------------------------------------
   // LÓGICA: PROYECTOS MACRO
   // ------------------------------------------------------------------------
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingAction("save-project");
+    setErrorMessage(null);
 
     try {
       if (editProjId) {
@@ -118,6 +132,8 @@ export default function IntegranteProyectosCRUD() {
         endDate: "",
         coverImageUrl: "",
       });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el proyecto");
     } finally {
       setLoadingAction(null);
     }
@@ -132,6 +148,8 @@ export default function IntegranteProyectosCRUD() {
       setLoadingAction(`delete-proj-${id}`);
       try {
         await deleteProject(id);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "No se pudo eliminar el proyecto");
       } finally {
         setLoadingAction(null);
       }
@@ -247,6 +265,7 @@ export default function IntegranteProyectosCRUD() {
     if (!project) return;
 
     setLoadingAction(`save-prod-${projectId}`);
+    setErrorMessage(null);
 
     try {
       const baseProductData = {
@@ -334,6 +353,8 @@ export default function IntegranteProyectosCRUD() {
       setActiveFormProjectId(null);
       setEditProdId(null);
       setDraftParticipants([]);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el producto");
     } finally {
       setLoadingAction(null);
     }
@@ -350,6 +371,8 @@ export default function IntegranteProyectosCRUD() {
               (p) => p.id !== productId,
             ),
           });
+        } catch (error) {
+          setErrorMessage(error instanceof Error ? error.message : "No se pudo eliminar el producto");
         } finally {
           setLoadingAction(null);
         }
@@ -359,6 +382,12 @@ export default function IntegranteProyectosCRUD() {
 
   return (
     <div className="bg-white pixel-border p-6 md:p-8 shadow-sm">
+      {errorMessage && (
+        <div className="mb-6 border-l-4 border-red-500 bg-red-50 p-4 text-sm text-red-700 font-semibold">
+          {errorMessage}
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8 border-b-2 border-gray-100 pb-4">
         <h2 className="text-xl md:text-2xl font-bold text-[#1E293B] flex items-center">
@@ -382,143 +411,14 @@ export default function IntegranteProyectosCRUD() {
         </button>
       </div>
 
-      {/* FORMULARIO DE PROYECTO MACRO (Sin cambios) */}
       {(isAddingProj || editProjId) && (
-        <form
+        <ProjectMacroForm
+          editProjId={editProjId}
+          loadingAction={loadingAction}
+          formData={projFormData}
+          onChange={setProjFormData}
           onSubmit={handleSaveProject}
-          className="mb-10 p-6 md:p-8 bg-[#F8F9FA] border-2 border-[#1E293B] space-y-5 relative"
-        >
-          {editProjId && (
-            <div className="absolute top-0 right-0 bg-[#F37021] text-white text-[10px] font-mono px-3 py-1 font-bold">
-              MODO EDICIÓN
-            </div>
-          )}
-          <h3 className="font-bold text-lg text-[#1E293B] mb-2">
-            {editProjId
-              ? "Editando Proyecto Macro"
-              : "Datos del Nuevo Proyecto Macro"}
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                TÍTULO GENERAL
-              </label>
-              <input
-                type="text"
-                required
-                disabled={loadingAction === "save-project"}
-                value={projFormData.title}
-                onChange={(e) =>
-                  setProjFormData({ ...projFormData, title: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 font-medium disabled:bg-gray-100"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                OBJETIVO PRINCIPAL
-              </label>
-              <textarea
-                required
-                disabled={loadingAction === "save-project"}
-                value={projFormData.objective}
-                onChange={(e) =>
-                  setProjFormData({
-                    ...projFormData,
-                    objective: e.target.value,
-                  })
-                }
-                rows={2}
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                FECHA INICIO
-              </label>
-              <input
-                type="date"
-                required
-                disabled={loadingAction === "save-project"}
-                value={projFormData.startDate}
-                onChange={(e) =>
-                  setProjFormData({
-                    ...projFormData,
-                    startDate: e.target.value,
-                  })
-                }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                FECHA FIN (Opcional si sigue activo)
-              </label>
-              <input
-                type="date"
-                disabled={loadingAction === "save-project"}
-                value={projFormData.endDate}
-                onChange={(e) =>
-                  setProjFormData({
-                    ...projFormData,
-                    endDate: e.target.value,
-                  })
-                }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                PREMIOS O DISTINCIONES
-              </label>
-              <input
-                type="text"
-                disabled={loadingAction === "save-project"}
-                value={projFormData.awards}
-                onChange={(e) =>
-                  setProjFormData({
-                    ...projFormData,
-                    awards: e.target.value,
-                  })
-                }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                URL IMAGEN DE PORTADA
-              </label>
-              <input
-                type="url"
-                disabled={loadingAction === "save-project"}
-                value={projFormData.coverImageUrl}
-                onChange={(e) =>
-                  setProjFormData({
-                    ...projFormData,
-                    coverImageUrl: e.target.value,
-                  })
-                }
-                className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loadingAction === "save-project"}
-            className="w-full bg-[#F37021] hover:bg-[#e06015] text-white py-4 font-bold border-2 border-[#1E293B] mt-4 transition pixel-border-accent flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loadingAction === "save-project" ? (
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            ) : null}
-            {loadingAction === "save-project"
-              ? "GUARDANDO..."
-              : editProjId
-                ? "GUARDAR CAMBIOS DEL PROYECTO"
-                : "CREAR PROYECTO MACRO"}
-          </button>
-        </form>
+        />
       )}
 
       {/* LISTADO DE PROYECTOS Y SUS PRODUCTOS */}
@@ -542,7 +442,7 @@ export default function IntegranteProyectosCRUD() {
                     <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
                       PROYECTO MACRO
                     </span>
-                    <BadgeEstado estado={p.approvalStatus as any} />
+                    <BadgeEstado estado={p.approvalStatus} />
                   </div>
 
                   <h3 className="text-2xl font-bold text-[#1E293B] mb-2">
@@ -598,447 +498,41 @@ export default function IntegranteProyectosCRUD() {
                   </button>
                 </div>
 
-                {/* --- FORMULARIO ANIDADO PARA PRODUCTO Y EQUIPO --- */}
                 {activeFormProjectId === p.id && (
-                  <form
-                    onSubmit={(e) => handleSaveProduct(e, p.id)}
-                    className="mb-8 bg-gray-50 border-2 border-dashed border-[#F37021] relative"
-                  >
-                    {editProdId && (
-                      <div className="absolute top-0 right-0 bg-[#F37021] text-white text-[10px] font-mono px-3 py-1 font-bold z-10">
-                        MODO EDICIÓN
-                      </div>
-                    )}
-
-                    {/* PARTE 1: DATOS DEL PRODUCTO */}
-                    <div className="p-6 space-y-4 border-b-2 border-dashed border-gray-300">
-                      <h5 className="font-bold text-[#F37021] mb-2 flex items-center">
-                        <Folder className="w-4 h-4 mr-2" />
-                        {editProdId
-                          ? "Datos del Producto"
-                          : `Nuevo Producto para ${p.title}`}
-                      </h5>
-
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
-                          <label className="block text-xs font-mono text-gray-500 mb-1">
-                            TÍTULO DEL PRODUCTO
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            disabled={loadingAction === `save-prod-${p.id}`}
-                            value={prodFormData.title}
-                            onChange={(e) =>
-                              setProdFormData({
-                                ...prodFormData,
-                                title: e.target.value,
-                              })
-                            }
-                            className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                          />
-                        </div>
-                        <div className="w-full md:w-64">
-                          <label className="block text-xs font-mono text-gray-500 mb-1">
-                            CATEGORÍA
-                          </label>
-                          <select
-                            value={prodFormData.categoryType}
-                            onChange={(e) =>
-                              setProdFormData({
-                                ...prodFormData,
-                                categoryType: e.target.value as CategoryType,
-                              })
-                            }
-                            className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white disabled:bg-gray-100"
-                            disabled={
-                              !!editProdId ||
-                              loadingAction === `save-prod-${p.id}`
-                            }
-                          >
-                            <option value="DEVELOPMENT">
-                              Software / Desarrollo
-                            </option>
-                            <option value="WRITING">Artículo / Memoria</option>
-                            <option value="EVENT">Evento</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-mono text-gray-500 mb-1">
-                          DESCRIPCIÓN BREVE
-                        </label>
-                        <textarea
-                          required
-                          disabled={loadingAction === `save-prod-${p.id}`}
-                          value={prodFormData.description}
-                          onChange={(e) =>
-                            setProdFormData({
-                              ...prodFormData,
-                              description: e.target.value,
-                            })
-                          }
-                          rows={2}
-                          className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                        />
-                      </div>
-
-                      {/* Campos dinámicos según Categoría */}
-                      <div className="p-4 border border-gray-200 bg-white">
-                        {prodFormData.categoryType === "DEVELOPMENT" && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                              <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                                <FileCode className="w-3 h-3 mr-1" />{" "}
-                                TECNOLOGÍAS (Separadas por coma)
-                              </label>
-                              <input
-                                type="text"
-                                disabled={loadingAction === `save-prod-${p.id}`}
-                                value={prodFormData.technologiesString}
-                                onChange={(e) =>
-                                  setProdFormData({
-                                    ...prodFormData,
-                                    technologiesString: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-mono text-gray-500 mb-1">
-                                URL REPOSITORIO
-                              </label>
-                              <input
-                                type="url"
-                                disabled={loadingAction === `save-prod-${p.id}`}
-                                value={prodFormData.repositoryUrl}
-                                onChange={(e) =>
-                                  setProdFormData({
-                                    ...prodFormData,
-                                    repositoryUrl: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-mono text-gray-500 mb-1">
-                                URL DEMO
-                              </label>
-                              <input
-                                type="url"
-                                disabled={loadingAction === `save-prod-${p.id}`}
-                                value={prodFormData.demoUrl}
-                                onChange={(e) =>
-                                  setProdFormData({
-                                    ...prodFormData,
-                                    demoUrl: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {prodFormData.categoryType === "WRITING" && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                                <FileText className="w-3 h-3 mr-1" /> FUENTE DE
-                                PUBLICACIÓN
-                              </label>
-                              <input
-                                type="text"
-                                disabled={loadingAction === `save-prod-${p.id}`}
-                                value={prodFormData.publicationSource}
-                                onChange={(e) =>
-                                  setProdFormData({
-                                    ...prodFormData,
-                                    publicationSource: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-mono text-gray-500 mb-1">
-                                URL DEL DOCUMENTO
-                              </label>
-                              <input
-                                type="url"
-                                disabled={loadingAction === `save-prod-${p.id}`}
-                                value={prodFormData.documentUrl}
-                                onChange={(e) =>
-                                  setProdFormData({
-                                    ...prodFormData,
-                                    documentUrl: e.target.value,
-                                  })
-                                }
-                                className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {prodFormData.categoryType === "EVENT" && (
-                          <div>
-                            <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                              <MapPin className="w-3 h-3 mr-1" /> CIUDAD /
-                              LOCALIDAD DEL EVENTO
-                            </label>
-                            <input
-                              type="text"
-                              disabled={loadingAction === `save-prod-${p.id}`}
-                              value={prodFormData.location}
-                              onChange={(e) =>
-                                setProdFormData({
-                                  ...prodFormData,
-                                  location: e.target.value,
-                                })
-                              }
-                              className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* PARTE 2: GESTIÓN DE EQUIPO DEL PRODUCTO */}
-                    <div className="p-6 bg-white space-y-4">
-                      <div className="flex flex-col mb-4">
-                        <h5 className="font-bold text-[#1E293B] flex items-center">
-                          <Users className="w-5 h-5 mr-2 text-[#2D5A27]" />{" "}
-                          Equipo del Producto
-                        </h5>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Añade colaboradores y asígnales un rol basado en sus
-                          competencias. Los cambios en el equipo se aplicarán al
-                          guardar el producto.
-                        </p>
-                      </div>
-
-                      {/* Lista de participantes actuales (en borrador) */}
-                      <ul className="space-y-2 mb-4">
-                        {draftParticipants.map((part) => (
-                          <li
-                            key={part.tempId}
-                            className="flex justify-between items-center bg-gray-50 border border-gray-200 p-3 text-sm"
-                          >
-                            <div className="flex items-center">
-                              <img
-                                src={part.memberPhotoUrl || undefined}
-                                alt={part.memberName}
-                                className="w-8 h-8 mr-3 object-cover border border-[#1E293B] bg-white"
-                              />
-                              <div>
-                                <span className="font-bold text-[#1E293B] block">
-                                  {part.memberName}
-                                </span>
-                                <span className="text-xs text-[#2D5A27] font-mono font-bold bg-green-50 px-1 border border-green-200">
-                                  {part.productRole}
-                                </span>
-                              </div>
-                            </div>
-                            <button
-                              type="button" // Evita que envíe el formulario
-                              onClick={() =>
-                                handleRemoveDraftParticipant(part.tempId)
-                              }
-                              disabled={loadingAction !== null}
-                              className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:opacity-50"
-                              title="Remover participante"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </li>
-                        ))}
-                        {draftParticipants.length === 0 && (
-                          <li className="text-center p-4 border border-dashed border-gray-300 text-gray-500 text-sm">
-                            No has añadido ningún integrante a este producto.
-                          </li>
-                        )}
-                      </ul>
-
-                      {/* Controles para añadir un nuevo participante al borrador */}
-                      {availableMembers.length > 0 ? (
-                        <div className="flex flex-col md:flex-row gap-2 bg-gray-100 p-4 border border-gray-200">
-                          <select
-                            value={draftTeamMemberId}
-                            onChange={(e) =>
-                              setDraftTeamMemberId(e.target.value)
-                            }
-                            className="flex-1 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
-                          >
-                            <option value="">Seleccionar compañero...</option>
-                            {availableMembers.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.fullName} ({m.career})
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={draftTeamRole}
-                            onChange={(e) => setDraftTeamRole(e.target.value)}
-                            className="flex-1 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
-                          >
-                            <option value="">
-                              Asignar un rol / competencia...
-                            </option>
-                            <option
-                              value="Líder de Producto"
-                              className="font-bold"
-                            >
-                              Líder de Producto / Autor Principal
-                            </option>
-                            <optgroup label="Competencias Técnicas">
-                              {competencies
-                                .filter((c) => c.type === "TECHNICAL")
-                                .map((c) => (
-                                  <option key={c.id} value={c.name}>
-                                    {c.name}
-                                  </option>
-                                ))}
-                            </optgroup>
-                            <optgroup label="Competencias Transversales">
-                              {competencies
-                                .filter((c) => c.type === "SOFT")
-                                .map((c) => (
-                                  <option key={c.id} value={c.name}>
-                                    {c.name}
-                                  </option>
-                                ))}
-                            </optgroup>
-                          </select>
-
-                          <button
-                            type="button" // MUY IMPORTANTE: type="button" para no disparar handleSaveProduct
-                            onClick={handleAddDraftParticipant}
-                            disabled={
-                              !draftTeamMemberId ||
-                              !draftTeamRole ||
-                              loadingAction !== null
-                            }
-                            className="bg-[#1E293B] text-white px-4 py-2 text-sm font-bold hover:bg-black transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
-                          >
-                            <UserPlus className="w-4 h-4 mr-2" /> AÑADIR
-                          </button>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400 italic mt-2">
-                          No hay más integrantes disponibles para añadir.
-                        </p>
-                      )}
-                    </div>
-
-                    {/* BOTONES DE ACCIÓN FINAL */}
-                    <div className="flex gap-3 p-6 bg-gray-50 border-t-2 border-dashed border-[#F37021]">
-                      <button
-                        type="submit"
-                        disabled={loadingAction === `save-prod-${p.id}`}
-                        className="bg-[#F37021] text-white px-6 py-3 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] transition flex-1 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-                      >
-                        {loadingAction === `save-prod-${p.id}` ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
-                            GUARDANDO...
-                          </>
-                        ) : editProdId ? (
-                          "GUARDAR CAMBIOS DEL PRODUCTO"
-                        ) : (
-                          "GUARDAR NUEVO PRODUCTO"
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={loadingAction === `save-prod-${p.id}`}
-                        onClick={() => {
-                          setActiveFormProjectId(null);
-                          setDraftParticipants([]);
-                        }}
-                        className="bg-gray-200 text-[#1E293B] border-2 border-[#1E293B] px-6 py-3 font-bold hover:bg-gray-300 transition disabled:opacity-50"
-                      >
-                        CANCELAR
-                      </button>
-                    </div>
-                  </form>
+                  <ProductForm
+                    projectId={p.id}
+                    projectTitle={p.title}
+                    editProdId={editProdId}
+                    loadingAction={loadingAction}
+                    productFormData={prodFormData}
+                    draftParticipants={draftParticipants}
+                    availableMembers={availableMembers}
+                    competencies={competencies}
+                    draftTeamMemberId={draftTeamMemberId}
+                    draftTeamRole={draftTeamRole}
+                    onSubmit={handleSaveProduct}
+                    onProductFormDataChange={setProdFormData}
+                    onDraftTeamMemberIdChange={setDraftTeamMemberId}
+                    onDraftTeamRoleChange={setDraftTeamRole}
+                    onAddDraftParticipant={handleAddDraftParticipant}
+                    onRemoveDraftParticipant={handleRemoveDraftParticipant}
+                    onCancel={() => {
+                      setActiveFormProjectId(null);
+                      setDraftParticipants([]);
+                    }}
+                  />
                 )}
 
                 {/* Grid de Productos Creados */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(p.products || []).map((prod) => (
-                    <div
+                    <ProductCard
                       key={prod.id}
-                      className={`border p-4 relative group transition flex flex-col ${
-                        loadingAction === `delete-prod-${prod.id}`
-                          ? "border-red-300 bg-red-50 opacity-50"
-                          : "border-gray-200 hover:border-[#1E293B]"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.categoryType === "DEVELOPMENT" ? "bg-blue-600" : prod.categoryType === "WRITING" ? "bg-purple-600" : "bg-[#F37021]"}`}
-                          >
-                            {prod.categoryType === "DEVELOPMENT"
-                              ? "DESARROLLO"
-                              : prod.categoryType === "WRITING"
-                                ? "ESCRITO"
-                                : "EVENTO"}
-                          </div>
-                          <BadgeEstado estado={prod.approvalStatus as any} />
-                        </div>
-
-                        {/* Acciones del Producto */}
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                          <button
-                            onClick={() => handleEditProductClick(p.id, prod)}
-                            disabled={loadingAction !== null}
-                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition disabled:opacity-50"
-                            title="Editar Producto y Equipo"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(p.id, prod.id)}
-                            disabled={loadingAction !== null}
-                            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-red-600 hover:text-white transition disabled:opacity-50 flex items-center justify-center min-w-[30px]"
-                            title="Eliminar Producto"
-                          >
-                            {loadingAction === `delete-prod-${prod.id}` ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <h5 className="font-bold text-[#1E293B] mb-1">
-                        {prod.title}
-                      </h5>
-                      <p className="text-xs text-gray-500 line-clamp-2 mb-3 flex-1">
-                        {prod.description}
-                      </p>
-
-                      {/* Resumen del equipo en la tarjeta */}
-                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
-                        <div className="flex -space-x-2">
-                          {(prod.participations || []).map((part) => (
-                            <img
-                              key={part.id}
-                              src={part.memberPhotoUrl || undefined}
-                              alt={part.memberName}
-                              title={`${part.memberName} - ${part.productRole}`}
-                              className="w-8 h-8 border-2 border-white bg-gray-200 object-cover rounded-full"
-                            />
-                          ))}
-                        </div>
-                        <span className="text-[10px] font-mono text-gray-400">
-                          {prod.participations?.length || 0} Integrante(s)
-                        </span>
-                      </div>
-                    </div>
+                      product={prod}
+                      loadingAction={loadingAction}
+                      onEdit={() => handleEditProductClick(p.id, prod)}
+                      onDelete={() => handleDeleteProduct(p.id, prod.id)}
+                    />
                   ))}
 
                   {(!p.products || p.products.length === 0) &&
