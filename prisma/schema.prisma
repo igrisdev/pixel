@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  // ¡Ya no va la URL aquí!
+}
+
+// --- ENUMS ---
+enum SystemRole {
+  ADMIN
+  MEMBER
+}
+
+enum AcademicStatus {
+  STUDENT
+  GRADUATE
+}
+
+enum ApprovalStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum CategoryType {
+  DEVELOPMENT
+  EVENT
+  WRITING
+}
+
+enum CompetencyType {
+  TECHNICAL
+  SOFT
+}
+
+// --- MODELOS ---
+
+model Member {
+  id                  Int       @id @default(autoincrement())
+  fullName            String
+  institutionalEmail  String    @unique
+  personalEmail       String?
+  passwordHash        String
+  professionalProfile String?   @db.Text
+  career              String
+  role                String
+  systemRole          SystemRole @default(MEMBER)
+  academicStatus      AcademicStatus @default(STUDENT)
+  photoUrl            String?
+  isBanned            Boolean   @default(false)
+  cvUrl               String?
+
+  // Relaciones
+  links               ProfessionalLink[]
+  participations      Participation[]
+  projectsCreated     Project[]          @relation("ProjectCreator")
+
+  // Relación Muchos a Muchos implícita con Competency
+  competencies        Competency[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model ProfessionalLink {
+  id        Int    @id @default(autoincrement())
+  memberId  Int
+  platform  String
+  url       String
+
+  // Relaciones
+  member    Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+model Competency {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String         @db.Text
+  type        CompetencyType
+
+  // Relación Muchos a Muchos implícita con Member
+  members     Member[]
+}
+
+model Project {
+  id             Int            @id @default(autoincrement())
+  title          String
+  objective      String         @db.Text
+  awards         String?        @db.Text
+  startDate      DateTime
+  endDate        DateTime?
+  coverImageUrl  String?
+  approvalStatus ApprovalStatus @default(PENDING)
+  createdBy      Int
+
+  // Relaciones
+  creator        Member         @relation("ProjectCreator", fields: [createdBy], references: [id])
+  products       AcademicProduct[]
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model AcademicProduct {
+  id                Int            @id @default(autoincrement())
+  projectId         Int
+  title             String
+  description       String         @db.Text
+  categoryType      CategoryType
+  approvalStatus    ApprovalStatus @default(PENDING)
+  
+  technologies      Json?          
+  
+  repositoryUrl     String?
+  demoUrl           String?
+  publicationSource String?
+  documentUrl       String?
+  location          String?
+
+  // Relaciones
+  project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  participations    Participation[]
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Participation {
+  id             Int       @id @default(autoincrement())
+  memberId       Int
+  productId      Int
+  productRole    String
+  startDate      DateTime
+  endDate        DateTime?
+
+  // Relaciones
+  member         Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  product        AcademicProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+}

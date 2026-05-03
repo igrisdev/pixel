@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "gsap": "^3.15.0",
     "lucide-react": "^1.8.0",
     "next": "16.2.4",
@@ -17,12 +18,15 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@prisma/client": "^7.8.0",
+    "@prisma/config": "^7.8.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
