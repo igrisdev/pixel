@@ -31,6 +31,27 @@ export const ApiRepository = {
     return request<Competency[]>("/api/competencies");
   },
 
+  // --- COMPETENCIAS ---
+  createCompetency: async (competency: Partial<Competency>): Promise<Competency> => {
+    return request<Competency>("/api/competencies", {
+      method: "POST",
+      body: JSON.stringify(competency),
+    });
+  },
+
+  updateCompetency: async (id: number, data: Partial<Competency>): Promise<Competency> => {
+    return request<Competency>(`/api/competencies/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteCompetency: async (id: number): Promise<void> => {
+    await request<{ success: boolean }>(`/api/competencies/${id}`, {
+      method: "DELETE",
+    });
+  },
+
   getProjects: async (createdBy?: number): Promise<Project[]> => {
     const query = createdBy ? `?createdBy=${createdBy}` : "";
     return request<Project[]>(`/api/projects${query}`);

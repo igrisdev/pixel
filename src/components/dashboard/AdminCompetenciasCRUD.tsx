@@ -1,19 +1,21 @@
 "use client";
 
-import React, { useState, useRef } from "react"; // <-- IMPORTAMOS useRef
+import React, { useState, useRef, useEffect } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 
 export default function AdminCompetenciasCRUD() {
-  const { competencies, setCompetencies } = useDataStore();
+  const { competencies, loadCompetencies, createCompetency, updateCompetency, deleteCompetency } = useDataStore();
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  // <-- NUEVO: Referencia para el scroll
   const topRef = useRef<HTMLDivElement>(null);
-
-  // Estado para gestionar cargas individuales
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadCompetencies().finally(() => setIsLoadingData(false));
+  }, [loadCompetencies]);
 
   const [formData, setFormData] = useState<{
     name: string;
@@ -30,21 +32,18 @@ export default function AdminCompetenciasCRUD() {
     setLoadingAction("save");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
       if (editId) {
-        setCompetencies(
-          competencies.map((c) =>
-            c.id === editId ? { ...c, ...formData } : c,
-          ),
-        );
+        await updateCompetency(editId, formData);
       } else {
-        setCompetencies([{ id: Date.now(), ...formData }, ...competencies]);
+        await createCompetency(formData);
       }
 
       setEditId(null);
       setIsAdding(false);
       setFormData({ name: "", description: "", type: "TECHNICAL" });
+    } catch (error) {
+      console.error("Error guardando competencia:", error);
+      alert("Error al guardar la competencia");
     } finally {
       setLoadingAction(null);
     }
@@ -59,8 +58,6 @@ export default function AdminCompetenciasCRUD() {
       type: comp.type,
     });
 
-    // <-- NUEVO: Hacemos scroll suave hacia arriba después de un brevísimo momento
-    // para asegurar que el formulario ya se renderizó
     setTimeout(() => {
       topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -80,13 +77,24 @@ export default function AdminCompetenciasCRUD() {
     if (window.confirm("¿Borrar competencia global?")) {
       setLoadingAction(`delete-${id}`);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        setCompetencies(competencies.filter((c) => c.id !== id));
+        await deleteCompetency(id);
+      } catch (error) {
+        console.error("Error eliminando competencia:", error);
+        alert("Error al eliminar la competencia");
       } finally {
         setLoadingAction(null);
       }
     }
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="bg-white pixel-border p-6 shadow-sm min-h-[40vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+        <span className="text-gray-500 font-mono">Cargando competencias...</span>
+      </div>
+    );
+  }
 
   return (
     // <-- NUEVO: Agregamos el ref al contenedor principal

@@ -27,6 +27,10 @@ interface DataState {
   updateMember: (id: number, member: Partial<Member>) => Promise<void>;
   deleteMember: (id: number) => Promise<void>;
   createMember: (member: Partial<Member>) => Promise<void>;
+
+  createCompetency: (competency: Partial<Competency>) => Promise<void>;
+  updateCompetency: (id: number, competency: Partial<Competency>) => Promise<void>;
+  deleteCompetency: (id: number) => Promise<void>;
 }
 
 export const useDataStore = create<DataState>()(
@@ -98,6 +102,29 @@ export const useDataStore = create<DataState>()(
         const newMember = await ApiRepository.createMember(memberData);
         set((state) => ({
           members: [...state.members, newMember],
+        }));
+      },
+
+      createCompetency: async (competencyData) => {
+        const newCompetency = await ApiRepository.createCompetency(competencyData);
+        set((state) => ({
+          competencies: [newCompetency, ...state.competencies],
+        }));
+      },
+
+      updateCompetency: async (id, updatedData) => {
+        const updatedCompetency = await ApiRepository.updateCompetency(id, updatedData);
+        set((state) => ({
+          competencies: state.competencies.map((c) =>
+            c.id === id ? updatedCompetency : c,
+          ),
+        }));
+      },
+
+      deleteCompetency: async (id) => {
+        await ApiRepository.deleteCompetency(id);
+        set((state) => ({
+          competencies: state.competencies.filter((c) => c.id !== id),
         }));
       },
     }),
