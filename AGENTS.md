@@ -48,3 +48,25 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Lint baseline (before adding new work)
 - `pnpm lint` currently fails with existing repo errors (not introduced by your change), including `react-hooks/set-state-in-effect` and `@typescript-eslint/no-explicit-any` in dashboard/search components.
 - Treat those as pre-existing unless your task is specifically to fix lint debt.
+
+## Seed de Base de Datos
+- Seed script: `prisma/seed.ts`
+- Ejecutar: `npx prisma db seed`
+- Datos seeded: 32 competencias, 9 miembros, 39 relaciones miembro-competencia, 1 enlace profesional, 2 proyectos, 2 productos académicos, 4 participaciones
+- Contraseñas en texto plano: admin123 (admin), est123 (miembros)
+- Credenciales de prueba:
+  - Admin: admin@unimayor.edu.co / admin123
+  - Miembro: johan@unimayor.edu.co / est123
+
+## API Routes
+- `/api/auth/login` - Autenticación de usuarios (POST)
+- `/api/members` - CRUD de miembros (GET)
+- `/api/members/[id]` - Miembro individual (GET)
+- `/api/projects` - CRUD de proyectos (GET, POST)
+- `/api/projects/[id]` - Proyecto individual (GET, PUT, DELETE)
+- `/api/competencies` - Listar competencias (GET)
+
+## Autenticación
+- Login con comparación de contraseña en texto plano
+- Almacena usuario en Zustand store con persistencia
+- Member completo (incluyendo competencias y enlaces) disponible en `currentMember`

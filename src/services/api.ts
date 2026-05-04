@@ -68,4 +68,11 @@ export const ApiRepository = {
   verifyCredentials: async (): Promise<void> => {
     return Promise.resolve();
   },
+
+  login: async (email: string, password: string): Promise<Member> => {
+    return request<Member>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+  },
 };

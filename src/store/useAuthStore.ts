@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { SystemRole } from "@/types";
+import { SystemRole, Member } from "@/types";
 import { ApiRepository } from "@/services/api";
-import { useDataStore } from "./useDataStore";
 
 export interface CurrentUser {
   id: number;
@@ -14,9 +13,9 @@ export interface CurrentUser {
 interface AuthState {
   currentUser: CurrentUser | null;
   userRole: SystemRole | null;
+  currentMember: Member | null;
   login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
-  // <-- NUEVO: Función para actualizar datos en la sesión activa
   updateCurrentUser: (updates: Partial<CurrentUser>) => void;
 }
 
@@ -25,44 +24,38 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       currentUser: null,
       userRole: null,
+      currentMember: null,
 
       login: async (email, pass) => {
-        await ApiRepository.verifyCredentials();
+        try {
+          const member = await ApiRepository.login(email, pass);
 
-        // Extraemos dinámicamente el arreglo de miembros actual
-        const members = useDataStore.getState().members;
-
-        // Buscamos al usuario usando sus emails
-        const user = members.find(
-          (m) => m.institutionalEmail === email || m.personalEmail === email,
-        );
-
-        if (user && pass === user.passwordHash) {
-          if (user.isBanned) {
+          if (member.isBanned) {
             console.warn("Intento de acceso de usuario vetado.");
             return false;
           }
 
           set({
             currentUser: {
-              id: user.id,
-              name: user.fullName,
-              role: user.systemRole,
-              email: user.institutionalEmail,
+              id: member.id,
+              name: member.fullName,
+              role: member.systemRole,
+              email: member.institutionalEmail,
             },
-            userRole: user.systemRole,
+            userRole: member.systemRole,
+            currentMember: member,
           });
           return true;
+        } catch (error) {
+          console.error("Error en login:", error);
+          return false;
         }
-
-        return false;
       },
 
       logout: () => {
-        set({ currentUser: null, userRole: null });
+        set({ currentUser: null, userRole: null, currentMember: null });
       },
 
-      // <-- NUEVO: Implementación para fusionar los datos nuevos con la sesión actual
       updateCurrentUser: (updates) =>
         set((state) => ({
           currentUser: state.currentUser
