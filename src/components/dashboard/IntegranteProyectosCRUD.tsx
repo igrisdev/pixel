@@ -328,11 +328,15 @@ export default function IntegranteProyectosCRUD() {
               }
             : p,
         );
-        await updateProject(projectId, { products: updatedProducts });
+        await updateProject(projectId, { 
+          approvalStatus: project.approvalStatus,
+          products: updatedProducts 
+        });
       } else {
         const allProds = projects.flatMap((p) => p.products || []);
-        const nextProdId =
-          allProds.length > 0 ? Math.max(...allProds.map((p) => p.id)) + 1 : 1;
+        
+        // Usar ID = 0 para productos nuevos (la API crea uno nuevo)
+        const nextProdId = 0;
 
         // Ajustamos el productId de las participaciones nuevas
         finalParticipations.forEach((p) => (p.productId = nextProdId));
@@ -345,6 +349,7 @@ export default function IntegranteProyectosCRUD() {
           approvalStatus: "PENDING",
         };
         await updateProject(projectId, {
+          approvalStatus: project.approvalStatus,
           products: [...(project.products || []), newProduct],
         });
       }
@@ -366,7 +371,8 @@ export default function IntegranteProyectosCRUD() {
       if (project) {
         setLoadingAction(`delete-prod-${productId}`);
         try {
-          await updateProject(projectId, {
+await updateProject(projectId, {
+            approvalStatus: project.approvalStatus,
             products: (project.products || []).filter(
               (p) => p.id !== productId,
             ),
@@ -427,7 +433,7 @@ export default function IntegranteProyectosCRUD() {
           // Pre-cálculos para la selección de equipo en el formulario
           const draftMemberIds = draftParticipants.map((part) => part.memberId);
           const availableMembers = members.filter(
-            (m) => !draftMemberIds.includes(m.id) && m.systemRole !== "ADMIN",
+            (m) => !draftMemberIds.includes(m.id),
           );
 
           return (

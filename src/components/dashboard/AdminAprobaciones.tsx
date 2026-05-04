@@ -77,7 +77,10 @@ export default function AdminAprobaciones() {
             ? { ...prod, approvalStatus: "ACTIVE" as const }
             : prod,
         );
-        await updateProject(idProyecto, { products: updatedProducts });
+        await updateProject(idProyecto, { 
+          approvalStatus: project.approvalStatus,
+          products: updatedProducts 
+        });
       } finally {
         setLoadingAction(null);
       }
@@ -99,7 +102,10 @@ export default function AdminAprobaciones() {
             ? { ...prod, approvalStatus: "REJECTED" as const }
             : prod,
         );
-        await updateProject(idProyecto, { products: updatedProducts });
+        await updateProject(idProyecto, { 
+          approvalStatus: project.approvalStatus,
+          products: updatedProducts 
+        });
       } finally {
         setLoadingAction(null);
       }
