@@ -12,21 +12,38 @@ import {
   FileText,
   AlertCircle,
   Lock,
+  Loader2,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect, useState } from "react";
 
 export default function ProjectPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const { projects } = useDataStore();
+  const { projects, loadProjects } = useDataStore();
   const { currentUser } = useAuthStore();
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  useEffect(() => {
+    loadProjects()
+      .finally(() => setIsLoadingData(false));
+  }, [loadProjects]);
 
   const project = projects.find((p) => p.id === Number(id));
 
   const esDueñoOAdmin =
     currentUser?.role === "ADMIN" || project?.createdBy === currentUser?.id;
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+        <span className="text-gray-500 font-mono">Cargando proyecto...</span>
+      </div>
+    );
+  }
 
   if (!project || (project.approvalStatus !== "ACTIVE" && !esDueñoOAdmin)) {
     return (

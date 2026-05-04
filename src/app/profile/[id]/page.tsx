@@ -2,8 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, Download, Code, MapPin, Trophy } from "lucide-react";
+import { ExternalLink, Download, Code, MapPin, Trophy, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
+import { useEffect, useState } from "react";
 
 // Actualizamos el tipo para incluir projectId y que sirva para la redirección
 type ParticipationData = {
@@ -23,10 +24,24 @@ export default function ProfilePage() {
   const { id } = useParams();
   const router = useRouter();
 
-  // Extraemos members y projects del store global
-  const { members, projects } = useDataStore();
+  const { members, projects, loadMembers, loadProjects } = useDataStore();
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  useEffect(() => {
+    Promise.all([loadMembers(), loadProjects()])
+      .finally(() => setIsLoadingData(false));
+  }, [loadMembers, loadProjects]);
 
   const student = members.find((s) => s.id === Number(id));
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+        <span className="text-gray-500 font-mono">Cargando perfil...</span>
+      </div>
+    );
+  }
 
   if (!student || student.isBanned) {
     return (

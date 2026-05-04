@@ -1,22 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle,
   XCircle,
   Folder,
   FileCode,
   User,
-  Loader2, // NUEVO: Importamos el spinner
+  Loader2,
 } from "lucide-react";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import { useDataStore } from "@/store/useDataStore";
 
 export default function AdminAprobaciones() {
-  const { projects, members, updateProject } = useDataStore();
+  const { projects, members, updateProject, loadProjects, loadMembers } = useDataStore();
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // NUEVO: Estado para saber qué botón específico está cargando
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.all([loadProjects(), loadMembers()])
+      .finally(() => setIsLoadingData(false));
+  }, [loadProjects, loadMembers]);
 
   const proyectosPendientes = projects.filter(
     (p) => p.approvalStatus === "PENDING",
@@ -105,6 +110,15 @@ export default function AdminAprobaciones() {
     const student = members.find((s) => s.id === idCreador);
     return student ? student.fullName : "Usuario Desconocido";
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+        <span className="text-gray-500 font-mono">Cargando aprobaciones...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

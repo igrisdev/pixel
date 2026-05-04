@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import ProjectCard from "@/components/ui/ProjectCard";
 import MemberCard from "@/components/ui/MemberCard";
@@ -16,10 +16,16 @@ function SearchContent() {
   const initialQuery = searchParams.get("query") || "";
   const initialType = (searchParams.get("type") as FilterOption) || "TODO";
 
-  const { members, projects } = useDataStore();
+  const { members, projects, loadMembers, loadProjects } = useDataStore();
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [filterType, setFilterType] = useState<FilterOption>(initialType);
+
+  useEffect(() => {
+    Promise.all([loadMembers(), loadProjects()])
+      .finally(() => setIsLoadingData(false));
+  }, [loadMembers, loadProjects]);
 
   useEffect(() => {
     setSearchTerm(initialQuery);
@@ -146,6 +152,13 @@ function SearchContent() {
           </div>
         </div>
 
+        {isLoadingData ? (
+          <div className="min-h-[40vh] flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+            <span className="text-gray-500 font-mono">Cargando datos...</span>
+          </div>
+        ) : (
+          <>
         {/* ... Resto del componente (Resultados) ... */}
         {filteredMembers.length > 0 && (
           <div className="mb-12">
@@ -182,6 +195,8 @@ function SearchContent() {
               Prueba con otros términos de búsqueda o cambia los filtros.
             </p>
           </div>
+        )}
+          </>
         )}
       </div>
     </main>

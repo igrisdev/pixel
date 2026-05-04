@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, Loader2 } from "lucide-react";
 import ProjectCard from "@/components/ui/ProjectCard";
 import EscalatorCard from "@/components/ui/EscalatorCard";
 import { useDataStore } from "@/store/useDataStore";
@@ -11,19 +11,25 @@ import MemberCard from "@/components/ui/MemberCard";
 
 export default function HomePage() {
   const router = useRouter();
-  const { members, projects } = useDataStore();
+  const { members, projects, loadMembers, loadProjects } = useDataStore();
   const [searchInput, setSearchInput] = useState("");
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    Promise.all([loadMembers(), loadProjects()])
+      .finally(() => setIsLoadingData(false));
+  }, [loadMembers, loadProjects]);
+
   const activeStudents = members
     .filter((s) => !s.isBanned && s.systemRole !== "ADMIN")
-    .splice(0, 8);
+    .slice(0, 8);
 
   const proyectosActivos = projects
     .filter((p) => p.approvalStatus === "ACTIVE")
-    .splice(0, 6);
+    .slice(0, 6);
 
   // Lógica de Búsqueda
   const handleSearchSubmit = () => {
@@ -177,8 +183,15 @@ export default function HomePage() {
         ></div>
       </section>
 
-      {/* 2. GRID DE ESTUDIANTES */}
-      <section className="bg-[#1E293B] py-20 relative">
+      {isLoadingData ? (
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+          <span className="text-gray-500 font-mono">Cargando datos...</span>
+        </div>
+      ) : (
+        <>
+        {/* 2. GRID DE ESTUDIANTES */}
+        <section className="bg-[#1E293B] py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-10">
             <div>
@@ -324,6 +337,8 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+        </>
+      )}
     </main>
   );
 }
