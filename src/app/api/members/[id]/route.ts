@@ -71,3 +71,68 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
     );
   }
 }
+
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;
+    const memberId = Number(id);
+
+    const body = await request.json();
+
+    const member = await prisma.member.update({
+      where: { id: memberId },
+      data: {
+        ...(body.fullName && { fullName: body.fullName }),
+        ...(body.institutionalEmail && { institutionalEmail: body.institutionalEmail }),
+        ...(body.personalEmail !== undefined && { personalEmail: body.personalEmail }),
+        ...(body.passwordHash && { passwordHash: body.passwordHash }),
+        ...(body.professionalProfile !== undefined && { professionalProfile: body.professionalProfile }),
+        ...(body.career && { career: body.career }),
+        ...(body.role && { role: body.role }),
+        ...(body.systemRole && { systemRole: body.systemRole }),
+        ...(body.academicStatus && { academicStatus: body.academicStatus }),
+        ...(body.photoUrl !== undefined && { photoUrl: body.photoUrl }),
+        ...(body.isBanned !== undefined && { isBanned: body.isBanned }),
+        ...(body.cvUrl !== undefined && { cvUrl: body.cvUrl }),
+      },
+      include: memberInclude,
+    });
+
+    return NextResponse.json({ data: toMemberResponse(member) });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error interno";
+    return NextResponse.json(
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? `No se pudo actualizar el integrante: ${message}`
+            : "No se pudo actualizar el integrante",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await context.params;
+    const memberId = Number(id);
+
+    await prisma.member.delete({
+      where: { id: memberId },
+    });
+
+    return NextResponse.json({ data: { success: true } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error interno";
+    return NextResponse.json(
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? `No se pudo eliminar el integrante: ${message}`
+            : "No se pudo eliminar el integrante",
+      },
+      { status: 500 },
+    );
+  }
+}

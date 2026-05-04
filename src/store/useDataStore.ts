@@ -25,6 +25,8 @@ interface DataState {
   deleteProject: (id: number) => Promise<void>;
 
   updateMember: (id: number, member: Partial<Member>) => Promise<void>;
+  deleteMember: (id: number) => Promise<void>;
+  createMember: (member: Partial<Member>) => Promise<void>;
 }
 
 export const useDataStore = create<DataState>()(
@@ -77,16 +79,30 @@ export const useDataStore = create<DataState>()(
       },
 
       updateMember: async (id, updatedData) => {
-        await ApiRepository.updateMember(id, updatedData); // Cambiar en la API a updateMember
+        const updatedMember = await ApiRepository.updateMember(id, updatedData);
         set((state) => ({
           members: state.members.map((m) =>
-            m.id === id ? { ...m, ...updatedData } : m,
+            m.id === id ? { ...m, ...updatedMember } : m,
           ),
+        }));
+      },
+
+      deleteMember: async (id) => {
+        await ApiRepository.deleteMember(id);
+        set((state) => ({
+          members: state.members.filter((m) => m.id !== id),
+        }));
+      },
+
+      createMember: async (memberData) => {
+        const newMember = await ApiRepository.createMember(memberData);
+        set((state) => ({
+          members: [...state.members, newMember],
         }));
       },
     }),
     {
-      name: "pixel-data-storage", // <-- Guarda en un espacio distinto en localStorage
+      name: "pixel-data-storage",
     },
   ),
 );

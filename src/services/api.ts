@@ -58,10 +58,24 @@ export const ApiRepository = {
   },
 
   // --- MIEMBROS / USUARIOS ---
-  updateMember: async (id: number, data: Partial<Member>): Promise<void> => {
-    void id;
-    void data;
-    return Promise.resolve();
+  updateMember: async (id: number, data: Partial<Member>): Promise<Member> => {
+    return request<Member>(`/api/members/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteMember: async (id: number): Promise<void> => {
+    await request<{ success: boolean }>(`/api/members/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  createMember: async (member: Partial<Member>): Promise<Member> => {
+    return request<Member>("/api/members", {
+      method: "POST",
+      body: JSON.stringify(member),
+    });
   },
 
   // --- AUTH ---

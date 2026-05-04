@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { Member } from "@/types";
 
 export default function AdminUsuariosCRUD() {
-  const { members, setMembers, updateMember } = useDataStore();
+  const { members, setMembers, updateMember, deleteMember, createMember, loadMembers } = useDataStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadMembers().finally(() => setIsLoadingData(false));
+  }, [loadMembers]);
 
   const [formData, setFormData] = useState<{
     fullName: string;
@@ -42,26 +47,19 @@ export default function AdminUsuariosCRUD() {
     setLoadingAction("save");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
-      const nextId =
-        members.length > 0 ? Math.max(...members.map((m) => m.id)) + 1 : 1;
-
-      const newMember: Member = {
-        id: nextId,
+      const newMemberData = {
         ...formData,
-        role: "Integrante", // Rol visual por defecto
-        // <-- CORRECCIÓN: Reemplazamos tech por competencies y añadimos professionalProfile
-        competencies: [],
+        role: "Integrante",
         professionalProfile: "",
         photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`,
         isBanned: false,
         personalEmail: "",
         cvUrl: "",
         links: [],
+        competencies: [],
       };
 
-      setMembers([...members, newMember]);
+      await createMember(newMemberData);
       setIsAdding(false);
       resetForm();
     } finally {
@@ -99,8 +97,7 @@ export default function AdminUsuariosCRUD() {
     if (window.confirm("¿Eliminar usuario del sistema?")) {
       setLoadingAction(`delete-${id}`);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        setMembers(members.filter((m) => m.id !== id));
+        await deleteMember(id);
       } finally {
         setLoadingAction(null);
       }
@@ -297,7 +294,13 @@ export default function AdminUsuariosCRUD() {
         </form>
       )}
 
-      <table className="w-full text-left text-sm border-collapse min-w-[800px]">
+      {isLoadingData ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-[#F37021]" />
+          <span className="ml-3 text-gray-500 font-mono">Cargando integrantes...</span>
+        </div>
+      ) : (
+        <table className="w-full text-left text-sm border-collapse min-w-[800px]">
         <thead className="bg-[#F8F9FA] border-b-2 border-[#1E293B]">
           <tr>
             <th className="p-3 font-mono">NOMBRE</th>
@@ -402,6 +405,7 @@ export default function AdminUsuariosCRUD() {
           ))}
         </tbody>
       </table>
+      )}
     </div>
   );
 }

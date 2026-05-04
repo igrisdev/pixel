@@ -64,3 +64,40 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    const member = await prisma.member.create({
+      data: {
+        fullName: body.fullName,
+        institutionalEmail: body.institutionalEmail,
+        personalEmail: body.personalEmail ?? "",
+        passwordHash: body.passwordHash || "temp123",
+        professionalProfile: body.professionalProfile ?? "",
+        career: body.career,
+        role: body.role || "Integrante",
+        systemRole: body.systemRole || "MEMBER",
+        academicStatus: body.academicStatus || "STUDENT",
+        photoUrl: body.photoUrl ?? "",
+        isBanned: body.isBanned ?? false,
+        cvUrl: body.cvUrl ?? "",
+      },
+      include: memberInclude,
+    });
+
+    return NextResponse.json({ data: toMemberResponse(member) }, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error interno";
+    return NextResponse.json(
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? `No se pudo crear el integrante: ${message}`
+            : "No se pudo crear el integrante",
+      },
+      { status: 500 },
+    );
+  }
+}
