@@ -20,7 +20,7 @@ export default function EscalatorCard({ member }: EscalatorCardProps) {
     >
       <div className="relative shrink-0 mr-4">
         <img
-          src={member.photoUrl}
+          src={member.photoUrl || undefined}
           alt={member.fullName}
           className="w-12 h-12 border-2 border-[#1E293B] object-cover bg-white"
         />

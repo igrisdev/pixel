@@ -127,7 +127,7 @@ export default function ProfilePage() {
           <div className="bg-white pixel-border p-6 sticky top-24">
             <div className="flex flex-col items-center text-center">
               <img
-                src={mockProfile.photoUrl}
+                src={mockProfile.photoUrl || undefined}
                 alt={mockProfile.fullName}
                 className="w-32 h-32 border-4 border-[#1E293B] mb-4 object-cover"
               />

@@ -24,7 +24,7 @@ export default function MemberCard({ member }: MemberCardProps) {
     >
       <div className="flex justify-between items-start w-full mb-4">
         <img
-          src={member.photoUrl}
+          src={member.photoUrl || undefined}
           alt={member.fullName}
           className="w-16 h-16 object-cover border-2 border-[#1E293B]"
         />
