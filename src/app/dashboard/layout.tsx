@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   LogOut,
   User,
@@ -212,14 +213,10 @@ function SidebarBtn({
   label: string;
   onClick: () => void;
 }) {
-  const router = useRouter();
-
   return (
-    <button
-      onClick={() => {
-        onClick();
-        router.push(href);
-      }}
+    <Link
+      href={href}
+      onClick={onClick}
       className={`w-full flex items-center px-4 py-3 font-semibold transition ${
         active
           ? "bg-[#F37021] text-white border-l-4 border-white"
@@ -230,6 +227,6 @@ function SidebarBtn({
       <span className="text-left text-sm md:text-base flex-1 leading-tight whitespace-normal break-words">
         {label}
       </span>
-    </button>
+    </Link>
   );
 }

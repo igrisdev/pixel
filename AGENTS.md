@@ -25,6 +25,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Global shell is in `src/app/layout.tsx` and always renders `Navbar` + `Footer` around page content.
 - Dashboard/admin functionality is componentized under `src/components/dashboard/*.tsx`.
 
+### Dashboard Routes (v2 - reorganizado con rutas separadas + Layout común)
+- `/dashboard` - Redirect según rol (Admin → /dashboard/users, Member → /dashboard/profile)
+- `/dashboard/layout.tsx` - Layout común con sidebar (usa Link para navegación)
+- `/dashboard/users` - Gestión de Usuarios (Admin)
+- `/dashboard/approvals` - Aprobaciones Pendientes (Admin)
+- `/dashboard/audits` - Auditoría Global (Admin)
+- `/dashboard/competencies` - Catálogo Competencias (Admin)
+- `/dashboard/profile` - Mi Perfil (Admin + Member)
+- `/dashboard/projects` - Mis Proyectos (Admin + Member)
+
 ## Domain context
 - This app manages member portfolios: macro projects, academic/professional products, participations, and competencies.
 - Core entities reflected in types/schema: `Member`, `Project`, `AcademicProduct`, `Participation`, `Competency`, `ProfessionalLink`.
@@ -60,11 +70,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## API Routes
 - `/api/auth/login` - Autenticación de usuarios (POST)
-- `/api/members` - CRUD de miembros (GET)
-- `/api/members/[id]` - Miembro individual (GET)
+- `/api/members` - CRUD de miembros (GET, POST)
+- `/api/members/[id]` - Miembro individual (GET, PUT, DELETE)
 - `/api/projects` - CRUD de proyectos (GET, POST)
 - `/api/projects/[id]` - Proyecto individual (GET, PUT, DELETE)
-- `/api/competencies` - Listar competencias (GET)
+- `/api/competencies` - CRUD de competencias (GET, POST)
+- `/api/competencies/[id]` - Competencia individual (GET, PUT, DELETE)
 
 ## Autenticación
 - Login con comparación de contraseña en texto plano
