@@ -1,45 +1,37 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronRight, Loader2 } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import ProjectCard from "@/components/ui/ProjectCard";
 import EscalatorCard from "@/components/ui/EscalatorCard";
+import MemberSkeleton from "@/components/ui/MemberSkeleton";
+import ProjectSkeleton from "@/components/ui/ProjectSkeleton";
+import EscalatorSkeleton from "@/components/ui/EscalatorSkeleton";
 import { useDataStore } from "@/store/useDataStore";
+import { useInitialData } from "@/hooks/useInitialData";
 import gsap from "gsap";
 import MemberCard from "@/components/ui/MemberCard";
 
 export default function HomePage() {
   const router = useRouter();
-  const { members, projects, loadMembers, loadProjects } = useDataStore();
+  const { members, projects } = useDataStore();
+  const { isLoading: isLoadingData } = useInitialData();
   const [searchInput, setSearchInput] = useState("");
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [metrics, setMetrics] = useState({
-    proyectos: 0,
-    miembros: 0,
-    egresados: 0,
-  });
 
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    Promise.all([loadMembers(), loadProjects()]).finally(() =>
-      setIsLoadingData(false),
-    );
-  }, [loadMembers, loadProjects]);
-
-  useEffect(() => {
-    if (!isLoadingData) {
-      setMetrics({
-        proyectos: projects.filter((p) => p.approvalStatus === "ACTIVE").length,
-        miembros: members.filter((m) => m.systemRole !== "ADMIN").length,
-        egresados: members.filter(
-          (m) => m.academicStatus === "GRADUATE" && m.systemRole !== "ADMIN",
-        ).length,
-      });
-    }
-  }, [isLoadingData, projects, members]);
+  const metrics = useMemo(
+    () => ({
+      proyectos: projects.filter((p) => p.approvalStatus === "ACTIVE").length,
+      miembros: members.filter((m) => m.systemRole !== "ADMIN").length,
+      egresados: members.filter(
+        (m) => m.academicStatus === "GRADUATE" && m.systemRole !== "ADMIN",
+      ).length,
+    }),
+    [projects, members],
+  );
 
   const activeStudents = members
     .filter((s) => !s.isBanned && s.systemRole !== "ADMIN")
@@ -52,20 +44,7 @@ export default function HomePage() {
   const escalatorGrid = isLoadingData ? (
     <div className="flex flex-col gap-4 px-6 pt-4 w-full">
       {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-gray-200 border-2 border-gray-300 p-3 flex items-center animate-pulse"
-        >
-          <div className="w-12 h-12 bg-gray-300 rounded border-2 border-gray-400 mr-4"></div>
-          <div className="flex-1">
-            <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-300 rounded w-1/2 mb-1"></div>
-            <div className="flex gap-1">
-              <div className="h-5 w-12 bg-gray-300 rounded"></div>
-              <div className="h-5 w-12 bg-gray-300 rounded"></div>
-            </div>
-          </div>
-        </div>
+        <EscalatorSkeleton key={i} />
       ))}
     </div>
   ) : (
@@ -149,18 +128,7 @@ export default function HomePage() {
   const studentGrid = isLoadingData ? (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-gray-800/50 rounded-lg p-4 animate-pulse border border-gray-700"
-        >
-          <div className="w-20 h-20 rounded-full bg-gray-700 mx-auto mb-3"></div>
-          <div className="h-4 bg-gray-700 rounded w-3/4 mx-auto mb-2"></div>
-          <div className="h-3 bg-gray-700 rounded w-1/2 mx-auto mb-3"></div>
-          <div className="flex flex-wrap justify-center gap-1 mt-2">
-            <div className="h-5 w-12 bg-gray-700 rounded"></div>
-            <div className="h-5 w-12 bg-gray-700 rounded"></div>
-          </div>
-        </div>
+        <MemberSkeleton key={i} />
       ))}
     </div>
   ) : (
@@ -174,17 +142,7 @@ export default function HomePage() {
   const proyectosGrid = isLoadingData ? (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {[...Array(6)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-white rounded-lg shadow-sm border-2 border-gray-200 overflow-hidden animate-pulse"
-        >
-          <div className="h-40 bg-gray-200"></div>
-          <div className="p-4">
-            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
+        <ProjectSkeleton key={i} />
       ))}
     </div>
   ) : (
