@@ -81,3 +81,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Login con comparación de contraseña en texto plano
 - Almacena usuario en Zustand store con persistencia
 - Member completo (incluyendo competencias y enlaces) disponible en `currentMember`
+
+## UI/UX Patterns
+- Variables de estado reactivo: para datos que GSAP necesita rastrear (`metrics`, `studentGrid`, `proyectosGrid`)
+- Skeleton loading: usar variable ternaria con `isLoadingData` para mostrar skeletons mientras cargan datos
+- Variables para grids: evitar errores de sintaxis JSX con operadores ternarios usando variables predefinidas (`studentGrid`, `proyectosGrid`)
+- Envolver secciones ternarias en `<div>` adicional para evitar errores de parsing
+
+## Historial de Cambios Recientes
+- page.tsx: agregada sección "Proyectos Tecnológicos" con skeleton de 6 cards mientras carga
+- page.tsx: métricas de la página de inicio muestran datos reales de DB (Proyectos DT, Integrantes, Egresados)
+- page.tsx: "Talento Destacado" muestra 8 skeleton cards mientras carga
+- Fix build error: corregido ternario huérfano en línea 348 que causaba error de sintaxis
