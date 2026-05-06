@@ -1,11 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Member, Project, Competency } from "@/types";
-import {
-  INITIAL_MEMBERS,
-  INITIAL_PROJECTS,
-  INITIAL_COMPETENCIES,
-} from "@/data/mock";
 import { ApiRepository } from "@/services/api";
 
 interface DataState {
@@ -36,9 +31,9 @@ interface DataState {
 export const useDataStore = create<DataState>()(
   persist(
     (set) => ({
-      members: INITIAL_MEMBERS,
-      projects: INITIAL_PROJECTS,
-      competencies: INITIAL_COMPETENCIES,
+      members: [],
+      projects: [],
+      competencies: [],
 
       setMembers: (members) => set({ members }),
       setProjects: (projects) => set({ projects }),
