@@ -43,6 +43,36 @@ export default function HomePage() {
     .filter((p) => p.approvalStatus === "ACTIVE")
     .slice(0, 6);
 
+  const escalatorGrid = isLoadingData ? (
+    <div className="flex flex-col gap-4 px-6 pt-4 w-full">
+      {[...Array(8)].map((_, i) => (
+        <div
+          key={i}
+          className="bg-gray-200 border-2 border-gray-300 p-3 flex items-center animate-pulse"
+        >
+          <div className="w-12 h-12 bg-gray-300 rounded border-2 border-gray-400 mr-4"></div>
+          <div className="flex-1">
+            <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-gray-300 rounded w-1/2 mb-1"></div>
+            <div className="flex gap-1">
+              <div className="h-5 w-12 bg-gray-300 rounded"></div>
+              <div className="h-5 w-12 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="flex flex-col gap-4 px-6 pt-4 w-full">
+      {[...activeStudents.slice(0, 8)].map((student) => (
+        <EscalatorCard key={`a-${student.id}`} member={student} />
+      ))}
+      {[...activeStudents.slice(0, 8)].map((student) => (
+        <EscalatorCard key={`b-${student.id}`} member={student} />
+      ))}
+    </div>
+  );
+
   // Lógica de Búsqueda
   const handleSearchSubmit = () => {
     if (searchInput.trim()) {
@@ -62,9 +92,9 @@ export default function HomePage() {
     router.push(`/search?type=${type}`);
   };
 
-  // Efecto GSAP - Animación Escalera
+  // Efecto GSAP - Animación Escalera (solo cuando no hay loading)
   useEffect(() => {
-    if (escalatorRef.current) {
+    if (escalatorRef.current && !isLoadingData && activeStudents.length > 0) {
       const tl = gsap.timeline({ repeat: -1 });
       tl.to(escalatorRef.current, {
         yPercent: -50,
@@ -75,7 +105,7 @@ export default function HomePage() {
         tl.kill();
       };
     }
-  }, [members]);
+  }, [isLoadingData, activeStudents.length]);
 
   // Efecto GSAP - Contadores
   useEffect(() => {
@@ -157,6 +187,15 @@ export default function HomePage() {
     <main>
       {/* 1. HERO SECTION & BUSCADOR */}
       <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
+        {/* Fondo decorativo que cubre toda la sección */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(#CBD5E1 2px, transparent 2px)",
+            backgroundSize: "24px 24px",
+          }}
+        ></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="col-span-1 lg:col-span-7">
@@ -215,27 +254,13 @@ export default function HomePage() {
               <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none"></div>
               <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none"></div>
 
-              <div
-                ref={escalatorRef}
-                className="flex flex-col gap-4 px-6 pt-4 w-full"
-              >
-                {[...activeStudents.slice(0, 4)].map((student) => (
-                  <EscalatorCard key={`a-${student.id}`} member={student} />
-                ))}
-                {[...activeStudents.slice(0, 4)].map((student) => (
-                  <EscalatorCard key={`b-${student.id}`} member={student} />
-                ))}
+              <div ref={escalatorRef}>
+                {escalatorGrid}
               </div>
             </div>
           </div>
         </div>
-        <div
-          className="absolute top-0 right-0 w-1/3 h-full bg-[#f1f5f9] opacity-50"
-          style={{
-            backgroundImage: "radial-gradient(#CBD5E1 2px, transparent 2px)",
-            backgroundSize: "24px 24px",
-          }}
-        ></div>
+        
       </section>
 
 {/* 2. GRID DE ESTUDIANTES */}
