@@ -14,7 +14,11 @@ export default function HomePage() {
   const { members, projects, loadMembers, loadProjects } = useDataStore();
   const [searchInput, setSearchInput] = useState("");
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [metrics, setMetrics] = useState({ proyectos: 0, miembros: 0, egresados: 0 });
+  const [metrics, setMetrics] = useState({
+    proyectos: 0,
+    miembros: 0,
+    egresados: 0,
+  });
 
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
@@ -28,9 +32,11 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoadingData) {
       setMetrics({
-        proyectos: projects.filter(p => p.approvalStatus === "ACTIVE").length,
-        miembros: members.filter(m => m.systemRole !== "ADMIN").length,
-        egresados: members.filter(m => m.academicStatus === "GRADUATE" && m.systemRole !== "ADMIN").length,
+        proyectos: projects.filter((p) => p.approvalStatus === "ACTIVE").length,
+        miembros: members.filter((m) => m.systemRole !== "ADMIN").length,
+        egresados: members.filter(
+          (m) => m.academicStatus === "GRADUATE" && m.systemRole !== "ADMIN",
+        ).length,
       });
     }
   }, [isLoadingData, projects, members]);
@@ -143,7 +149,10 @@ export default function HomePage() {
   const studentGrid = isLoadingData ? (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {[...Array(8)].map((_, i) => (
-        <div key={i} className="bg-gray-800/50 rounded-lg p-4 animate-pulse border border-gray-700">
+        <div
+          key={i}
+          className="bg-gray-800/50 rounded-lg p-4 animate-pulse border border-gray-700"
+        >
           <div className="w-20 h-20 rounded-full bg-gray-700 mx-auto mb-3"></div>
           <div className="h-4 bg-gray-700 rounded w-3/4 mx-auto mb-2"></div>
           <div className="h-3 bg-gray-700 rounded w-1/2 mx-auto mb-3"></div>
@@ -165,7 +174,10 @@ export default function HomePage() {
   const proyectosGrid = isLoadingData ? (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="bg-white rounded-lg shadow-sm border-2 border-gray-200 overflow-hidden animate-pulse">
+        <div
+          key={i}
+          className="bg-white rounded-lg shadow-sm border-2 border-gray-200 overflow-hidden animate-pulse"
+        >
           <div className="h-40 bg-gray-200"></div>
           <div className="p-4">
             <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -191,8 +203,7 @@ export default function HomePage() {
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage:
-              "radial-gradient(#CBD5E1 2px, transparent 2px)",
+            backgroundImage: "radial-gradient(#CBD5E1 2px, transparent 2px)",
             backgroundSize: "24px 24px",
           }}
         ></div>
@@ -254,16 +265,13 @@ export default function HomePage() {
               <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none"></div>
               <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none"></div>
 
-              <div ref={escalatorRef}>
-                {escalatorGrid}
-              </div>
+              <div ref={escalatorRef}>{escalatorGrid}</div>
             </div>
           </div>
         </div>
-        
       </section>
 
-{/* 2. GRID DE ESTUDIANTES */}
+      {/* 2. GRID DE ESTUDIANTES */}
       <div>
         <section className="bg-[#1E293B] py-20 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -290,105 +298,102 @@ export default function HomePage() {
         </section>
       </div>
 
-          {/* 3. SHOWCASE DE PROYECTOS */}
-          <section className="py-20 bg-[#F8F9FA]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold text-[#2D5A27] mb-4">
-                  Proyectos Tecnológicos
-                </h2>
-                <p className="text-[#334155] max-w-2xl mx-auto">
-                  Software funcional, investigación aplicada e impacto social
-                  desarrollado desde 2022.
+      {/* 3. SHOWCASE DE PROYECTOS */}
+      <section className="py-20 bg-[#F8F9FA]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-[#2D5A27] mb-4">
+              Proyectos Tecnológicos
+            </h2>
+            <p className="text-[#334155] max-w-2xl mx-auto">
+              Software funcional, investigación aplicada e impacto social
+              desarrollado desde 2022.
+            </p>
+          </div>
+
+          {proyectosGrid}
+
+          <div className="text-center mt-12">
+            <button
+              onClick={() => handleNavigateWithFilter("PROYECTO")}
+              className="bg-transparent border-2 cursor-pointer border-[#2D5A27] text-[#2D5A27] px-8 py-3 font-bold hover:bg-[#2D5A27] hover:text-white transition pixel-border"
+            >
+              EXPLORAR MÁS PROYECTOS
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. CIFRAS ANIMADAS GSAP */}
+      <section className="py-16 border-y-4 border-[#1E293B] bg-white relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage:
+              "linear-gradient(#2D5A27 1px, transparent 1px), linear-gradient(90deg, #2D5A27 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        ></div>
+        <div ref={metricsRef} className="max-w-7xl mx-auto px-4 relative z-10">
+          {isLoadingData ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-12 w-24 bg-gray-200 rounded mx-auto mb-2"></div>
+                  <div className="h-4 w-20 bg-gray-200 rounded mx-auto"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div>
+                <div
+                  className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
+                  data-value={metrics.proyectos}
+                >
+                  0
+                </div>
+                <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                  Proyectos DT
                 </p>
               </div>
-
-              {proyectosGrid}
-
-              <div className="text-center mt-12">
-                <button
-                  onClick={() => handleNavigateWithFilter("PROYECTO")}
-                  className="bg-transparent border-2 cursor-pointer border-[#2D5A27] text-[#2D5A27] px-8 py-3 font-bold hover:bg-[#2D5A27] hover:text-white transition pixel-border"
+              <div>
+                <div
+                  className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
+                  data-value={metrics.miembros}
                 >
-                  EXPLORAR MÁS PROYECTOS
-                </button>
+                  0
+                </div>
+                <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                  Integrantes
+                </p>
+              </div>
+              <div>
+                <div
+                  className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
+                  data-value={metrics.egresados}
+                >
+                  0
+                </div>
+                <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                  Egresados
+                </p>
+              </div>
+              <div>
+                <div
+                  className="counter text-5xl md:text-6xl font-bold text-[#F37021] pixel-font mb-2"
+                  data-value="15"
+                >
+                  0
+                </div>
+                <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                  Premios Recibidos
+                </p>
               </div>
             </div>
-          </section>
-
-          {/* 4. CIFRAS ANIMADAS GSAP */}
-          <section className="py-16 border-y-4 border-[#1E293B] bg-white relative overflow-hidden">
-            <div
-              className="absolute inset-0 opacity-5"
-              style={{
-                backgroundImage:
-                  "linear-gradient(#2D5A27 1px, transparent 1px), linear-gradient(90deg, #2D5A27 1px, transparent 1px)",
-                backgroundSize: "40px 40px",
-              }}
-            ></div>
-            <div
-              ref={metricsRef}
-              className="max-w-7xl mx-auto px-4 relative z-10"
-            >
-              {isLoadingData ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-12 w-24 bg-gray-200 rounded mx-auto mb-2"></div>
-                      <div className="h-4 w-20 bg-gray-200 rounded mx-auto"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                  <div>
-                  <div
-                    className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                    data-value={metrics.proyectos}
-                  >
-                    0
-                  </div>
-                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                    Proyectos DT
-                  </p>
-                </div>
-                <div>
-                  <div
-                    className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                    data-value={metrics.miembros}
-                  >
-                    0
-                  </div>
-                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                    Integrantes
-                  </p>
-                </div>
-                <div>
-                  <div
-                    className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                    data-value={metrics.egresados}
-                  >
-                    0
-                  </div>
-                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                    Egresados
-                  </p>
-                </div>
-                <div>
-                  <div
-                    className="counter text-5xl md:text-6xl font-bold text-[#F37021] pixel-font mb-2"
-                    data-value="15"
-                  >
-                    0
-                  </div>
-                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                    Premios Recibidos
-                  </p>
-                </div>
-              </div>
-)}
-          </div>
-          </section>
+          )}
+        </div>
+      </section>
     </main>
   );
 }
