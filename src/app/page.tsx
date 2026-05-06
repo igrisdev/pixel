@@ -14,14 +14,26 @@ export default function HomePage() {
   const { members, projects, loadMembers, loadProjects } = useDataStore();
   const [searchInput, setSearchInput] = useState("");
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [metrics, setMetrics] = useState({ proyectos: 0, miembros: 0, egresados: 0 });
 
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    Promise.all([loadMembers(), loadProjects()])
-      .finally(() => setIsLoadingData(false));
+    Promise.all([loadMembers(), loadProjects()]).finally(() =>
+      setIsLoadingData(false),
+    );
   }, [loadMembers, loadProjects]);
+
+  useEffect(() => {
+    if (!isLoadingData) {
+      setMetrics({
+        proyectos: projects.filter(p => p.approvalStatus === "ACTIVE").length,
+        miembros: members.filter(m => m.systemRole !== "ADMIN").length,
+        egresados: members.filter(m => m.academicStatus === "GRADUATE" && m.systemRole !== "ADMIN").length,
+      });
+    }
+  }, [isLoadingData, projects, members]);
 
   const activeStudents = members
     .filter((s) => !s.isBanned && s.systemRole !== "ADMIN")
@@ -67,7 +79,7 @@ export default function HomePage() {
 
   // Efecto GSAP - Contadores
   useEffect(() => {
-    if (metricsRef.current) {
+    if (metricsRef.current && !isLoadingData) {
       const targets = metricsRef.current.querySelectorAll(".counter");
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -96,7 +108,50 @@ export default function HomePage() {
       observer.observe(metricsRef.current);
       return () => observer.disconnect();
     }
-  }, []);
+  }, [isLoadingData, metrics]);
+
+  const studentGrid = isLoadingData ? (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="bg-gray-800/50 rounded-lg p-4 animate-pulse border border-gray-700">
+          <div className="w-20 h-20 rounded-full bg-gray-700 mx-auto mb-3"></div>
+          <div className="h-4 bg-gray-700 rounded w-3/4 mx-auto mb-2"></div>
+          <div className="h-3 bg-gray-700 rounded w-1/2 mx-auto mb-3"></div>
+          <div className="flex flex-wrap justify-center gap-1 mt-2">
+            <div className="h-5 w-12 bg-gray-700 rounded"></div>
+            <div className="h-5 w-12 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {activeStudents.map((student) => (
+        <MemberCard key={student.id} member={student} />
+      ))}
+    </div>
+  );
+
+  const proyectosGrid = isLoadingData ? (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-white rounded-lg shadow-sm border-2 border-gray-200 overflow-hidden animate-pulse">
+          <div className="h-40 bg-gray-200"></div>
+          <div className="p-4">
+            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {proyectosActivos.map((project) => (
+        <ProjectCard key={project.id} project={project} />
+      ))}
+    </div>
+  );
 
   return (
     <main>
@@ -183,162 +238,132 @@ export default function HomePage() {
         ></div>
       </section>
 
-      {isLoadingData ? (
-        <div className="min-h-[50vh] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
-          <span className="text-gray-500 font-mono">Cargando datos...</span>
-        </div>
-      ) : (
-        <>
-        {/* 2. GRID DE ESTUDIANTES */}
+{/* 2. GRID DE ESTUDIANTES */}
+      <div>
         <section className="bg-[#1E293B] py-20 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-10">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">
-                <span className="text-[#F37021]">/</span> Talento Destacado
-              </h2>
-              <p className="text-gray-400">
-                Nuestros desarrolladores e investigadores listos para la
-                industria.
-              </p>
-            </div>
-            <button
-              onClick={() => handleNavigateWithFilter("EGRESADO")}
-              className="hidden sm:flex items-center text-white font-mono text-sm hover:text-[#F37021] transition"
-            >
-              Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {activeStudents.map((student) => (
-              <MemberCard key={student.id} member={student} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. SHOWCASE DE PROYECTOS */}
-      <section className="py-20 bg-[#F8F9FA]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-[#2D5A27] mb-4">
-              Proyectos Tecnológicos
-            </h2>
-            <p className="text-[#334155] max-w-2xl mx-auto">
-              Software funcional, investigación aplicada e impacto social
-              desarrollado desde 2022.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* AQUÍ ESTAMOS USANDO proyectosActivos */}
-            {proyectosActivos.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <button
-              onClick={() => handleNavigateWithFilter("PROYECTO")}
-              className="bg-transparent border-2 cursor-pointer border-[#2D5A27] text-[#2D5A27] px-8 py-3 font-bold hover:bg-[#2D5A27] hover:text-white transition pixel-border"
-            >
-              EXPLORAR MÁS PROYECTOS
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. CIFRAS ANIMADAS GSAP */}
-      <section className="py-16 border-y-4 border-[#1E293B] bg-white relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage:
-              "linear-gradient(#2D5A27 1px, transparent 1px), linear-gradient(90deg, #2D5A27 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        ></div>
-        <div ref={metricsRef} className="max-w-7xl mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div
-                className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                data-value={proyectosActivos.length} // <-- ACTUALIZADO AQUÍ
-              >
-                0
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-end mb-10">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  <span className="text-[#F37021]">/</span> Talento Destacado
+                </h2>
+                <p className="text-gray-400">
+                  Nuestros desarrolladores e investigadores listos para la
+                  industria.
+                </p>
               </div>
-              <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                Proyectos DT
-              </p>
-            </div>
-            <div>
-              <div
-                className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                data-value={members.length}
+              <button
+                onClick={() => handleNavigateWithFilter("EGRESADO")}
+                className="hidden sm:flex items-center text-white font-mono text-sm hover:text-[#F37021] transition"
               >
-                0
-              </div>
-              <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                Integrantes
-              </p>
+                Ver todos <ChevronRight className="w-4 h-4 ml-1" />
+              </button>
             </div>
-            <div>
-              <div
-                className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
-                data-value={
-                  members.filter((s) => s.academicStatus === "GRADUATE").length
-                }
-              >
-                0
-              </div>
-              <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                Egresados
-              </p>
-            </div>
-            <div>
-              <div
-                className="counter text-5xl md:text-6xl font-bold text-[#F37021] pixel-font mb-2"
-                data-value="15"
-              >
-                0
-              </div>
-              <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
-                Premios Recibidos
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* 5. ALIADOS MARQUEE */}
-      <section className="py-8 bg-[#F8F9FA] overflow-hidden border-b-2 border-gray-200">
-        <style>{`
-          @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-          .marquee-container { display: flex; width: 200%; animation: slide 20s linear infinite; }
-          .marquee-container:hover { animation-play-state: paused; }
-        `}</style>
-        <div className="max-w-7xl mx-auto px-4 mb-4 text-center">
-          <p className="text-xs font-mono text-gray-500">
-            APOYAN EL CRECIMIENTO TECNOLÓGICO
-          </p>
-        </div>
-        <div className="marquee-container items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-          {[...Array(10)].map((_, i) => (
+            {studentGrid}
+          </div>
+        </section>
+      </div>
+
+          {/* 3. SHOWCASE DE PROYECTOS */}
+          <section className="py-20 bg-[#F8F9FA]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold text-[#2D5A27] mb-4">
+                  Proyectos Tecnológicos
+                </h2>
+                <p className="text-[#334155] max-w-2xl mx-auto">
+                  Software funcional, investigación aplicada e impacto social
+                  desarrollado desde 2022.
+                </p>
+              </div>
+
+              {proyectosGrid}
+
+              <div className="text-center mt-12">
+                <button
+                  onClick={() => handleNavigateWithFilter("PROYECTO")}
+                  className="bg-transparent border-2 cursor-pointer border-[#2D5A27] text-[#2D5A27] px-8 py-3 font-bold hover:bg-[#2D5A27] hover:text-white transition pixel-border"
+                >
+                  EXPLORAR MÁS PROYECTOS
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* 4. CIFRAS ANIMADAS GSAP */}
+          <section className="py-16 border-y-4 border-[#1E293B] bg-white relative overflow-hidden">
             <div
-              key={i}
-              className="flex-1 text-center font-bold text-xl text-[#334155] mx-8 whitespace-nowrap"
+              className="absolute inset-0 opacity-5"
+              style={{
+                backgroundImage:
+                  "linear-gradient(#2D5A27 1px, transparent 1px), linear-gradient(90deg, #2D5A27 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+              }}
+            ></div>
+            <div
+              ref={metricsRef}
+              className="max-w-7xl mx-auto px-4 relative z-10"
             >
-              {i % 2 === 0
-                ? "Institución Universitaria Colegio Mayor"
-                : "Subproceso Egresados UNIMAYOR"}
-            </div>
-          ))}
-        </div>
-      </section>
-        </>
-      )}
+              {isLoadingData ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-12 w-24 bg-gray-200 rounded mx-auto mb-2"></div>
+                      <div className="h-4 w-20 bg-gray-200 rounded mx-auto"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                  <div>
+                  <div
+                    className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
+                    data-value={metrics.proyectos}
+                  >
+                    0
+                  </div>
+                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                    Proyectos DT
+                  </p>
+                </div>
+                <div>
+                  <div
+                    className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
+                    data-value={metrics.miembros}
+                  >
+                    0
+                  </div>
+                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                    Integrantes
+                  </p>
+                </div>
+                <div>
+                  <div
+                    className="counter text-5xl md:text-6xl font-bold text-[#2D5A27] pixel-font mb-2"
+                    data-value={metrics.egresados}
+                  >
+                    0
+                  </div>
+                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                    Egresados
+                  </p>
+                </div>
+                <div>
+                  <div
+                    className="counter text-5xl md:text-6xl font-bold text-[#F37021] pixel-font mb-2"
+                    data-value="15"
+                  >
+                    0
+                  </div>
+                  <p className="text-[#334155] font-semibold text-sm uppercase tracking-wider">
+                    Premios Recibidos
+                  </p>
+                </div>
+              </div>
+)}
+          </div>
+          </section>
     </main>
   );
 }
