@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Repo reality check
 - This is a single-package Next.js 16 app (not a monorepo) using pnpm (`pnpm-lock.yaml` present).
 - The committed `README.md` is mostly create-next-app boilerplate; trust scripts/config/code over README instructions.
-- Current direction: move data/auth flows to real Next.js API routes backed by Prisma + MySQL (Docker), using a repository pattern.
+- Current direction: move data/auth flows to real Next.js API routes backed by Prisma + PostgreSQL, using a repository pattern.
 
 ## Verified commands
 - Install deps: `pnpm install`
@@ -15,9 +15,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Lint: `pnpm lint`
 - Build: `pnpm build`
 - Start prod build: `pnpm start`
-- Start MySQL (Docker): `docker-compose up -d`
+- Start PostgreSQL (Docker): `docker-compose up -d`
 - Prisma migration: `npx prisma migrate dev`
 - Prisma Studio: `npx prisma studio`
+- Prisma seed: `npx prisma db seed`
 - There is no dedicated test script configured in `package.json`.
 
 ## App structure and entrypoints
@@ -45,8 +46,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Prefer Server Components by default; use `"use client"` only where React state/effects or browser APIs are required.
 
 ## Prisma and DB status
-- Prisma is configured (`prisma.config.ts`, `prisma/schema.prisma`) with MySQL provider and `DATABASE_URL` from env.
-- Local MySQL helper exists in `docker-compose.yml` (`pixel_db` on `3306`).
+- Prisma is configured (`prisma.config.ts`, `prisma/schema.prisma`) with **PostgreSQL** provider.
+- `DATABASE_URL` configured in `.env`.
+- Local PostgreSQL in `docker-compose.yml` (`pixel_db` on port `5432`).
+- Uses Prisma 7 with `@prisma/adapter-pg` driver adapter.
 
 ## Coding conventions (team-specific)
 - Naming language split: types/interfaces/variables/functions/DB models in English; UI copy and comments in Spanish.
@@ -93,3 +96,47 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - page.tsx: métricas de la página de inicio muestran datos reales de DB (Proyectos DT, Integrantes, Egresados)
 - page.tsx: "Talento Destacado" muestra 8 skeleton cards mientras carga
 - Fix build error: corregido ternario huérfano en línea 348 que causaba error de sintaxis
+- Migración completa MySQL → PostgreSQL:
+  - schema.prisma: provider mysql → postgresql
+  - package.json: @prisma/adapter-mariadb + mariadb → @prisma/adapter-pg + pg
+  - src/lib/prisma.ts: PrismaMariaDb → PrismaPg
+  - prisma/seed.ts: Actualizado para PostgreSQL
+  - docker-compose.yml: mysql:8.0 → postgres:16
+  - .env: DATABASE_URL actualizada
+
+## Mejores Prácticas Implementadas (v0.2.0)
+- Corregido error crítico: setState dentro de useEffect de metrics →useMemo derivados
+- Nuevo hook useInitialData.ts: carga datos reutilizable con guard para no recargar si ya existen
+- Nuevos componentes skeleton reutilizables: MemberSkeleton, ProjectSkeleton, EscalatorSkeleton
+- useMemo aplicado para datos derivados en page.tsx (metrics, activeStudents, proyectosActivos)
+- Imports no usados limpiados
+
+## Deploy
+
+### Pending: deployment
+
+#### Opción 1: Vercel + Neon (推荐)
+- Hosting: Vercel (gratis para proyectos personales)
+- DB: Neon (gratis, 0.5GB PostgreSQL serverless)
+
+#### Opción 2: Vercel + PlanetScale
+- Hosting: Vercel
+- DB: PlanetScale (gratis, 5GB MySQL serverless)
+
+#### Opción 3: Fly.io (todo-in-one)
+- Hosting + DB todo en Fly.io con PostgreSQL
+
+### Pasos para deployment (Vercel + Neon):
+1. Crear cuenta en neon.tech
+2. Crear nuevo proyecto PostgreSQL (pixel_db)
+3. Copiar DATABASE_URL de Neon
+4. En Vercel Dashboard → Settings → Environment Variables → agregar DATABASE_URL
+5. Desde PC local:
+   - Cambiar DATABASE_URL en .env a la de Neon
+   - `npx prisma migrate deploy`
+   - `npx prisma db seed`
+
+### Notas importantes
+- docker-compose.yml se queda para desarrollo local
+- Solo cambia DATABASE_URL para producción
+- No hay cambios en código entre local y producción (solo env)
