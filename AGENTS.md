@@ -110,6 +110,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Import paths actualizados de @prisma/client → @/generated/client
   - Index barrel file creado para exports
 
+## Deployment (Vercel + Neon)
+- DATABASE_URL configurada en Vercel
+- Migración aplicada: npx prisma migrate deploy
+- Seed no aplicado por error de ruta en prisma/seed.ts
+
 ## Mejores Prácticas Implementadas (v0.2.0)
 - Corregido error crítico: setState dentro de useEffect de metrics →useMemo derivados
 - Nuevo hook useInitialData.ts: carga datos reutilizable con guard para no recargar si ya existen
@@ -117,9 +122,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - useMemo aplicado para datos derivados en page.tsx (metrics, activeStudents, proyectosActivos)
 - Imports no usados limpiados
 
+## Deployment Status
+- Hosting: Vercel (deploy OK)
+- DB: Neon (neondb) - migraciones aplicadas
+- Seed: Pending - error de ruta en import
+
 ## Deploy
 
-### Pending: deployment
+### Pasos para seed en producción
+1. Corregir ruta en prisma/seed.ts (cambiar a ruta relativa correcta)
+2. Ejecutar: npx prisma db seed
 
 #### Opción 1: Vercel + Neon (推荐)
 - Hosting: Vercel (gratis para proyectos personales)
