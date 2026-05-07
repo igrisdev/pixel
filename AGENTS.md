@@ -103,6 +103,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - prisma/seed.ts: Actualizado para PostgreSQL
   - docker-compose.yml: mysql:8.0 → postgres:16
   - .env: DATABASE_URL actualizada
+- Prisma 7 migration:
+  - schema.prisma: provider prisma-client-js → prisma-client con output
+  - generated client movido a src/generated/client
+  - tsconfig.json: excluye prisma/seed.ts del build
+  - Import paths actualizados de @prisma/client → @/generated/client
+  - Index barrel file creado para exports
 
 ## Mejores Prácticas Implementadas (v0.2.0)
 - Corregido error crítico: setState dentro de useEffect de metrics →useMemo derivados
