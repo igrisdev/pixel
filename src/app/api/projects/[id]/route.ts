@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { Prisma, CategoryType as PrismaCategoryType, ApprovalStatus as PrismaApprovalStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import { CategoryType, ApprovalStatus, Project, Participation } from "@/types";
+import type { Prisma } from "@/generated/client";
 
 const projectInclude = {
   products: {
@@ -117,9 +117,9 @@ async function syncProducts(projectId: number, incomingProducts: ProductPayload[
     const productData = {
       title: prod.title,
       description: prod.description,
-      categoryType: prod.categoryType as PrismaCategoryType,
-      approvalStatus: (prod.approvalStatus || "PENDING") as PrismaApprovalStatus,
-      technologies: prod.technologies ?? Prisma.JsonNull,
+      categoryType: prod.categoryType as any,
+      approvalStatus: (prod.approvalStatus || "PENDING") as any,
+      technologies: prod.technologies || undefined,
       repositoryUrl: prod.repositoryUrl || null,
       demoUrl: prod.demoUrl || null,
       publicationSource: prod.publicationSource || null,
@@ -192,7 +192,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
           startDate: body.startDate ? new Date(body.startDate) : undefined,
           endDate: body.endDate ? new Date(body.endDate) : null,
           coverImageUrl: body.coverImageUrl || null,
-          approvalStatus: (body.approvalStatus || "PENDING") as PrismaApprovalStatus,
+          approvalStatus: (body.approvalStatus || "PENDING") as any,
         },
       });
 

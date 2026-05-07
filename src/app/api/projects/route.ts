@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
-import { CategoryType, ApprovalStatus } from "@/types";
+import type { CategoryType, ApprovalStatus } from "@/types";
+import type { Prisma } from "@/generated/client";
 
 const projectInclude = {
   products: {

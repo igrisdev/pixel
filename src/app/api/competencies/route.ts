@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Competency } from "@/types";
-import { CompetencyType } from "@prisma/client";
+import { CompetencyType } from "@/generated/client";
 
 export async function GET() {
   try {

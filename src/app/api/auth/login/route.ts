@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Member, Competency, ProfessionalLink } from "@/types";
+import type { Prisma } from "@/generated/client";
 
 const memberInclude = {
   competencies: true,
