@@ -1,17 +1,16 @@
 services:
-  pixel-mysql:
-    image: mysql:8.0
+  pixel-postgres:
+    image: postgres:16
     container_name: pixel_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 123
-      MYSQL_DATABASE: pixel_db
-      MYSQL_USER: pixel_user
-      MYSQL_PASSWORD: 123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: pixel_db
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - pixel_mysql_data:/var/lib/mysql
+      - pixel_postgres_data:/var/lib/postgresql/data
 
 volumes:
-  pixel_mysql_data:
+  pixel_postgres_data:
