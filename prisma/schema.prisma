@@ -4,8 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  // ¡Ya no va la URL aquí!
+  provider = "postgresql"
 }
 
 // --- ENUMS ---

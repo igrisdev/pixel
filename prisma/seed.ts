@@ -1,16 +1,9 @@
 import { PrismaClient, SystemRole, AcademicStatus, ApprovalStatus, CategoryType, CompetencyType } from "@prisma/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:123@localhost:3306/pixel_db";
-const parsed = new URL(databaseUrl);
+const databaseUrl = process.env.DATABASE_URL || "postgresql://postgres:123@localhost:5432/pixel_db";
 
-const adapter = new PrismaMariaDb({
-  host: parsed.hostname,
-  port: Number(parsed.port || 3306),
-  user: decodeURIComponent(parsed.username),
-  password: decodeURIComponent(parsed.password),
-  database: parsed.pathname.replace("/", ""),
-});
+const adapter = new PrismaPg({ connectionString: databaseUrl });
 
 const prisma = new PrismaClient({ adapter });
 

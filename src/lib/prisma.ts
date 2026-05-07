@@ -1,4 +1,4 @@
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
@@ -11,15 +11,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL no está definido");
 }
 
-const parsed = new URL(databaseUrl);
-
-const adapter = new PrismaMariaDb({
-  host: parsed.hostname,
-  port: Number(parsed.port || 3306),
-  user: decodeURIComponent(parsed.username),
-  password: decodeURIComponent(parsed.password),
-  database: parsed.pathname.replace("/", ""),
-});
+const adapter = new PrismaPg({ connectionString: databaseUrl });
 
 export const prisma =
   globalForPrisma.prisma ??
