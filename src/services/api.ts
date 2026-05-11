@@ -86,6 +86,29 @@ export const ApiRepository = {
     });
   },
 
+  // --- LINKS ---
+  addLink: async (memberId: number, platform: string, url: string) => {
+    return request<{ id: number; platform: string; url: string }>(
+      `/api/members/${memberId}/links`,
+      { method: "POST", body: JSON.stringify({ platform, url }) },
+    );
+  },
+
+  deleteLink: async (memberId: number, linkId: number) => {
+    return request<{ success: boolean }>(
+      `/api/members/${memberId}/links?linkId=${linkId}`,
+      { method: "DELETE" },
+    );
+  },
+
+  // --- COMPETENCIAS DE MIEMBRO ---
+  updateMemberCompetencies: async (memberId: number, competencyIds: number[]) => {
+    return request<{ id: number; name: string; description: string; type: string }[]>(
+      `/api/members/${memberId}/competencies`,
+      { method: "PUT", body: JSON.stringify({ competencyIds }) },
+    );
+  },
+
   deleteMember: async (id: number): Promise<void> => {
     await request<{ success: boolean }>(`/api/members/${id}`, {
       method: "DELETE",
