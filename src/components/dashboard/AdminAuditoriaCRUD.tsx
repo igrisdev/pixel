@@ -5,6 +5,7 @@ import { Trash2, Search, Eye, Edit3, Loader2, ChevronDown, ChevronRight, FileCod
 import Link from "next/link";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import { useDataStore } from "@/store/useDataStore";
+import { formatDate } from "@/lib/date";
 
 export default function AdminAuditoriaCRUD() {
   const { projects, members, deleteProject, updateProject, loadProjects, loadMembers } = useDataStore();
@@ -195,7 +196,7 @@ export default function AdminAuditoriaCRUD() {
                     <BadgeEstado estado={p.approvalStatus as any} />
                   </h3>
                   <p className="text-xs text-gray-500 font-mono mt-1 bg-white px-2 py-1 inline-block border border-gray-200">
-                    ID: {p.id} | Fecha inicio: {p.startDate} | Productos: {p.products?.length || 0}
+                    ID: {p.id} | Fecha inicio: {formatDate(p.startDate)} | Productos: {p.products?.length || 0}
                   </p>
                 </div>
               </div>

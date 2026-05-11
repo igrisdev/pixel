@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ExternalLink, Download, Code, MapPin, Trophy, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
+import { formatDate } from "@/lib/date";
 import { useEffect, useState } from "react";
 
 // Actualizamos el tipo para incluir projectId y que sirva para la redirección
@@ -84,7 +85,7 @@ export default function ProfilePage() {
           title: prod.title,
           type: prod.categoryType,
           role: participation.productRole,
-          date: `${participation.startDate} - ${participation.endDate || "Presente"}`,
+          date: `${formatDate(participation.startDate)} - ${participation.endDate ? formatDate(participation.endDate) : "Presente"}`,
           tech: prod.technologies || [],
           source: prod.publicationSource || "",
           location: prod.location || "",

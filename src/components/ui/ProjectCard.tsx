@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Code, Calendar } from "lucide-react";
 import { Project } from "@/types";
+import { formatYear } from "@/lib/date";
 
 export default function ProjectCard({ project }: { project: Project }) {
   const projects = project.products || [];
@@ -80,8 +81,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               )}
             </div>
             <span className="text-xs font-mono text-gray-400 flex items-center">
-              <Calendar className="w-3 h-3 mr-1" />{" "}
-              {project.startDate.substring(0, 4)}
+              <Calendar className="w-3 h-3 mr-1" /> {formatYear(project.startDate)}
             </span>
           </div>
         </div>

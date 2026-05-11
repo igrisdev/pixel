@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
+import { formatDate } from "@/lib/date";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, useState } from "react";
 
@@ -105,8 +106,7 @@ export default function ProjectPage() {
                 PROYECTO MACRO
               </span>
               <span className="text-gray-300 text-sm font-mono flex items-center">
-                <Calendar className="w-4 h-4 mr-1" /> {project.startDate} al{" "}
-                {project.endDate || "Presente"}
+                <Calendar className="w-4 h-4 mr-1" /> {formatDate(project.startDate)} al {project.endDate ? formatDate(project.endDate) : "Presente"}
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
