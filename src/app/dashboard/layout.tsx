@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -42,8 +43,32 @@ export default function DashboardLayout({
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row relative">
-      {/* NAVEGACIÓN MÓVIL SUPERIOR */}
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#1E293B",
+            color: "#fff",
+            border: "2px solid #F37021",
+            borderRadius: "0",
+          },
+          success: {
+            iconTheme: {
+              primary: "#2D5A27",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#dc2626",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col md:flex-row relative">
       <div className="md:hidden bg-[#1E293B] text-white flex justify-between items-center p-4 sticky top-0 z-40 border-b-4 border-[#F37021] shadow-md">
         <h2 className="text-xl font-bold">
           Panel <span className="text-[#F37021]">Pixel</span>
@@ -196,7 +221,8 @@ export default function DashboardLayout({
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 w-full overflow-x-hidden">
         {children}
       </main>
-    </div>
+      </div>
+    </>
   );
 }
 

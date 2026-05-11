@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // NUEVO: Importamos Link
-import { Lock, Mail, AlertCircle, Loader2, ArrowLeft } from "lucide-react"; // NUEVO: Importamos ArrowLeft
+import Link from "next/link";
+import { Lock, Mail, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
@@ -53,7 +53,6 @@ export default function LoginPage() {
         }}
       ></div>
 
-      {/* NUEVO: Botón para volver al inicio */}
       <Link
         href="/"
         className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center text-gray-500 hover:text-[#F37021] font-mono text-sm font-bold transition-colors z-20 group"
