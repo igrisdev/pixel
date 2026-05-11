@@ -195,7 +195,7 @@ export default function HomePage() {
                 />
                 <button
                   onClick={handleSearchSubmit}
-                  className="bg-[#2D5A27] text-white px-6 py-3 font-bold hover:bg-[#1f3f1b] transition"
+                  className="bg-[#2D5A27] cursor-pointer text-white px-6 py-3 font-bold hover:bg-[#1f3f1b] transition"
                 >
                   Buscar
                 </button>
@@ -245,7 +245,7 @@ export default function HomePage() {
               </div>
               <button
                 onClick={() => handleNavigateWithFilter("EGRESADO")}
-                className="hidden sm:flex items-center text-white font-mono text-sm hover:text-[#F37021] transition"
+                className="hidden sm:flex items-center text-white cursor-pointer font-mono text-sm hover:text-[#F37021] transition"
               >
                 Ver todos <ChevronRight className="w-4 h-4 ml-1" />
               </button>
@@ -261,7 +261,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-[#2D5A27] mb-4">
-              Proyectos Tecnológicos
+              Proyectos
             </h2>
             <p className="text-[#334155] max-w-2xl mx-auto">
               Software funcional, investigación aplicada e impacto social

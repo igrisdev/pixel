@@ -127,7 +127,7 @@ export default function ProjectPage() {
         <div className="lg:col-span-2 space-y-12">
           <section>
             <h3 className="text-2xl font-bold text-[#2D5A27] mb-4">
-              Objetivo General
+              Descripción
             </h3>
             <p className="text-[#334155] text-lg leading-relaxed border-l-4 border-[#2D5A27] pl-4">
               {project.objective}
