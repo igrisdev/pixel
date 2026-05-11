@@ -2,8 +2,16 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, Download, Code, MapPin, Trophy, Loader2 } from "lucide-react";
+import {
+  ExternalLink,
+  Download,
+  Code,
+  MapPin,
+  Trophy,
+  Loader2,
+} from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { formatDate } from "@/lib/date";
 import { useEffect, useState } from "react";
 
@@ -26,11 +34,13 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const { members, projects, loadMembers, loadProjects } = useDataStore();
+  const { currentUser } = useAuthStore();
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
-    Promise.all([loadMembers(), loadProjects()])
-      .finally(() => setIsLoadingData(false));
+    Promise.all([loadMembers(), loadProjects()]).finally(() =>
+      setIsLoadingData(false),
+    );
   }, [loadMembers, loadProjects]);
 
   const student = members.find((s) => s.id === Number(id));
@@ -348,12 +358,13 @@ export default function ProfilePage() {
                             {part.location}
                           </p>
                         )}
-                        {part.isProjectHead && (
-                          <div className="mt-4 pt-3 border-t border-gray-200 flex items-center text-xs text-[#F37021] font-bold">
-                            <Trophy className="w-4 h-4 mr-1" /> Líder del
-                            Proyecto Macro
-                          </div>
-                        )}
+                        {currentUser?.id === student.id &&
+                          part.isProjectHead && (
+                            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center text-xs font-bold">
+                              <Trophy className="w-4 h-4 mr-1 text-[#F37021]" />{" "}
+                              Líder del Proyecto Macro
+                            </div>
+                          )}
                       </Link>
                     </div>
                   );

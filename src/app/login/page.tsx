@@ -139,7 +139,7 @@ export default function LoginPage() {
           <p className="text-xs text-gray-400 font-mono">
             Demo Admin: admin@unimayor.edu.co / admin123
             <br />
-            Demo Integrante: johan@gmail.com / est123
+            Demo Integrante: jmalvarez@unimayor.edu.co / est123
           </p>
         </div>
       </div>
