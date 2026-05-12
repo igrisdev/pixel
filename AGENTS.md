@@ -1,7 +1,7 @@
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any depreciation notices.
 <!-- END:nextjs-agent-rules -->
 
 ## Repo reality check
@@ -94,15 +94,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Envolver secciones ternarias en `<div>` adicional para evitar errores de parsing
 
 ## Historial de Cambios Recientes
-- **EditLinkModal**: Modal para editar enlaces profesionales en `/dashboard/profile`
-  - `src/components/dashboard/EditLinkModal.tsx` - componente modal reutilizable
-  - Botón Editar (Pencil) añadido en tarjetas de enlaces junto al de eliminar
-  - PUT `/api/members/[id]/links?linkId=X` - endpoint de actualización
-  - `ApiRepository.updateLink()` - método en api.ts
+- **IntegrantePerfilCRUD**: Fix estado links - `hasLinkChanges` ahora filtra IDs optimistas negativos, `originalLinks` se sincroniza en onSave del modal, badge "Sin guardar" solo aparece con cambios reales
+- **IntegrantePerfilCRUD**: Alerta de confirmación (`window.confirm()`) antes de eliminar enlace
+- **IntegrantePerfilCRUD**: CRUD de links/competencies ahora llama `loadMembers()` tras éxito → cambios reflejados en la UI sin recargar página
+- **EditLinkModal**: Componente modal reutilizable para editar enlaces profesionales en `/dashboard/profile`
 - page.tsx: agregada sección "Proyectos Tecnológicos" con skeleton de 6 cards mientras carga
 - page.tsx: métricas de la página de inicio muestran datos reales de DB (Proyectos DT, Integrantes, Egresados)
 - page.tsx: "Talento Destacado" muestra 8 skeleton cards mientras carga
-- Fix build error: corregido ternario huérfano en línea 348 que causaba error de sintaxis
 - Migración completa MySQL → PostgreSQL:
   - schema.prisma: provider mysql → postgresql
   - package.json: @prisma/adapter-mariadb + mariadb → @prisma/adapter-pg + pg
@@ -118,38 +116,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Index barrel file creado para exports
 
 ## Deployment (Vercel + Neon)
-- DATABASE_URL configurada en Vercel
-- Migración aplicada: npx prisma migrate deploy
-- Seed no aplicado por error de ruta en prisma/seed.ts
-
-## Mejores Prácticas Implementadas (v0.2.0)
-- Corregido error crítico: setState dentro de useEffect de metrics →useMemo derivados
-- Nuevo hook useInitialData.ts: carga datos reutilizable con guard para no recargar si ya existen
-- Nuevos componentes skeleton reutilizables: MemberSkeleton, ProjectSkeleton, EscalatorSkeleton
-- useMemo aplicado para datos derivados en page.tsx (metrics, activeStudents, proyectosActivos)
-- Imports no usados limpiados
-
-## Deployment Status
 - Hosting: Vercel (deploy OK)
 - DB: Neon (neondb) - migraciones aplicadas
 - Seed: Aplicado correctamente
+- DATABASE_URL configurada en Vercel
 
 ## Deploy
 
 ### Pasos para seed en producción
 1. Corregir ruta en prisma/seed.ts (cambiar a ruta relativa correcta)
 2. Ejecutar: npx prisma db seed
-
-#### Opción 1: Vercel + Neon (推荐)
-- Hosting: Vercel (gratis para proyectos personales)
-- DB: Neon (gratis, 0.5GB PostgreSQL serverless)
-
-#### Opción 2: Vercel + PlanetScale
-- Hosting: Vercel
-- DB: PlanetScale (gratis, 5GB MySQL serverless)
-
-#### Opción 3: Fly.io (todo-in-one)
-- Hosting + DB todo en Fly.io con PostgreSQL
 
 ### Pasos para deployment (Vercel + Neon):
 1. Crear cuenta en neon.tech
