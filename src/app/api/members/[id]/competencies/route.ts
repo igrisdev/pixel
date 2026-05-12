@@ -12,37 +12,27 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       return NextResponse.json({ error: "competencyIds debe ser un array" }, { status: 400 });
     }
 
-    // Transacción: eliminar todos los links actuales y crear los nuevos
-    await prisma.$transaction(async (tx) => {
-      // Eliminar competencias actuales del miembro
-      await tx.memberCompetency.deleteMany({
-        where: { memberId },
-      });
-
-      // Crear las nuevas relaciones
-      if (competencyIds.length > 0) {
-        await tx.memberCompetency.createMany({
-          data: competencyIds.map((compId: number) => ({
-            memberId,
-            competencyId: compId,
-          })),
-        });
-      }
+    await prisma.member.update({
+      where: { id: memberId },
+      data: {
+        competencies: {
+          set: competencyIds.map((compId: number) => ({ id: compId })),
+        },
+      },
     });
 
-    // Obtener las competencias actualizadas para retornar
-    const memberCompetencies = await prisma.memberCompetency.findMany({
-      where: { memberId },
-      include: { competency: true },
+    const member = await prisma.member.findUnique({
+      where: { id: memberId },
+      include: { competencies: true },
     });
 
     return NextResponse.json({
-      data: memberCompetencies.map((mc) => ({
-        id: mc.competency.id,
-        name: mc.competency.name,
-        description: mc.competency.description,
-        type: mc.competency.type,
-      })),
+      data: member?.competencies.map((c) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        type: c.type,
+      })) || [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error interno";

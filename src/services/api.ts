@@ -94,6 +94,13 @@ export const ApiRepository = {
     );
   },
 
+  updateLink: async (memberId: number, linkId: number, data: { platform: string; url: string }) => {
+    return request<{ id: number; platform: string; url: string }>(
+      `/api/members/${memberId}/links?linkId=${linkId}`,
+      { method: "PUT", body: JSON.stringify(data) },
+    );
+  },
+
   deleteLink: async (memberId: number, linkId: number) => {
     return request<{ success: boolean }>(
       `/api/members/${memberId}/links?linkId=${linkId}`,

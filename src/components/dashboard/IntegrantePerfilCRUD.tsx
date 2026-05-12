@@ -11,7 +11,9 @@ import {
   Loader2,
   UploadCloud,
   Award,
+  Pencil,
 } from "lucide-react";
+import EditLinkModal from "./EditLinkModal";
 import toast from "react-hot-toast";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -43,6 +45,7 @@ export default function IntegrantePerfilCRUD() {
   const [originalLinks, setOriginalLinks] = useState<ProfessionalLink[]>(user?.links || []);
   const [links, setLinks] = useState<ProfessionalLink[]>([...originalLinks]);
   const [newLink, setNewLink] = useState({ platform: "GitHub", url: "" });
+  const [editingLink, setEditingLink] = useState<ProfessionalLink | null>(null);
 
   const [originalCompetencyIds, setOriginalCompetencyIds] = useState<number[]>(
     user?.competencies?.map((c) => c.id) || [],
@@ -98,7 +101,6 @@ export default function IntegrantePerfilCRUD() {
   const handleSaveBasicInfo = async () => {
     if (!currentUser || !user) return;
 
-    // Verificar si hay cambios
     const hasChanges =
       formData.fullName !== originalData.fullName ||
       formData.role !== originalData.role ||
@@ -121,7 +123,6 @@ export default function IntegrantePerfilCRUD() {
       toast.success("Información básica guardada");
       setTimeout(() => setSavedBasic(false), 2000);
     } catch (error) {
-      // Rollback
       setFormData({ ...originalData });
       toast.error("Error al guardar. Cambios revertidos.");
     } finally {
@@ -129,31 +130,37 @@ export default function IntegrantePerfilCRUD() {
     }
   };
 
+  const syncLinksFromStore = () => {
+    const freshUser = members.find((m) => m.id === currentUser?.id);
+    if (!freshUser) return;
+    const storeLinks = freshUser.links || [];
+    const storeLinksMap = storeLinks.map((l) => `${l.id}|${l.platform}|${l.url}`);
+    const originalLinksMap = originalLinks.map((l) => `${l.id}|${l.platform}|${l.url}`);
+    const linksMap = links.map((l) => `${l.id}|${l.platform}|${l.url}`);
+    const hasLocalChanges = JSON.stringify(linksMap) !== JSON.stringify(originalLinksMap);
+    if (!hasLocalChanges) {
+      setLinks([...storeLinks]);
+    }
+  };
+
   const handleAddLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLink.url.trim() || !currentUser) return;
 
-    const optimisticLink = {
-      id: -Date.now(), // ID temporal negativo para identificarlo
-      platform: newLink.platform,
-      url: newLink.url,
-    };
+    const optimisticLink = { id: -Date.now(), platform: newLink.platform, url: newLink.url };
 
-    // Optimistic update
     setLinks([...links, optimisticLink]);
-    const tempLinks = [...links, optimisticLink];
 
     setIsSavingLinks(true);
     try {
       const newLinkData = await ApiRepository.addLink(currentUser.id, newLink.platform, newLink.url);
-      // Actualizar con el ID real del servidor
-      setLinks(tempLinks.map((l) => (l.id === optimisticLink.id ? newLinkData : l)));
-      setOriginalLinks([...originalLinks, newLinkData]);
+      setLinks((prev) => prev.map((l) => (l.id === optimisticLink.id ? newLinkData : l)));
+      setOriginalLinks((prev) => [...prev, newLinkData]);
       setNewLink({ platform: "GitHub", url: "" });
       toast.success("Enlace agregado");
+      await loadMembers();
     } catch (error) {
-      // Rollback
-      setLinks(links);
+      setLinks((prev) => prev.filter((l) => l.id !== optimisticLink.id));
       toast.error("Error al agregar enlace. Cambios revertidos.");
     } finally {
       setIsSavingLinks(false);
@@ -161,22 +168,21 @@ export default function IntegrantePerfilCRUD() {
   };
 
   const handleDeleteLink = async (linkId: number) => {
-    if (!currentUser || linkId < 0) return; // No eliminar links optimistas que aún no se guardaron
+    if (!currentUser || linkId < 0) return;
 
-    const linkToDelete = links.find((l) => l.id === linkId);
-    if (!linkToDelete) return;
+    const link = links.find((l) => l.id === linkId);
+    if (!link || !confirm(`¿Eliminar el enlace "${link.platform}"?`)) return;
 
-    // Optimistic update
     const previousLinks = [...links];
     setLinks(links.filter((l) => l.id !== linkId));
 
     setIsSavingLinks(true);
     try {
       await ApiRepository.deleteLink(currentUser.id, linkId);
-      setOriginalLinks(originalLinks.filter((l) => l.id !== linkId));
+      setOriginalLinks((prev) => prev.filter((l) => l.id !== linkId));
       toast.success("Enlace eliminado");
+      await loadMembers();
     } catch (error) {
-      // Rollback
       setLinks(previousLinks);
       toast.error("Error al eliminar enlace. Cambios revertidos.");
     } finally {
@@ -187,7 +193,6 @@ export default function IntegrantePerfilCRUD() {
   const handleSaveCompetencies = async () => {
     if (!currentUser) return;
 
-    // Verificar si hay cambios
     const hasChanges =
       selectedCompetencies.length !== originalCompetencyIds.length ||
       !selectedCompetencies.every((id) => originalCompetencyIds.includes(id));
@@ -202,8 +207,8 @@ export default function IntegrantePerfilCRUD() {
       await ApiRepository.updateMemberCompetencies(currentUser.id, selectedCompetencies);
       setOriginalCompetencyIds([...selectedCompetencies]);
       toast.success("Competencias actualizadas");
+      await loadMembers();
     } catch (error) {
-      // Rollback
       setSelectedCompetencies([...originalCompetencyIds]);
       toast.error("Error al guardar competencias. Cambios revertidos.");
     } finally {
@@ -232,8 +237,10 @@ export default function IntegrantePerfilCRUD() {
     formData.photoUrl !== originalData.photoUrl ||
     formData.passwordHash !== originalData.passwordHash;
 
-  const hasLinkChanges = JSON.stringify(links.map((l) => ({ id: l.id, platform: l.platform, url: l.url }))) !==
-    JSON.stringify(originalLinks.map((l) => ({ id: l.id, platform: l.platform, url: l.url })));
+  const dbLinks = links.filter((l) => l.id > 0);
+  const dbOriginalLinks = originalLinks.filter((l) => l.id > 0);
+  const hasLinkChanges = JSON.stringify(dbLinks.map((l) => `${l.id}|${l.platform}|${l.url}`)) !==
+    JSON.stringify(dbOriginalLinks.map((l) => `${l.id}|${l.platform}|${l.url}`));
 
   const hasCompetencyChanges =
     selectedCompetencies.length !== originalCompetencyIds.length ||
@@ -477,13 +484,22 @@ export default function IntegrantePerfilCRUD() {
                     <strong className="text-[#1E293B] block text-sm">{l.platform}</strong>
                     <span className="text-xs text-gray-500 font-mono truncate block w-full">{l.url}</span>
                   </div>
-                  <button
-                    onClick={() => handleDeleteLink(l.id)}
-                    disabled={isSavingLinks}
-                    className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition disabled:cursor-not-allowed disabled:bg-gray-200"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => setEditingLink(l)}
+                      disabled={isSavingLinks}
+                      className="text-gray-400 hover:text-[#F37021] bg-white p-2 border border-gray-300 hover:border-[#F37021] transition disabled:cursor-not-allowed disabled:bg-gray-200"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLink(l.id)}
+                      disabled={isSavingLinks}
+                      className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 hover:border-red-600 transition disabled:cursor-not-allowed disabled:bg-gray-200"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </li>
               ))}
               {links.length === 0 && (
@@ -572,6 +588,20 @@ export default function IntegrantePerfilCRUD() {
           </div>
         </div>
       </div>
+
+      {editingLink && currentUser && (
+        <EditLinkModal
+          link={editingLink}
+          memberId={currentUser.id}
+          onClose={() => setEditingLink(null)}
+          onSave={async (updated) => {
+            setLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+            setOriginalLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+            setEditingLink(null);
+            await loadMembers();
+          }}
+        />
+      )}
     </>
   );
 }

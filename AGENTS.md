@@ -75,6 +75,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `/api/auth/login` - Autenticación de usuarios (POST)
 - `/api/members` - CRUD de miembros (GET, POST)
 - `/api/members/[id]` - Miembro individual (GET, PUT, DELETE)
+- `/api/members/[id]/links` - CRUD de enlaces profesionales (POST, PUT, DELETE con ?linkId=X)
+- `/api/members/[id]/competencies` - Sincronizar competencias del miembro (PUT)
 - `/api/projects` - CRUD de proyectos (GET, POST)
 - `/api/projects/[id]` - Proyecto individual (GET, PUT, DELETE)
 - `/api/competencies` - CRUD de competencias (GET, POST)
@@ -92,6 +94,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Envolver secciones ternarias en `<div>` adicional para evitar errores de parsing
 
 ## Historial de Cambios Recientes
+- **EditLinkModal**: Modal para editar enlaces profesionales en `/dashboard/profile`
+  - `src/components/dashboard/EditLinkModal.tsx` - componente modal reutilizable
+  - Botón Editar (Pencil) añadido en tarjetas de enlaces junto al de eliminar
+  - PUT `/api/members/[id]/links?linkId=X` - endpoint de actualización
+  - `ApiRepository.updateLink()` - método en api.ts
 - page.tsx: agregada sección "Proyectos Tecnológicos" con skeleton de 6 cards mientras carga
 - page.tsx: métricas de la página de inicio muestran datos reales de DB (Proyectos DT, Integrantes, Egresados)
 - page.tsx: "Talento Destacado" muestra 8 skeleton cards mientras carga
@@ -125,7 +132,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Deployment Status
 - Hosting: Vercel (deploy OK)
 - DB: Neon (neondb) - migraciones aplicadas
-- Seed: Pending - error de ruta en import
+- Seed: Aplicado correctamente
 
 ## Deploy
 
@@ -153,8 +160,3 @@ This version has breaking changes — APIs, conventions, and file structure may 
    - Cambiar DATABASE_URL en .env a la de Neon
    - `npx prisma migrate deploy`
    - `npx prisma db seed`
-
-### Notas importantes
-- docker-compose.yml se queda para desarrollo local
-- Solo cambia DATABASE_URL para producción
-- No hay cambios en código entre local y producción (solo env)
