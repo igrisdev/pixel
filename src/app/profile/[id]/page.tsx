@@ -252,7 +252,7 @@ export default function ProfilePage() {
           <div className="bg-white pixel-border p-8">
             <h3 className="text-xl font-bold text-[#1E293B] mb-6 flex items-center">
               <span className="w-2 h-6 bg-[#F37021] mr-3 inline-block"></span>{" "}
-              Matriz de Competencias
+              Habilidades
             </h3>
             <div className="mb-6">
               <p className="text-xs text-gray-500 font-mono mb-3">
