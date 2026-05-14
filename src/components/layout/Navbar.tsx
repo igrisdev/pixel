@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { User, LogOut } from "lucide-react";
+import { User } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Navbar() {
@@ -11,15 +11,10 @@ export default function Navbar() {
   const router = useRouter();
 
   // Consumimos el estado de Zustand
-  const { userRole, logout } = useAuthStore();
+  const { userRole } = useAuthStore();
 
   // No mostramos el Navbar en la página de Login
   if (pathname === "/login") return null;
-
-  const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
 
   return (
     <nav className="sticky top-0 z-50 bg-[#F8F9FA] border-b-2 border-[#1E293B] shadow-sm">
@@ -62,13 +57,6 @@ export default function Navbar() {
                 >
                   <User className="w-4 h-4 mr-2" /> Mi Dashboard
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-500 hover:text-red-600 transition"
-                  title="Cerrar Sesión"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
               </>
             ) : (
               <Link
