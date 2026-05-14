@@ -298,9 +298,7 @@ export default function IntegranteProyectosCRUD() {
           if (existingPart) {
             return { ...existingPart, productRole: draft.productRole };
           } else {
-            // Nueva participación - NO enviar ID para que el API haga create
             return {
-              id: undefined,
               memberId: draft.memberId,
               productId: editProdId || undefined,
               productRole: draft.productRole,
