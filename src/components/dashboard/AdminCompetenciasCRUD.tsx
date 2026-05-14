@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
+import CompetencyModal from "@/components/ui/competency-crud/CompetencyModal";
 
 export default function AdminCompetenciasCRUD() {
   const { competencies, loadCompetencies, createCompetency, updateCompetency, deleteCompetency } = useDataStore();
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-
-  const topRef = useRef<HTMLDivElement>(null);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,10 +56,6 @@ export default function AdminCompetenciasCRUD() {
       description: comp.description,
       type: comp.type,
     });
-
-    setTimeout(() => {
-      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
   };
 
   const handleCancelOrAdd = () => {
@@ -97,8 +92,7 @@ export default function AdminCompetenciasCRUD() {
   }
 
   return (
-    // <-- NUEVO: Agregamos el ref al contenedor principal
-    <div className="bg-white pixel-border p-6 shadow-sm" ref={topRef}>
+    <div className="bg-white pixel-border p-6 shadow-sm">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-[#1E293B]">
           Catálogo de Competencias
@@ -106,7 +100,7 @@ export default function AdminCompetenciasCRUD() {
         <button
           onClick={handleCancelOrAdd}
           disabled={loadingAction !== null}
-          className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] text-sm font-bold flex items-center hover:bg-[#1f3f1b] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[#2D5A27] text-white px-4 py-2 border border-[#1E293B] text-sm font-bold flex items-center hover:bg-[#1f3f1b] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isAdding || editId ? (
             <X className="w-4 h-4 mr-1" />
@@ -118,69 +112,18 @@ export default function AdminCompetenciasCRUD() {
       </div>
 
       {(isAdding || editId !== null) && (
-        <form
+        <CompetencyModal
+          editId={editId}
+          loadingAction={loadingAction}
+          formData={formData}
+          onChange={setFormData}
           onSubmit={handleSave}
-          className="mb-8 p-6 bg-[#F8F9FA] border-2 border-[#1E293B] grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
-        >
-          <div className="col-span-1">
-            <label className="block text-xs font-mono mb-1">Nombre Corto</label>
-            <input
-              type="text"
-              required
-              disabled={loadingAction === "save"}
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none disabled:bg-gray-100"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-xs font-mono mb-1">Descripción</label>
-            <input
-              type="text"
-              required
-              disabled={loadingAction === "save"}
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] outline-none disabled:bg-gray-100"
-            />
-          </div>
-          <div className="col-span-1 flex gap-2">
-            <div className="flex-1">
-              <label className="block text-xs font-mono mb-1">Tipo</label>
-              <select
-                value={formData.type}
-                disabled={loadingAction === "save"}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    type: e.target.value as "TECHNICAL" | "SOFT",
-                  })
-                }
-                className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] disabled:bg-gray-100"
-              >
-                <option value="TECHNICAL">TÉCNICA</option>
-                <option value="SOFT">TRANSVERSAL</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              disabled={loadingAction === "save"}
-              className="bg-[#F37021] text-white px-4 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] mb-[2px] disabled:opacity-70 flex items-center justify-center min-w-[100px]"
-            >
-              {loadingAction === "save" ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : editId ? (
-                "Guardar"
-              ) : (
-                "Crear"
-              )}
-            </button>
-          </div>
-        </form>
+          onClose={() => {
+            setIsAdding(false);
+            setEditId(null);
+            setFormData({ name: "", description: "", type: "TECHNICAL" });
+          }}
+        />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -206,14 +149,14 @@ export default function AdminCompetenciasCRUD() {
               <button
                 onClick={() => startEdit(c)}
                 disabled={loadingAction !== null}
-                className="bg-gray-200 p-1.5 border border-gray-400 hover:bg-gray-300 disabled:cursor-not-allowed"
+                className="bg-gray-200 p-1.5 border border-gray-400 hover:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Edit className="w-4 h-4 text-gray-700" />
               </button>
               <button
                 onClick={() => handleDelete(c.id)}
                 disabled={loadingAction !== null}
-                className="bg-red-100 p-1.5 border border-red-300 text-red-600 hover:bg-red-200 disabled:cursor-not-allowed"
+                className="bg-red-100 p-1.5 border border-red-300 text-red-600 hover:bg-red-200 disabled:cursor-not-allowed cursor-pointer"
               >
                 {loadingAction === `delete-${c.id}` ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
