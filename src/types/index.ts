@@ -44,6 +44,7 @@ export interface Participation {
   endDate?: string;
   memberName: string;
   memberPhotoUrl: string;
+  memberCareer?: string;
 }
 
 export interface AcademicProduct {

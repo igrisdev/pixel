@@ -60,6 +60,9 @@ export default function EscalatorCard({ member }: EscalatorCardProps) {
           </div>
         )}
       </div>
+      <div className="text-[10px] font-bold text-[#F37021]">
+        Ver más →
+      </div>
     </Link>
   );
 }

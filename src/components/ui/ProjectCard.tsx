@@ -7,6 +7,10 @@ export default function ProjectCard({ project }: { project: Project }) {
   const projects = project.products || [];
   const primerProducto = projects[0];
 
+  const hoy = new Date();
+  const fechaFin = project.endDate ? new Date(project.endDate) : null;
+  const estaFinalizado = fechaFin && fechaFin < hoy;
+
   // Extraemos y combinamos todas las tecnologías de los projects tipo DESARROLLO
   const todasLasTech = projects
     .filter((p) => p.categoryType === "DEVELOPMENT")
@@ -30,11 +34,22 @@ export default function ProjectCard({ project }: { project: Project }) {
           alt={project.title}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90"
         />
-        {primerProducto && (
-          <div className="absolute top-3 left-3 bg-[#F37021] text-white text-[10px] font-mono px-2 py-1 font-bold shadow-md">
-            {primerProducto.categoryType}
-          </div>
-        )}
+        <div className="absolute top-3 left-3 flex gap-1">
+          {primerProducto && (
+            <div className="bg-[#F37021] text-white text-[10px] font-mono px-2 py-1 font-bold shadow-md">
+              {primerProducto.categoryType}
+            </div>
+          )}
+          {estaFinalizado ? (
+            <div className="bg-purple-600 text-white text-[10px] font-mono px-2 py-1 font-bold shadow-md">
+              FINALIZADO
+            </div>
+          ) : (
+            <div className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 font-bold shadow-md">
+              EN PROCESO
+            </div>
+          )}
+        </div>
       </div>
       <div className="p-6 flex flex-col flex-1">
         <h3 className="text-xl font-bold text-[#1E293B] mb-2 group-hover:text-[#F37021] transition line-clamp-2">
@@ -70,12 +85,12 @@ export default function ProjectCard({ project }: { project: Project }) {
                   key={i}
                   src={member.memberPhotoUrl || undefined}
                   alt={member.memberName}
-                  className="w-8 h-8 rounded-full border border-[#1E293B] bg-white object-cover"
+                  className="w-8 h-8 rounded-full border-2 border-[#1E293B] bg-white object-cover"
                   title={member.memberName}
                 />
               ))}
               {uniqueTeam.length > 4 && (
-                <div className="w-8 h-8 border border-[#1E293B] bg-gray-100 flex items-center justify-center text-[10px] font-bold text-[#1E293B] z-10">
+                <div className="w-8 h-8 rounded-full border-2 border-[#1E293B] bg-gray-100 flex items-center justify-center text-[10px] font-bold text-[#1E293B] z-10">
                   +{uniqueTeam.length - 4}
                 </div>
               )}
@@ -83,6 +98,9 @@ export default function ProjectCard({ project }: { project: Project }) {
             <span className="text-xs font-mono text-gray-400 flex items-center">
               <Calendar className="w-3 h-3 mr-1" /> {formatYear(project.startDate)}
             </span>
+          </div>
+          <div className="text-xs font-bold text-[#F37021] mt-3">
+            Ver más →
           </div>
         </div>
       </div>

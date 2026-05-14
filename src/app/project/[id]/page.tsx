@@ -59,13 +59,17 @@ export default function ProjectPage() {
         </p>
         <button
           onClick={() => router.push("/")}
-          className="bg-[#1E293B] text-white px-6 py-2 font-bold hover:bg-[#F37021] transition pixel-border"
+          className="bg-[#1E293B] text-white px-6 py-2 font-bold hover:bg-[#F37021] transition pixel-border cursor-pointer"
         >
           Volver al Inicio
         </button>
       </div>
     );
   }
+
+  const hoy = new Date();
+  const fechaFin = project.endDate ? new Date(project.endDate) : null;
+  const estaFinalizado = fechaFin && fechaFin < hoy;
 
   const productosVisibles = project.products || [];
 
@@ -79,8 +83,8 @@ export default function ProjectPage() {
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <button
         onClick={() => router.back()}
-        className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition"
-      >
+        className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition cursor-pointer"
+        >
         &larr; VOLVER AL CATÁLOGO
       </button>
 
@@ -105,7 +109,12 @@ export default function ProjectPage() {
               <span className="bg-[#2D5A27] text-white text-xs font-mono px-3 py-1 border border-[#1E293B]">
                 PROYECTO MACRO
               </span>
-              <span className="text-gray-300 text-sm font-mono flex items-center">
+              {estaFinalizado && (
+                <span className="bg-purple-600 text-white text-xs font-mono px-3 py-1 border border-[#1E293B]">
+                  FINALIZADO
+                </span>
+              )}
+              <span className="bg-gray-100 border border-gray-300 text-[#334155] text-xs font-mono px-3 py-1 flex items-center">
                 <Calendar className="w-4 h-4 mr-1" /> {formatDate(project.startDate)} al {project.endDate ? formatDate(project.endDate) : "Presente"}
               </span>
             </div>
@@ -300,11 +309,16 @@ export default function ProjectPage() {
                       alt={member.memberName}
                       className="w-10 h-10 border border-[#1E293B] mr-3 object-cover bg-gray-200"
                     />
-                    <div>
+                    <div className="flex flex-col">
                       <h4 className="font-bold text-sm text-[#1E293B] group-hover:text-[#F37021]">
                         {member.memberName}
                       </h4>
-                      <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                      {member.memberCareer && (
+                        <span className="text-xs text-gray-600 font-medium">
+                          {member.memberCareer}
+                        </span>
+                      )}
+                      <p className="text-xs font-bold text-[#F37021] mt-1">
                         Ver perfil &rarr;
                       </p>
                     </div>

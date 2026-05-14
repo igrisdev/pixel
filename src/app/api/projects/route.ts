@@ -51,6 +51,7 @@ function toProjectResponse(project: ProjectWithRelations) {
         endDate: part.endDate?.toISOString(),
         memberName: part.member.fullName,
         memberPhotoUrl: part.member.photoUrl ?? "",
+        memberCareer: part.member.career ?? "",
       })),
     })),
   };

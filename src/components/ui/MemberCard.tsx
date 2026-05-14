@@ -82,6 +82,10 @@ export default function MemberCard({ member }: MemberCardProps) {
           </span>
         )}
       </div>
+
+      <div className="text-xs font-bold text-[#F37021] mt-3">
+        Ver más →
+      </div>
     </Link>
   );
 }
