@@ -141,10 +141,10 @@ export default function ProfilePage() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-<button
-          onClick={() => router.back()}
-          className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition cursor-pointer"
-        >
+      <button
+        onClick={() => router.back()}
+        className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition cursor-pointer"
+      >
         &larr; VOLVER
       </button>
 
@@ -359,17 +359,17 @@ export default function ProfilePage() {
                             {part.location}
                           </p>
                         )}
-{currentUser?.id === student.id &&
+                        {currentUser?.id === student.id &&
                           part.isProjectHead && (
                             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center text-xs font-bold">
                               <Trophy className="w-4 h-4 mr-1 text-[#F37021]" />{" "}
-                              Líder del Proyecto Macro
+                              Subí el producto académico
                             </div>
                           )}
                         <div className="text-xs text-[#F37021] font-bold mt-3">
                           Ver más →
                         </div>
-                        </Link>
+                      </Link>
                     </div>
                   );
                 })}
