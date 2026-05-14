@@ -270,11 +270,11 @@ export default function ProductModal({
             </ul>
 
             {availableMembers.length > 0 ? (
-              <div className="flex flex-wrap md:flex-nowrap gap-2 bg-gray-100 p-4 border border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 bg-gray-100 p-3 border border-gray-200">
                 <select
                   value={draftTeamMemberId}
                   onChange={(e) => onDraftTeamMemberIdChange(e.target.value)}
-                  className="flex-1 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
+                  className="w-full min-w-0 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
                 >
                   <option value="">Seleccionar compañero...</option>
                   {availableMembers.map((m) => (
@@ -287,7 +287,7 @@ export default function ProductModal({
                 <select
                   value={draftTeamRole}
                   onChange={(e) => onDraftTeamRoleChange(e.target.value)}
-                  className="flex-1 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
+                  className="w-full min-w-0 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
                 >
                   <option value="">Asignar un rol / competencia...</option>
                   <option value="Líder de Producto" className="font-bold">
