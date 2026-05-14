@@ -284,7 +284,7 @@ export default function IntegranteProyectosCRUD() {
       };
 
       // Mapeamos los participantes del borrador al formato final
-      const finalParticipations: Participation[] = draftParticipants.map(
+      const finalParticipations = draftParticipants.map(
         (draft) => {
           // Si estamos editando, revisamos si este miembro ya existía para mantener su ID
           const existingPart = editProdId
@@ -307,7 +307,7 @@ export default function IntegranteProyectosCRUD() {
             };
           }
         },
-      );
+      ) as Participation[];
 
       if (editProdId) {
         const updatedProducts = (project.products || []).map((p) =>
@@ -325,12 +325,12 @@ export default function IntegranteProyectosCRUD() {
           products: updatedProducts 
         });
       } else {
-        const newProduct: AcademicProduct = {
+        const newProduct = {
           projectId: projectId,
           ...baseProductData,
           participations: finalParticipations,
           approvalStatus: "PENDING",
-        };
+        } as AcademicProduct;
         await updateProject(projectId, {
           approvalStatus: project.approvalStatus,
           products: [...(project.products || []), newProduct],
