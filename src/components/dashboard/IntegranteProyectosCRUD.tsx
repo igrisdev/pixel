@@ -268,8 +268,6 @@ export default function IntegranteProyectosCRUD() {
     setErrorMessage(null);
 
     try {
-      console.log("[DEBUG] handleSaveProduct - editProdId:", editProdId);
-      console.log("[DEBUG] handleSaveProduct - draftParticipants:", draftParticipants);
       const baseProductData = {
         title: prodFormData.title,
         description: prodFormData.description,
@@ -326,20 +324,17 @@ export default function IntegranteProyectosCRUD() {
           approvalStatus: project.approvalStatus,
           products: updatedProducts 
         });
-        console.log("[DEBUG] handleSaveProduct - producto actualizado correctamente");
       } else {
         const newProduct: AcademicProduct = {
-          id: undefined,
           projectId: projectId,
           ...baseProductData,
-          participations: finalParticipations.map((p) => ({ ...p, id: undefined, productId: undefined })),
+          participations: finalParticipations,
           approvalStatus: "PENDING",
         };
         await updateProject(projectId, {
           approvalStatus: project.approvalStatus,
           products: [...(project.products || []), newProduct],
         });
-        console.log("[DEBUG] handleSaveProduct - nuevo producto creado correctamente");
       }
 
       // Limpiamos los estados al guardar
@@ -347,7 +342,6 @@ export default function IntegranteProyectosCRUD() {
       setEditProdId(null);
       setDraftParticipants([]);
     } catch (error) {
-      console.error("[DEBUG] handleSaveProduct - error:", error);
       setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el producto");
     } finally {
       setLoadingAction(null);
