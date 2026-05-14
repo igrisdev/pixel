@@ -304,11 +304,11 @@ export default function IntegranteProyectosCRUD() {
           if (existingPart) {
             return { ...existingPart, productRole: draft.productRole };
           } else {
-            nextPartId++;
+            // Nueva participación - NO enviar ID para que el API haga create
             return {
-              id: nextPartId,
+              id: undefined,
               memberId: draft.memberId,
-              productId: editProdId || 0, // Si es 0 se ajusta abajo en newProduct
+              productId: editProdId || undefined,
               productRole: draft.productRole,
               startDate: project.startDate,
               endDate: project.endDate,
@@ -337,10 +337,10 @@ export default function IntegranteProyectosCRUD() {
         console.log("[DEBUG] handleSaveProduct - producto actualizado correctamente");
       } else {
         const newProduct: AcademicProduct = {
-          id: 0,
+          id: undefined,
           projectId: projectId,
           ...baseProductData,
-          participations: finalParticipations,
+          participations: finalParticipations.map((p) => ({ ...p, id: undefined, productId: undefined })),
           approvalStatus: "PENDING",
         };
         await updateProject(projectId, {
