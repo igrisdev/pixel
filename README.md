@@ -2,139 +2,120 @@
 
 Sistema de gestión de portafolios para estudiantes universitarios — permite a miembros administrar proyectos, competencias y enlaces profesionales.
 
-## Stack Tecnológico
+## Tech Stack
 
 - **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS
 - **Estado**: Zustand + persist middleware
 - **Backend**: Next.js API Routes
-- **ORM**: Prisma 7 con PostgreSQL
-- **Deploy**: Vercel + Neon (PostgreSQL serverless)
+- **ORM**: Prisma 7 con PostgreSQL (Neon serverless o Docker local)
+- **Deploy**: Vercel
 
-## Arquitectura
+## Estructura de Carpetas Clave
 
-Ver Figura 2: Diagrama C4 General (en el paper académico).
+```
+src/
+├── app/                    # App Router (rutas páginas)
+│   ├── page.tsx            # Landing page
+│   ├── login/              # Autenticación
+│   ├── dashboard/          # Dashboard (protegido)
+│   │   ├── users/          # Gestión usuarios (Admin)
+│   │   ├── approvals/      # Aprobaciones (Admin)
+│   │   ├── audits/         # Auditoría (Admin)
+│   │   ├── competencies/   # Catálogo competencias (Admin)
+│   │   ├── profile/        # Mi perfil (Admin + Member)
+│   │   └── projects/       # Mis proyectos (Admin + Member)
+│   ├── search/             # Búsqueda de integrantes
+│   ├── project/[id]/       # Detalle de proyecto
+│   └── profile/[id]/       # Perfil público de miembro
+├── components/
+│   └── dashboard/          # Componentes del dashboard
+├── services/               # API client (api.ts)
+├── types/                  # Tipos TypeScript
+└── lib/                    # Utilidades (prisma client)
+```
 
-## Rutas de la Aplicación
+## Rutas Principales
 
-### Rutas Públicas
-- `/` — Landing page con métricas, proyectos destacados y talento
-- `/login` — Autenticación de usuarios
+### Públicas
+- `/` — Landing con métricas, proyectos destacados, talento
+- `/login` — Autenticación
 - `/search` — Búsqueda de integrantes
 - `/project/[id]` — Detalle de proyecto público
-- `/profile/[id]` — Perfil de miembro público
+- `/profile/[id]` — Perfil público de miembro
 
-### Rutas del Dashboard (protegidas por autenticación)
-- `/dashboard` — Redirige según rol (Admin → /dashboard/users, Member → /dashboard/profile)
-- `/dashboard/users` — Gestión de Usuarios (solo Admin)
-- `/dashboard/approvals` — Aprobaciones Pendientes (solo Admin)
-- `/dashboard/audits` — Auditoría Global (solo Admin)
-- `/dashboard/competencies` — Catálogo de Competencias (solo Admin)
-- `/dashboard/profile` — Mi Perfil (Admin + Member)
-- `/dashboard/projects` — Mis Proyectos (Admin + Member)
+### Dashboard (protegidas)
+- `/dashboard` — Redirect según rol
+- `/dashboard/users` — Gestión usuarios (Admin)
+- `/dashboard/approvals` — Aprobaciones (Admin)
+- `/dashboard/audits` — Auditoría global (Admin)
+- `/dashboard/competencies` — Catálogo competencias (Admin)
+- `/dashboard/profile` — Mi perfil (Admin + Member)
+- `/dashboard/projects` — Mis proyectos (Admin + Member)
 
-## API Routes
-
-| Ruta | Métodos | Descripción |
-|------|---------|-------------|
-| `/api/auth/login` | POST | Autenticación de usuarios |
-| `/api/members` | GET, POST | Listar/Crear miembros |
-| `/api/members/[id]` | GET, PUT, DELETE | CRUD de miembro individual |
-| `/api/members/[id]/links` | POST, PUT, DELETE | CRUD de enlaces profesionales |
-| `/api/members/[id]/competencies` | PUT | Sincronizar competencias del miembro |
-| `/api/projects` | GET, POST | Listar/Crear proyectos |
-| `/api/projects/[id]` | GET, PUT, DELETE | CRUD de proyecto individual |
-| `/api/competencies` | GET, POST | Listar/Crear competencias |
-| `/api/competencies/[id]` | GET, PUT, DELETE | CRUD de competencia individual |
-
-## Instalación
+## Comandos de Desarrollo
 
 ```bash
 # Instalar dependencias
 pnpm install
 
-# Iniciar servidor de desarrollo
+# Servidor desarrollo
 pnpm dev
 
-# Iniciar PostgreSQL local (Docker)
+# Build producción
+pnpm build
+
+# Iniciar producción
+pnpm start
+
+# Linting
+pnpm lint
+
+# PostgreSQL local (Docker)
 docker-compose up -d
 
-# Aplicar migraciones
-npx prisma migrate dev
-
-# Poblar base de datos con datos de prueba
-npx prisma db seed
-
-# Generar cliente Prisma (si es necesario)
-npx prisma generate
+# Prisma
+npx prisma migrate dev      # Nueva migración
+npx prisma migrate deploy   # Aplicar migraciones
+npx prisma studio           # GUI de Prisma
+npx prisma db seed          # Poblar datos de prueba
+npx prisma generate         # Generar cliente
 ```
-
-## Credenciales de Prueba
-
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Admin | admin@unimayor.edu.co | admin123 |
-| Miembro | johan@unimayor.edu.co | est123 |
 
 ## Datos Seedeados
 
-- 32 competencias (técnicas y transversales)
+- 32 competencias
 - 9 miembros
-- 39 relaciones miembro-competencia
-- 1 enlace profesional
 - 2 proyectos
 - 2 productos académicos
 - 4 participaciones
 
-## Deployment
+## API Routes
 
-### Vercel + Neon (recomendado)
+| Ruta | Métodos |
+|------|---------|
+| `/api/auth/login` | POST |
+| `/api/members` | GET, POST |
+| `/api/members/[id]` | GET, PUT, DELETE |
+| `/api/members/[id]/links` | POST, PUT, DELETE |
+| `/api/members/[id]/competencies` | PUT |
+| `/api/projects` | GET, POST |
+| `/api/projects/[id]` | GET, PUT, DELETE |
+| `/api/competencies` | GET, POST |
+| `/api/competencies/[id]` | GET, PUT, DELETE |
 
-1. Crear cuenta en [neon.tech](https://neon.tech)
-2. Crear nuevo proyecto PostgreSQL (`pixel_db`)
-3. Copiar `DATABASE_URL` de Neon
-4. En Vercel Dashboard → Settings → Environment Variables → agregar `DATABASE_URL`
-5. Desde PC local:
+## Deployment (Vercel + Neon)
+
+1. Crear proyecto en [neon.tech](https://neon.tech)
+2. Copiar `DATABASE_URL` en Vercel → Settings → Environment Variables
+3. Ejecutar localmente:
    ```bash
-   # Cambiar DATABASE_URL en .env a la de Neon
    npx prisma migrate deploy
    npx prisma db seed
    ```
 
-## Modelo de Datos
+## Convenciones
 
-```
-Member (id, fullName, institutionalEmail, personalEmail, passwordHash,
-       professionalProfile, career, role, systemRole, academicStatus,
-       photoUrl, cvUrl, isBanned)
-  ├── ProfessionalLink (memberId → Member, onDelete Cascade)
-  ├── Competency (many-to-many con Member)
-  ├── Project (createdBy → Member)
-  └── Participation (memberId → Member, productId → AcademicProduct)
-
-Project (id, title, objective, awards, startDate, endDate,
-         coverImageUrl, approvalStatus, createdBy → Member)
-  └── AcademicProduct (projectId → Project, onDelete Cascade)
-       └── Participation (productId → AcademicProduct, onDelete Cascade)
-```
-
-## Convenciones de Código
-
-- Tipos, interfaces, variables y funciones en **inglés**
-- UI copy y comentarios en **español**
-- API routes: envolver handlers en `try/catch`, retornar errores con `NextResponse.json({ error: "..." }, { status: 500 })`
-- Typing estricto: evitar `any`; usar tipos compartidos de `@/types`
-- Imports con alias `@/...`
-- Estilo visual: Tailwind con bordes pixel, superficies neutrales, badges de estado
-
-## Comandos Disponibles
-
-| Comando | Descripción |
-|---------|-------------|
-| `pnpm dev` | Servidor de desarrollo |
-| `pnpm build` | Build de producción |
-| `pnpm start` | Iniciar build de producción |
-| `pnpm lint` | Linting |
-| `npx prisma studio` | Abrir GUI de Prisma |
-| `npx prisma migrate dev` | Nueva migración |
-| `npx prisma migrate deploy` | Aplicar migraciones existentes |
-| `npx prisma db seed` | Poblar base de datos |
+- Types/interfaces/variables: **inglés**
+- UI copy/comentarios: **español**
+- Imports: alias `@/...`
+- Strict typing: evitar `any`

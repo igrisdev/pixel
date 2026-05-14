@@ -94,6 +94,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Envolver secciones ternarias en `<div>` adicional para evitar errores de parsing
 
 ## Historial de Cambios Recientes
+- **IntegranteProyectosCRUD**: Fix type errors en creación de productos - eliminados console.log DEBUG, eliminados `id: undefined` de newProduct y participations, agregados type assertions `as Participation[]` y `as AcademicProduct` para permitir crear nuevos productos sin ID (el ID lo genera la DB)
 - **IntegrantePerfilCRUD**: Fix estado links - `hasLinkChanges` ahora filtra IDs optimistas negativos, `originalLinks` se sincroniza en onSave del modal, badge "Sin guardar" solo aparece con cambios reales
 - **IntegrantePerfilCRUD**: Alerta de confirmación (`window.confirm()`) antes de eliminar enlace
 - **IntegrantePerfilCRUD**: CRUD de links/competencies ahora llama `loadMembers()` tras éxito → cambios reflejados en la UI sin recargar página
