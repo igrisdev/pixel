@@ -47,7 +47,7 @@ export default function ProductCard({ product, loadingAction, onEdit, onDelete }
           <button
             onClick={onEdit}
             disabled={loadingAction !== null}
-            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition disabled:opacity-50"
+            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-blue-600 hover:text-white transition cursor-pointer disabled:opacity-50"
             title="Editar Producto y Equipo"
           >
             <Edit className="w-4 h-4" />
@@ -55,7 +55,7 @@ export default function ProductCard({ product, loadingAction, onEdit, onDelete }
           <button
             onClick={onDelete}
             disabled={loadingAction !== null}
-            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-red-600 hover:text-white transition disabled:opacity-50 flex items-center justify-center min-w-[30px]"
+            className="bg-gray-100 text-gray-600 p-1.5 hover:bg-red-600 hover:text-white transition cursor-pointer disabled:opacity-50 flex items-center justify-center min-w-[30px]"
             title="Eliminar Producto"
           >
             {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

@@ -15,7 +15,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Project, AcademicProduct, CategoryType, Participation } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProjectMacroModal from "@/components/ui/project-crud/ProjectMacroModal";
-import ProductForm from "@/components/ui/project-crud/ProductForm";
+import ProductModal from "@/components/ui/project-crud/ProductModal";
 import ProductCard from "@/components/ui/project-crud/ProductCard";
 import {
   DraftParticipant,
@@ -471,7 +471,7 @@ await updateProject(projectId, {
                   <button
                     onClick={() => handleEditProjectClick(p)}
                     disabled={loadingAction !== null}
-                    className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-white text-gray-600 p-2 border border-gray-300 hover:border-[#1E293B] hover:text-[#1E293B] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Editar Proyecto"
                   >
                     <Edit className="w-5 h-5" />
@@ -479,7 +479,7 @@ await updateProject(projectId, {
                   <button
                     onClick={() => handleDeleteProject(p.id)}
                     disabled={loadingAction !== null}
-                    className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[38px]"
+                    className="bg-red-50 text-red-600 p-2 border border-red-200 hover:bg-red-600 hover:text-white transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[38px]"
                     title="Eliminar todo el proyecto"
                   >
                     {loadingAction === `delete-proj-${p.id}` ? (
@@ -505,7 +505,7 @@ await updateProject(projectId, {
                         : openNewProductForm(p.id)
                     }
                     disabled={loadingAction !== null}
-                    className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-sm font-bold text-[#F37021] border-2 border-[#F37021] px-4 py-2 hover:bg-[#F37021] hover:text-white transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {activeFormProjectId === p.id && !editProdId
                       ? "CANCELAR"
@@ -514,7 +514,7 @@ await updateProject(projectId, {
                 </div>
 
                 {activeFormProjectId === p.id && (
-                  <ProductForm
+                  <ProductModal
                     projectId={p.id}
                     projectTitle={p.title}
                     editProdId={editProdId}
@@ -531,7 +531,7 @@ await updateProject(projectId, {
                     onDraftTeamRoleChange={setDraftTeamRole}
                     onAddDraftParticipant={handleAddDraftParticipant}
                     onRemoveDraftParticipant={handleRemoveDraftParticipant}
-                    onCancel={() => {
+                    onClose={() => {
                       setActiveFormProjectId(null);
                       setDraftParticipants([]);
                     }}
