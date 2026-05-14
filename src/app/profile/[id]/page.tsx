@@ -9,6 +9,7 @@ import {
   MapPin,
   Trophy,
   Loader2,
+  Mail,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -228,10 +229,10 @@ export default function ProfilePage() {
                   <a
                     href={`mailto:${mockProfile.email}`}
                     className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group mt-4 pt-4 border-t border-gray-100"
+                    title={mockProfile.email}
                   >
-                    <span className="text-xs font-mono break-all">
-                      {mockProfile.email}
-                    </span>
+                    <Mail className="w-5 h-5 mr-3 group-hover:scale-110 transition" />
+                    <span className="text-sm font-medium">Correo</span>
                   </a>
                 </div>
               </div>
@@ -262,7 +263,7 @@ export default function ProfilePage() {
                 {mockProfile.skillsHard.map((skill) => (
                   <span
                     key={skill}
-                    className="bg-[#1E293B] text-white text-sm px-3 py-1 font-mono border border-transparent cursor-default"
+                    className="bg-gray-100 text-[#334155] text-sm px-3 py-1 font-mono border border-gray-300 cursor-default"
                   >
                     {skill}
                   </span>
@@ -358,14 +359,17 @@ export default function ProfilePage() {
                             {part.location}
                           </p>
                         )}
-                        {currentUser?.id === student.id &&
+{currentUser?.id === student.id &&
                           part.isProjectHead && (
                             <div className="mt-4 pt-3 border-t border-gray-200 flex items-center text-xs font-bold">
                               <Trophy className="w-4 h-4 mr-1 text-[#F37021]" />{" "}
                               Líder del Proyecto Macro
                             </div>
                           )}
-                      </Link>
+                        <div className="text-xs text-[#F37021] font-bold mt-3">
+                          Ver más →
+                        </div>
+                        </Link>
                     </div>
                   );
                 })}
