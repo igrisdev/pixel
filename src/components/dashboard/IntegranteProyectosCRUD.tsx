@@ -14,7 +14,7 @@ import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Project, AcademicProduct, CategoryType, Participation } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
-import ProjectMacroForm from "@/components/ui/project-crud/ProjectMacroForm";
+import ProjectMacroModal from "@/components/ui/project-crud/ProjectMacroModal";
 import ProductForm from "@/components/ui/project-crud/ProductForm";
 import ProductCard from "@/components/ui/project-crud/ProductCard";
 import {
@@ -161,8 +161,8 @@ export default function IntegranteProyectosCRUD() {
       title: p.title,
       objective: p.objective,
       awards: p.awards || "",
-      startDate: p.startDate,
-      endDate: p.endDate || "",
+      startDate: p.startDate ? p.startDate.split('T')[0] : "",
+      endDate: p.endDate ? p.endDate.split('T')[0] : "",
       coverImageUrl: p.coverImageUrl,
     });
     setEditProjId(p.id);
@@ -268,6 +268,8 @@ export default function IntegranteProyectosCRUD() {
     setErrorMessage(null);
 
     try {
+      console.log("[DEBUG] handleSaveProduct - editProdId:", editProdId);
+      console.log("[DEBUG] handleSaveProduct - draftParticipants:", draftParticipants);
       const baseProductData = {
         title: prodFormData.title,
         description: prodFormData.description,
@@ -332,17 +334,10 @@ export default function IntegranteProyectosCRUD() {
           approvalStatus: project.approvalStatus,
           products: updatedProducts 
         });
+        console.log("[DEBUG] handleSaveProduct - producto actualizado correctamente");
       } else {
-        const allProds = projects.flatMap((p) => p.products || []);
-        
-        // Usar ID = 0 para productos nuevos (la API crea uno nuevo)
-        const nextProdId = 0;
-
-        // Ajustamos el productId de las participaciones nuevas
-        finalParticipations.forEach((p) => (p.productId = nextProdId));
-
         const newProduct: AcademicProduct = {
-          id: nextProdId,
+          id: 0,
           projectId: projectId,
           ...baseProductData,
           participations: finalParticipations,
@@ -352,6 +347,7 @@ export default function IntegranteProyectosCRUD() {
           approvalStatus: project.approvalStatus,
           products: [...(project.products || []), newProduct],
         });
+        console.log("[DEBUG] handleSaveProduct - nuevo producto creado correctamente");
       }
 
       // Limpiamos los estados al guardar
@@ -359,6 +355,7 @@ export default function IntegranteProyectosCRUD() {
       setEditProdId(null);
       setDraftParticipants([]);
     } catch (error) {
+      console.error("[DEBUG] handleSaveProduct - error:", error);
       setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el producto");
     } finally {
       setLoadingAction(null);
@@ -406,7 +403,7 @@ await updateProject(projectId, {
             setEditProjId(null);
           }}
           disabled={loadingAction !== null}
-          className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-2.5 text-sm font-bold border-2 border-[#1E293B] flex items-center transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-2.5 text-sm font-bold border-2 border-[#1E293B] flex items-center transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAddingProj || editProjId ? (
             <X className="w-4 h-4 mr-2" />
@@ -418,12 +415,24 @@ await updateProject(projectId, {
       </div>
 
       {(isAddingProj || editProjId) && (
-        <ProjectMacroForm
+        <ProjectMacroModal
           editProjId={editProjId}
           loadingAction={loadingAction}
           formData={projFormData}
           onChange={setProjFormData}
           onSubmit={handleSaveProject}
+          onClose={() => {
+            setIsAddingProj(false);
+            setEditProjId(null);
+            setProjFormData({
+              title: "",
+              objective: "",
+              awards: "",
+              startDate: "",
+              endDate: "",
+              coverImageUrl: "",
+            });
+          }}
         />
       )}
 

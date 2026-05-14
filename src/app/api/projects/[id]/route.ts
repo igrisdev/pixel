@@ -77,6 +77,8 @@ async function syncParticipations(productId: number, projectStartDate: string, i
   }
 
   for (const part of incomingParts) {
+    console.log("[API] syncParticipations - part:", { id: part.id, memberId: part.memberId, productRole: part.productRole }, "action:", part.id > 0 ? "upsert" : "create");
+
     await ensureMemberExists(part.memberId);
 
     const data = {
@@ -114,6 +116,9 @@ async function syncProducts(projectId: number, incomingProducts: ProductPayload[
   }
 
   for (const prod of incomingProducts) {
+    console.log("[API] syncProducts - processing product:", prod.title, "id:", prod.id);
+    console.log("[API] syncProducts - participations:", JSON.stringify(prod.participations, null, 2));
+
     const productData = {
       title: prod.title,
       description: prod.description,
@@ -181,6 +186,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;
     const projectId = Number(id);
     const body = (await request.json()) as Partial<Project>;
+
+    console.log("[API] PUT /projects/:id - projectId:", projectId);
+    console.log("[API] PUT /projects/:id - body.products:", JSON.stringify(body.products, null, 2));
 
     await prisma.$transaction(async () => {
       await prisma.project.update({
