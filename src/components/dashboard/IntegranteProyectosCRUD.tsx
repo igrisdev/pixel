@@ -286,12 +286,6 @@ export default function IntegranteProyectosCRUD() {
       };
 
       // Mapeamos los participantes del borrador al formato final
-      const allParts = projects
-        .flatMap((p) => p.products || [])
-        .flatMap((p) => p.participations || []);
-      let nextPartId =
-        allParts.length > 0 ? Math.max(...allParts.map((p) => p.id)) : 0;
-
       const finalParticipations: Participation[] = draftParticipants.map(
         (draft) => {
           // Si estamos editando, revisamos si este miembro ya existía para mantener su ID

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { Member } from "@/types";
+import MemberModal from "@/components/ui/user-crud/MemberModal";
 
 export default function AdminUsuariosCRUD() {
   const { members, setMembers, updateMember, deleteMember, createMember, loadMembers } = useDataStore();
@@ -115,14 +116,6 @@ export default function AdminUsuariosCRUD() {
     });
   };
 
-  const opcionesCarreras = [
-    "Ingeniería Informática",
-    "Tecnología en Desarrollo de Software",
-    "Diseño Visual",
-    "Administración de Empresas",
-    "Otra",
-  ];
-
   return (
     <div className="bg-white pixel-border p-6 shadow-sm overflow-x-auto">
       <div className="flex justify-between items-center mb-6 min-w-[600px]">
@@ -153,145 +146,18 @@ export default function AdminUsuariosCRUD() {
       </div>
 
       {(isAdding || editId) && (
-        <form
+        <MemberModal
+          editId={editId}
+          loadingAction={loadingAction}
+          formData={formData}
+          onChange={setFormData}
           onSubmit={editId ? handleUpdate : handleAdd}
-          className="mb-6 p-6 bg-[#F8F9FA] border-2 border-[#1E293B] flex flex-col gap-4 min-w-[600px]"
-        >
-          {/* PRIMERA FILA */}
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="block text-xs font-mono mb-1 text-gray-600">
-                Nombre Completo
-              </label>
-              <input
-                type="text"
-                required
-                disabled={loadingAction === "save"}
-                value={formData.fullName}
-                onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-                placeholder="Ej. Isabella Velasco"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-mono mb-1 text-gray-600">
-                Carrera
-              </label>
-              <select
-                required
-                disabled={loadingAction === "save"}
-                value={formData.career}
-                onChange={(e) =>
-                  setFormData({ ...formData, career: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-              >
-                <option value="" disabled>
-                  Seleccionar carrera...
-                </option>
-                {opcionesCarreras.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-40">
-              <label className="block text-xs font-mono mb-1 text-gray-600">
-                Estado Académico
-              </label>
-              <select
-                value={formData.academicStatus}
-                disabled={loadingAction === "save"}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    academicStatus: e.target.value as "STUDENT" | "GRADUATE",
-                  })
-                }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-              >
-                <option value="STUDENT">ESTUDIANTE</option>
-                <option value="GRADUATE">EGRESADO</option>
-              </select>
-            </div>
-          </div>
-
-          {/* SEGUNDA FILA */}
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-xs font-mono mb-1 text-gray-600">
-                Correo Institucional
-              </label>
-              <input
-                type="email"
-                required
-                disabled={loadingAction === "save"}
-                value={formData.institutionalEmail}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    institutionalEmail: e.target.value,
-                  })
-                }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-                placeholder="ejemplo@unimayor.edu.co"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-mono mb-1 text-gray-600">
-                Contraseña (Temporal)
-              </label>
-              <input
-                type="text"
-                required
-                disabled={loadingAction === "save"}
-                value={formData.passwordHash}
-                onChange={(e) =>
-                  setFormData({ ...formData, passwordHash: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-                placeholder="Ej. pixel2026"
-              />
-            </div>
-
-            <div className="w-40">
-              <label className="block text-xs font-mono mb-1 text-gray-600">
-                Rol Sistema (Permisos)
-              </label>
-              <select
-                value={formData.systemRole}
-                disabled={loadingAction === "save"}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    systemRole: e.target.value as "ADMIN" | "MEMBER",
-                  })
-                }
-                className="w-full border-2 border-gray-300 p-2 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-              >
-                <option value="MEMBER">MEMBER</option>
-                <option value="ADMIN">ADMIN</option>
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loadingAction === "save"}
-              className="bg-[#F37021] text-white px-8 py-2 font-bold border-2 border-[#1E293B] hover:bg-[#e06015] h-[44px] flex items-center justify-center min-w-[140px] disabled:opacity-70"
-            >
-              {loadingAction === "save" ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : editId ? (
-                "Actualizar"
-              ) : (
-                "Crear"
-              )}
-            </button>
-          </div>
-        </form>
+          onClose={() => {
+            setIsAdding(false);
+            setEditId(null);
+            resetForm();
+          }}
+        />
       )}
 
       {isLoadingData ? (
