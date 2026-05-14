@@ -63,7 +63,7 @@ export default function ProfilePage() {
         </h1>
         <button
           onClick={() => router.back()}
-          className="text-[#F37021] hover:underline font-bold"
+          className="text-[#F37021] hover:underline font-bold cursor-pointer"
         >
           Volver atrás
         </button>
@@ -141,10 +141,10 @@ export default function ProfilePage() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition"
-      >
+<button
+          onClick={() => router.back()}
+          className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition cursor-pointer"
+        >
         &larr; VOLVER
       </button>
 
@@ -212,7 +212,7 @@ export default function ProfilePage() {
                         href={link.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group"
+                        className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group cursor-pointer"
                       >
                         <ExternalLink className="w-5 h-5 mr-3 group-hover:scale-110 transition" />
                         <span className="text-sm font-medium">
@@ -228,7 +228,7 @@ export default function ProfilePage() {
 
                   <a
                     href={`mailto:${mockProfile.email}`}
-                    className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group mt-4 pt-4 border-t border-gray-100"
+                    className="flex items-center text-[#334155] hover:text-[#2D5A27] transition group mt-4 pt-4 border-t border-gray-100 cursor-pointer"
                     title={mockProfile.email}
                   >
                     <Mail className="w-5 h-5 mr-3 group-hover:scale-110 transition" />
