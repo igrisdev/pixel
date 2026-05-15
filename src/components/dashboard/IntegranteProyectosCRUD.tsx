@@ -22,6 +22,7 @@ import {
   ProductFormData,
   ProjectFormData,
 } from "@/components/ui/project-crud/types";
+import toast from "react-hot-toast";
 
 export default function IntegranteProyectosCRUD() {
   // <-- MODIFICADO: Importamos también 'competencies'
@@ -109,6 +110,7 @@ export default function IntegranteProyectosCRUD() {
       if (editProjId) {
         await updateProject(editProjId, projFormData);
         setEditProjId(null);
+        toast.success("Proyecto actualizado");
       } else if (currentUser) {
         const nextId =
           projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
@@ -123,6 +125,7 @@ export default function IntegranteProyectosCRUD() {
 
         await addProject(newProj);
         setIsAddingProj(false);
+        toast.success("Proyecto creado");
       }
       setProjFormData({
         title: "",
@@ -133,6 +136,7 @@ export default function IntegranteProyectosCRUD() {
         coverImageUrl: "",
       });
     } catch (error) {
+      toast.error("No se pudo guardar el proyecto");
       setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el proyecto");
     } finally {
       setLoadingAction(null);
@@ -148,7 +152,9 @@ export default function IntegranteProyectosCRUD() {
       setLoadingAction(`delete-proj-${id}`);
       try {
         await deleteProject(id);
+        toast.success("Proyecto eliminado");
       } catch (error) {
+        toast.error("No se pudo eliminar el proyecto");
         setErrorMessage(error instanceof Error ? error.message : "No se pudo eliminar el proyecto");
       } finally {
         setLoadingAction(null);
@@ -324,6 +330,7 @@ export default function IntegranteProyectosCRUD() {
           approvalStatus: project.approvalStatus,
           products: updatedProducts 
         });
+        toast.success("Producto actualizado");
       } else {
         const newProduct = {
           projectId: projectId,
@@ -335,6 +342,7 @@ export default function IntegranteProyectosCRUD() {
           approvalStatus: project.approvalStatus,
           products: [...(project.products || []), newProduct],
         });
+        toast.success("Producto agregado");
       }
 
       // Limpiamos los estados al guardar
@@ -342,6 +350,7 @@ export default function IntegranteProyectosCRUD() {
       setEditProdId(null);
       setDraftParticipants([]);
     } catch (error) {
+      toast.error("No se pudo guardar el producto");
       setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el producto");
     } finally {
       setLoadingAction(null);
@@ -360,7 +369,9 @@ await updateProject(projectId, {
               (p) => p.id !== productId,
             ),
           });
+          toast.success("Producto eliminado");
         } catch (error) {
+          toast.error("No se pudo eliminar el producto");
           setErrorMessage(error instanceof Error ? error.message : "No se pudo eliminar el producto");
         } finally {
           setLoadingAction(null);
