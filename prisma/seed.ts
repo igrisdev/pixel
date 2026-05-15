@@ -48,9 +48,23 @@ async function main() {
     { name: "Gestión del Tiempo", description: "Priorización de tareas y entregas", type: "SOFT" as CompetencyType },
   ];
 
-  const competencies = await Promise.all(
-    competenciesData.map((c) => prisma.competency.create({ data: c }))
-  );
+  const competencies = [];
+  for (const competencyData of competenciesData) {
+    const existingCompetency = await prisma.competency.findFirst({
+      where: { name: competencyData.name },
+    });
+
+    if (existingCompetency) {
+      const updatedCompetency = await prisma.competency.update({
+        where: { id: existingCompetency.id },
+        data: competencyData,
+      });
+      competencies.push(updatedCompetency);
+    } else {
+      const createdCompetency = await prisma.competency.create({ data: competencyData });
+      competencies.push(createdCompetency);
+    }
+  }
   console.log(`✅ Created ${competencies.length} competencies\n`);
 
   // 2. Create Members
@@ -186,9 +200,23 @@ async function main() {
     },
   ];
 
-  const members = await Promise.all(
-    membersData.map((m) => prisma.member.create({ data: m }))
-  );
+  const members = [];
+  for (const memberData of membersData) {
+    const existingMember = await prisma.member.findUnique({
+      where: { institutionalEmail: memberData.institutionalEmail },
+    });
+
+    if (existingMember) {
+      const updatedMember = await prisma.member.update({
+        where: { id: existingMember.id },
+        data: memberData,
+      });
+      members.push(updatedMember);
+    } else {
+      const createdMember = await prisma.member.create({ data: memberData });
+      members.push(createdMember);
+    }
+  }
   console.log(`✅ Created ${members.length} members\n`);
 
   // 3. Create Member-Competency relationships (implicit many-to-many)
@@ -255,7 +283,17 @@ async function main() {
   ];
 
   for (const link of linksData) {
-    await prisma.professionalLink.create({ data: link });
+    const existingLink = await prisma.professionalLink.findFirst({
+      where: {
+        memberId: link.memberId,
+        platform: link.platform,
+        url: link.url,
+      },
+    });
+
+    if (!existingLink) {
+      await prisma.professionalLink.create({ data: link });
+    }
   }
   console.log(`✅ Created ${linksData.length} professional links\n`);
 
@@ -284,9 +322,23 @@ async function main() {
     },
   ];
 
-  const projects = await Promise.all(
-    projectsData.map((p) => prisma.project.create({ data: p }))
-  );
+  const projects = [];
+  for (const projectData of projectsData) {
+    const existingProject = await prisma.project.findFirst({
+      where: { title: projectData.title },
+    });
+
+    if (existingProject) {
+      const updatedProject = await prisma.project.update({
+        where: { id: existingProject.id },
+        data: projectData,
+      });
+      projects.push(updatedProject);
+    } else {
+      const createdProject = await prisma.project.create({ data: projectData });
+      projects.push(createdProject);
+    }
+  }
   console.log(`✅ Created ${projects.length} projects\n`);
 
   // 6. Create AcademicProducts
@@ -314,9 +366,26 @@ async function main() {
     },
   ];
 
-  const products = await Promise.all(
-    productsData.map((p) => prisma.academicProduct.create({ data: p }))
-  );
+  const products = [];
+  for (const productData of productsData) {
+    const existingProduct = await prisma.academicProduct.findFirst({
+      where: {
+        projectId: productData.projectId,
+        title: productData.title,
+      },
+    });
+
+    if (existingProduct) {
+      const updatedProduct = await prisma.academicProduct.update({
+        where: { id: existingProduct.id },
+        data: productData,
+      });
+      products.push(updatedProduct);
+    } else {
+      const createdProduct = await prisma.academicProduct.create({ data: productData });
+      products.push(createdProduct);
+    }
+  }
   console.log(`✅ Created ${products.length} academic products\n`);
 
   // 7. Create Participations
@@ -352,9 +421,24 @@ async function main() {
     },
   ];
 
-  await Promise.all(
-    participationsData.map((p) => prisma.participation.create({ data: p }))
-  );
+  for (const participationData of participationsData) {
+    const existingParticipation = await prisma.participation.findFirst({
+      where: {
+        memberId: participationData.memberId,
+        productId: participationData.productId,
+        productRole: participationData.productRole,
+      },
+    });
+
+    if (existingParticipation) {
+      await prisma.participation.update({
+        where: { id: existingParticipation.id },
+        data: participationData,
+      });
+    } else {
+      await prisma.participation.create({ data: participationData });
+    }
+  }
   console.log(`✅ Created ${participationsData.length} participations\n`);
 
   console.log("🎉 Seed completed successfully!");
