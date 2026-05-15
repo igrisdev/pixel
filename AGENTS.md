@@ -17,6 +17,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Start prod build: `pnpm start`
 - Start PostgreSQL (Docker): `docker-compose up -d`
 - Prisma migration: `npx prisma migrate dev`
+- Prisma local reset (recovery): `npx prisma db push --force-reset`
 - Prisma Studio: `npx prisma studio`
 - Prisma seed: `npx prisma db seed`
 - There is no dedicated test script configured in `package.json`.
@@ -71,6 +72,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Admin: admin@unimayor.edu.co / admin123
   - Miembro: johan@unimayor.edu.co / est123
 
+## Recuperación local de acceso admin
+- Incidente resuelto: en local hubo un cambio accidental de contraseña de admin.
+- Flujo recomendado para recuperar acceso:
+  1. `docker-compose up -d`
+  2. `npx prisma db push --force-reset`
+  3. `npx prisma db seed`
+- Este flujo **borra datos locales** y restaura las credenciales del seed vigente:
+  - Admin: `admin@unimayor.edu.co / admin123`
+  - Miembro: `johan@unimayor.edu.co / est123`
+
 ## API Routes
 - `/api/auth/login` - Autenticación de usuarios (POST)
 - `/api/members` - CRUD de miembros (GET, POST)
@@ -83,7 +94,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `/api/competencies/[id]` - Competencia individual (GET, PUT, DELETE)
 
 ## Autenticación
-- Login con comparación de contraseña en texto plano
+- Login con hashing/verificación de contraseña usando `bcryptjs`
 - Almacena usuario en Zustand store con persistencia
 - Member completo (incluyendo competencias y enlaces) disponible en `currentMember`
 
@@ -95,6 +106,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Historial de Cambios Recientes
 - **Seguridad**: Implementado bcryptjs para hashing, actualizado Next.js a 16.2.6, agregada verificación de rol en páginas admin, eliminados console.logs DEBUG y credenciales demo del login
+- **Hardening de plataforma**: validaciones Zod centralizadas, guards admin en rutas de dashboard, toasts en CRUDs y build estable
 - **IntegranteProyectosCRUD**: Fix type errors - type assertions para Participation y AcademicProduct
 - **IntegrantePerfilCRUD**: Fix estado links - `hasLinkChanges` ahora filtra IDs optimistas negativos, `originalLinks` se sincroniza en onSave del modal, badge "Sin guardar" solo aparece con cambios reales
 - **IntegrantePerfilCRUD**: Alerta de confirmación (`window.confirm()`) antes de eliminar enlace

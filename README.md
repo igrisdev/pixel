@@ -68,12 +68,31 @@ npx prisma db seed
 npx prisma generate
 ```
 
+## Recuperación de acceso admin (entorno local)
+
+Si en entorno local el acceso de admin se rompe (por ejemplo, por un cambio accidental de contraseña), la vía recomendada es resetear la base local y re-seedear los datos.
+
+```bash
+# 1) Levantar PostgreSQL local
+docker-compose up -d
+
+# 2) Resetear esquema/datos locales y sincronizar con schema.prisma
+npx prisma db push --force-reset
+
+# 3) Reinsertar datos seed
+npx prisma db seed
+```
+
+> ⚠️ Este flujo elimina los datos locales actuales de la base.
+
 ## Credenciales de Prueba
 
 | Rol | Email | Contraseña |
 |-----|-------|------------|
 | Admin | admin@unimayor.edu.co | admin123 |
 | Miembro | johan@unimayor.edu.co | est123 |
+
+Estas credenciales corresponden al seed vigente y son las que se restauran tras ejecutar el flujo de recuperación local.
 
 ## Datos Seedeados
 
@@ -137,4 +156,5 @@ Project (id, title, objective, awards, startDate, endDate,
 | `npx prisma studio` | Abrir GUI de Prisma |
 | `npx prisma migrate dev` | Nueva migración |
 | `npx prisma migrate deploy` | Aplicar migraciones existentes |
+| `npx prisma db push --force-reset` | Reset local + sincronización rápida con schema |
 | `npx prisma db seed` | Poblar base de datos |
