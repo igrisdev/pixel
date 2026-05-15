@@ -94,6 +94,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Envolver secciones ternarias en `<div>` adicional para evitar errores de parsing
 
 ## Historial de Cambios Recientes
+- **Seguridad**: Implementado bcryptjs para hashing, actualizado Next.js a 16.2.6, agregada verificación de rol en páginas admin, eliminados console.logs DEBUG y credenciales demo del login
+- **IntegranteProyectosCRUD**: Fix type errors - type assertions para Participation y AcademicProduct
 - **IntegrantePerfilCRUD**: Fix estado links - `hasLinkChanges` ahora filtra IDs optimistas negativos, `originalLinks` se sincroniza en onSave del modal, badge "Sin guardar" solo aparece con cambios reales
 - **IntegrantePerfilCRUD**: Alerta de confirmación (`window.confirm()`) antes de eliminar enlace
 - **IntegrantePerfilCRUD**: CRUD de links/competencies ahora llama `loadMembers()` tras éxito → cambios reflejados en la UI sin recargar página
