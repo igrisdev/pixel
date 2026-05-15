@@ -22,6 +22,7 @@ export default function AdminUsuariosCRUD() {
     fullName: string;
     institutionalEmail: string;
     passwordHash: string;
+    newPassword?: string;
     career: string;
     academicStatus: "STUDENT" | "GRADUATE";
     systemRole: "ADMIN" | "MEMBER";
@@ -29,6 +30,7 @@ export default function AdminUsuariosCRUD() {
     fullName: "",
     institutionalEmail: "",
     passwordHash: "",
+    newPassword: "",
     career: "",
     academicStatus: "STUDENT",
     systemRole: "MEMBER",
@@ -86,7 +88,19 @@ export default function AdminUsuariosCRUD() {
 
     setLoadingAction("save");
     try {
-      await updateMember(editId, formData);
+      const updateData: Record<string, unknown> = {
+        fullName: formData.fullName,
+        institutionalEmail: formData.institutionalEmail,
+        career: formData.career,
+        academicStatus: formData.academicStatus,
+        systemRole: formData.systemRole,
+      };
+      
+      if (formData.newPassword && formData.newPassword.trim() !== "") {
+        updateData.passwordHash = formData.newPassword;
+      }
+      
+      await updateMember(editId, updateData);
       setEditId(null);
       resetForm();
     } finally {
@@ -110,6 +124,7 @@ export default function AdminUsuariosCRUD() {
       fullName: "",
       institutionalEmail: "",
       passwordHash: "",
+      newPassword: "",
       career: "",
       academicStatus: "STUDENT",
       systemRole: "MEMBER",

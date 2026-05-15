@@ -133,14 +133,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-400 font-mono">
-            Demo Admin: admin@unimayor.edu.co / admin123
-            <br />
-            Demo Integrante: jmalvarez@unimayor.edu.co / est123
-          </p>
-        </div>
       </div>
     </main>
   );

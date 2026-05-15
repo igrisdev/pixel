@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
+import { updateMemberSchema } from "@/lib/validations";
 
 const memberInclude = {
   competencies: true,
@@ -77,24 +79,29 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;
     const memberId = Number(id);
 
-    const body = await request.json();
+    const body = updateMemberSchema.parse(await request.json());
+
+    const updateData: Record<string, unknown> = {
+      ...(body.fullName && { fullName: body.fullName }),
+      ...(body.institutionalEmail && { institutionalEmail: body.institutionalEmail }),
+      ...(body.personalEmail !== undefined && { personalEmail: body.personalEmail }),
+      ...(body.professionalProfile !== undefined && { professionalProfile: body.professionalProfile }),
+      ...(body.career && { career: body.career }),
+      ...(body.role && { role: body.role }),
+      ...(body.systemRole && { systemRole: body.systemRole }),
+      ...(body.academicStatus && { academicStatus: body.academicStatus }),
+      ...(body.photoUrl !== undefined && { photoUrl: body.photoUrl }),
+      ...(body.isBanned !== undefined && { isBanned: body.isBanned }),
+      ...(body.cvUrl !== undefined && { cvUrl: body.cvUrl }),
+    };
+
+    if (body.passwordHash) {
+      updateData.passwordHash = await bcrypt.hash(body.passwordHash, 10);
+    }
 
     const member = await prisma.member.update({
       where: { id: memberId },
-      data: {
-        ...(body.fullName && { fullName: body.fullName }),
-        ...(body.institutionalEmail && { institutionalEmail: body.institutionalEmail }),
-        ...(body.personalEmail !== undefined && { personalEmail: body.personalEmail }),
-        ...(body.passwordHash && { passwordHash: body.passwordHash }),
-        ...(body.professionalProfile !== undefined && { professionalProfile: body.professionalProfile }),
-        ...(body.career && { career: body.career }),
-        ...(body.role && { role: body.role }),
-        ...(body.systemRole && { systemRole: body.systemRole }),
-        ...(body.academicStatus && { academicStatus: body.academicStatus }),
-        ...(body.photoUrl !== undefined && { photoUrl: body.photoUrl }),
-        ...(body.isBanned !== undefined && { isBanned: body.isBanned }),
-        ...(body.cvUrl !== undefined && { cvUrl: body.cvUrl }),
-      },
+      data: updateData,
       include: memberInclude,
     });
 

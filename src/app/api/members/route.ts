@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
+import { createMemberSchema } from "@/lib/validations";
 
 const memberInclude = {
   competencies: true,
@@ -67,21 +69,22 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = createMemberSchema.parse(await request.json());
+    const hashedPassword = await bcrypt.hash(body.passwordHash, 10);
 
     const member = await prisma.member.create({
       data: {
         fullName: body.fullName,
         institutionalEmail: body.institutionalEmail,
         personalEmail: body.personalEmail ?? "",
-        passwordHash: body.passwordHash || "temp123",
+        passwordHash: hashedPassword,
         professionalProfile: body.professionalProfile ?? "",
         career: body.career,
-        role: body.role || "Integrante",
-        systemRole: body.systemRole || "MEMBER",
-        academicStatus: body.academicStatus || "STUDENT",
+        role: body.role ?? "Integrante",
+        systemRole: body.systemRole,
+        academicStatus: body.academicStatus,
         photoUrl: body.photoUrl ?? "",
-        isBanned: body.isBanned ?? false,
+        isBanned: false,
         cvUrl: body.cvUrl ?? "",
       },
       include: memberInclude,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Competency } from "@/types";
 import { CompetencyType } from "@/generated/client";
+import { updateCompetencySchema } from "@/lib/validations";
 
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -42,7 +43,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   try {
     const { id } = await context.params;
     const competencyId = Number(id);
-    const body = await request.json();
+    const body = updateCompetencySchema.parse(await request.json());
 
     const updated = await prisma.competency.update({
       where: { id: competencyId },

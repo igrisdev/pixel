@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
+import { loginSchema } from "@/lib/validations";
 
 const memberInclude = {
   competencies: true,
@@ -45,14 +47,7 @@ function toMemberResponse(member: MemberWithRelations): Member {
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email y contraseña son requeridos" },
-        { status: 400 }
-      );
-    }
+    const { email, password } = loginSchema.parse(await request.json());
 
     const member = await prisma.member.findFirst({
       where: { institutionalEmail: email },
@@ -73,7 +68,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (member.passwordHash !== password) {
+    const isValidPassword = await bcrypt.compare(password, member.passwordHash);
+    if (!isValidPassword) {
       return NextResponse.json(
         { error: "Credenciales inválidas" },
         { status: 401 }

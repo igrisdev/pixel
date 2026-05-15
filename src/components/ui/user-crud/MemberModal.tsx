@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 
 interface MemberFormData {
   fullName: string;
   institutionalEmail: string;
   passwordHash: string;
+  newPassword?: string;
   career: string;
   academicStatus: "STUDENT" | "GRADUATE";
   systemRole: "ADMIN" | "MEMBER";
@@ -38,6 +39,7 @@ export default function MemberModal({
   onClose,
 }: MemberModalProps) {
   const isSaving = loadingAction === "save";
+  const [changePassword, setChangePassword] = useState(false);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -115,20 +117,54 @@ export default function MemberModal({
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">
-                CONTRASEÑA (TEMPORAL)
-              </label>
-              <input
-                type="text"
-                required
-                disabled={isSaving}
-                value={formData.passwordHash}
-                onChange={(e) =>
-                  onChange({ ...formData, passwordHash: e.target.value })
-                }
-                className="w-full border-2 border-gray-300 p-3 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
-                placeholder="Ej. pixel2026"
-              />
+              {editId ? (
+                <>
+                  <label className="flex items-center text-xs font-mono text-gray-500 mb-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={changePassword}
+                      onChange={(e) => {
+                        setChangePassword(e.target.checked);
+                        if (!e.target.checked) {
+                          onChange({ ...formData, newPassword: "" });
+                        }
+                      }}
+                      disabled={isSaving}
+                      className="mr-2 w-4 h-4 accent-[#F37021]"
+                    />
+                    Cambiar contraseña
+                  </label>
+                  {changePassword && (
+                    <input
+                      type="text"
+                      disabled={isSaving}
+                      value={formData.newPassword || ""}
+                      onChange={(e) =>
+                        onChange({ ...formData, newPassword: e.target.value })
+                      }
+                      className="w-full border-2 border-gray-300 p-3 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
+                      placeholder="Nueva contraseña en texto plano"
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <label className="block text-xs font-mono text-gray-500 mb-1">
+                    CONTRASEÑA (TEMPORAL)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    disabled={isSaving}
+                    value={formData.passwordHash}
+                    onChange={(e) =>
+                      onChange({ ...formData, passwordHash: e.target.value })
+                    }
+                    className="w-full border-2 border-gray-300 p-3 focus:outline-none focus:border-[#F37021] bg-white disabled:bg-gray-100"
+                    placeholder="Ej. pixel2026"
+                  />
+                </>
+              )}
             </div>
           </div>
 

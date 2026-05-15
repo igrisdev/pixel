@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createLinkSchema, updateLinkSchema } from "@/lib/validations";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const memberId = Number(id);
-    const body = await request.json();
-
+    const body = createLinkSchema.parse(await request.json());
     const { platform, url } = body;
-
-    if (!platform || !url) {
-      return NextResponse.json({ error: "Platform y URL son requeridos" }, { status: 400 });
-    }
 
     const link = await prisma.professionalLink.create({
       data: {
@@ -62,7 +58,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const memberId = Number(id);
     const { searchParams } = new URL(request.url);
     const linkId = searchParams.get("linkId");
-    const body = await request.json();
+    const body = updateLinkSchema.parse(await request.json());
     const { platform, url } = body;
 
     if (!linkId) {
