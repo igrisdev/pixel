@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useDataStore } from "@/store/useDataStore";
 import CompetencyModal from "@/components/ui/competency-crud/CompetencyModal";
 
@@ -33,8 +34,10 @@ export default function AdminCompetenciasCRUD() {
     try {
       if (editId) {
         await updateCompetency(editId, formData);
+        toast.success("Competencia actualizada");
       } else {
         await createCompetency(formData);
+        toast.success("Competencia creada");
       }
 
       setEditId(null);
@@ -42,7 +45,7 @@ export default function AdminCompetenciasCRUD() {
       setFormData({ name: "", description: "", type: "TECHNICAL" });
     } catch (error) {
       console.error("Error guardando competencia:", error);
-      alert("Error al guardar la competencia");
+      toast.error("Error al guardar la competencia");
     } finally {
       setLoadingAction(null);
     }
@@ -73,9 +76,10 @@ export default function AdminCompetenciasCRUD() {
       setLoadingAction(`delete-${id}`);
       try {
         await deleteCompetency(id);
+        toast.success("Competencia eliminada");
       } catch (error) {
         console.error("Error eliminando competencia:", error);
-        alert("Error al eliminar la competencia");
+        toast.error("Error al eliminar la competencia");
       } finally {
         setLoadingAction(null);
       }

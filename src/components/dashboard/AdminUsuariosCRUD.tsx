@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, X, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useDataStore } from "@/store/useDataStore";
 import { Member } from "@/types";
 import MemberModal from "@/components/ui/user-crud/MemberModal";
@@ -22,6 +23,7 @@ export default function AdminUsuariosCRUD() {
     fullName: string;
     institutionalEmail: string;
     passwordHash: string;
+    newPassword?: string;
     career: string;
     academicStatus: "STUDENT" | "GRADUATE";
     systemRole: "ADMIN" | "MEMBER";
@@ -29,6 +31,7 @@ export default function AdminUsuariosCRUD() {
     fullName: "",
     institutionalEmail: "",
     passwordHash: "",
+    newPassword: "",
     career: "",
     academicStatus: "STUDENT",
     systemRole: "MEMBER",
@@ -38,6 +41,9 @@ export default function AdminUsuariosCRUD() {
     setLoadingAction(`vetar-${member.id}`);
     try {
       await updateMember(member.id, { isBanned: !member.isBanned });
+      toast.success(member.isBanned ? "Integrante desvetado" : "Integrante vetado");
+    } catch {
+      toast.error("No se pudo actualizar el estado de vetado");
     } finally {
       setLoadingAction(null);
     }
@@ -63,6 +69,9 @@ export default function AdminUsuariosCRUD() {
       await createMember(newMemberData);
       setIsAdding(false);
       resetForm();
+      toast.success("Integrante creado");
+    } catch {
+      toast.error("No se pudo crear el integrante");
     } finally {
       setLoadingAction(null);
     }
@@ -86,9 +95,24 @@ export default function AdminUsuariosCRUD() {
 
     setLoadingAction("save");
     try {
-      await updateMember(editId, formData);
+      const updateData: Record<string, unknown> = {
+        fullName: formData.fullName,
+        institutionalEmail: formData.institutionalEmail,
+        career: formData.career,
+        academicStatus: formData.academicStatus,
+        systemRole: formData.systemRole,
+      };
+      
+      if (formData.newPassword && formData.newPassword.trim() !== "") {
+        updateData.passwordHash = formData.newPassword;
+      }
+      
+      await updateMember(editId, updateData);
       setEditId(null);
       resetForm();
+      toast.success("Integrante actualizado");
+    } catch {
+      toast.error("No se pudo actualizar el integrante");
     } finally {
       setLoadingAction(null);
     }
@@ -99,6 +123,9 @@ export default function AdminUsuariosCRUD() {
       setLoadingAction(`delete-${id}`);
       try {
         await deleteMember(id);
+        toast.success("Integrante eliminado");
+      } catch {
+        toast.error("No se pudo eliminar el integrante");
       } finally {
         setLoadingAction(null);
       }
@@ -110,6 +137,7 @@ export default function AdminUsuariosCRUD() {
       fullName: "",
       institutionalEmail: "",
       passwordHash: "",
+      newPassword: "",
       career: "",
       academicStatus: "STUDENT",
       systemRole: "MEMBER",

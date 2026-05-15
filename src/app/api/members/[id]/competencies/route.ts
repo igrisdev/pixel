@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { updateCompetenciesSchema } from "@/lib/validations";
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const memberId = Number(id);
-    const body = await request.json();
+    const body = updateCompetenciesSchema.parse(await request.json());
     const { competencyIds } = body;
-
-    if (!Array.isArray(competencyIds)) {
-      return NextResponse.json({ error: "competencyIds debe ser un array" }, { status: 400 });
-    }
 
     await prisma.member.update({
       where: { id: memberId },

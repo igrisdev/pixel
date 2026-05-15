@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Competency } from "@/types";
 import { CompetencyType } from "@/generated/client";
+import { createCompetencySchema } from "@/lib/validations";
 
 export async function GET() {
   try {
@@ -33,12 +34,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = createCompetencySchema.parse(await request.json());
 
     const created = await prisma.competency.create({
       data: {
         name: body.name,
-        description: body.description,
+        description: body.description ?? "",
         type: body.type as CompetencyType,
       },
     });

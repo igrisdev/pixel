@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
+import { createProjectSchema } from "@/lib/validations";
 
 const projectInclude = {
   products: {
@@ -87,7 +88,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = createProjectSchema.parse(await request.json());
 
     await ensureMemberExists(body.createdBy);
 

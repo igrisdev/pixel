@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, Search, Eye, Edit3, Loader2, ChevronDown, ChevronRight, FileCode, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import { useDataStore } from "@/store/useDataStore";
 import { formatDate } from "@/lib/date";
@@ -46,6 +47,9 @@ export default function AdminAuditoriaCRUD() {
       setLoadingAction(`eliminar-${id}`);
       try {
         await deleteProject(id);
+        toast.success("Proyecto eliminado");
+      } catch {
+        toast.error("No se pudo eliminar el proyecto");
       } finally {
         setLoadingAction(null);
       }
@@ -64,6 +68,9 @@ export default function AdminAuditoriaCRUD() {
       setLoadingAction(`estado-${id}`);
       try {
         await updateProject(id, { approvalStatus: nuevoEstado });
+        toast.success("Estado del proyecto actualizado");
+      } catch {
+        toast.error("No se pudo actualizar el estado del proyecto");
       } finally {
         setLoadingAction(null);
       }
@@ -95,6 +102,9 @@ export default function AdminAuditoriaCRUD() {
           approvalStatus: project.approvalStatus,
           products: updatedProducts,
         });
+        toast.success("Estado del producto actualizado");
+      } catch {
+        toast.error("No se pudo actualizar el estado del producto");
       } finally {
         setLoadingAction(null);
       }
@@ -116,6 +126,9 @@ export default function AdminAuditoriaCRUD() {
           approvalStatus: project.approvalStatus,
           products: (project.products || []).filter((p) => p.id !== productId),
         });
+        toast.success("Producto eliminado");
+      } catch {
+        toast.error("No se pudo eliminar el producto");
       } finally {
         setLoadingAction(null);
       }
