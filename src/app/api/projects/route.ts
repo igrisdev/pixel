@@ -62,8 +62,29 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const createdBy = searchParams.get("createdBy");
+    const participatedBy = searchParams.get("participatedBy");
 
-    const where = createdBy ? { createdBy: Number(createdBy) } : undefined;
+    let where: Prisma.ProjectWhereInput | undefined;
+
+    if (createdBy) {
+      where = { createdBy: Number(createdBy) };
+    }
+
+    if (participatedBy) {
+      const memberId = Number(participatedBy);
+      where = {
+        ...where,
+        products: {
+          some: {
+            participations: {
+              some: {
+                memberId,
+              },
+            },
+          },
+        },
+      };
+    }
 
     const projects = await prisma.project.findMany({
       where,

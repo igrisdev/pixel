@@ -14,6 +14,7 @@ import {
   FolderPlus,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -178,6 +179,13 @@ export default function DashboardLayout({
                   label="Mis Proyectos"
                   onClick={() => setIsMobileMenuOpen(false)}
                 />
+                <SidebarBtn
+                  active={isActive("/dashboard/participations")}
+                  href="/dashboard/participations"
+                  icon={<Users className="w-5 h-5" />}
+                  label="Mis Participaciones"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                />
               </div>
             </>
           ) : (
@@ -195,6 +203,13 @@ export default function DashboardLayout({
                 href="/dashboard/projects"
                 icon={<Folder className="w-5 h-5" />}
                 label="Mis Proyectos"
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+              <SidebarBtn
+                active={isActive("/dashboard/participations")}
+                href="/dashboard/participations"
+                icon={<Users className="w-5 h-5" />}
+                label="Mis Participaciones"
                 onClick={() => setIsMobileMenuOpen(false)}
               />
             </>

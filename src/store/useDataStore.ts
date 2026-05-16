@@ -7,13 +7,16 @@ interface DataState {
   members: Member[];
   projects: Project[];
   competencies: Competency[];
+  participatedProjects: Project[];
 
   setMembers: (members: Member[]) => void;
   setProjects: (projects: Project[]) => void;
   setCompetencies: (competencies: Competency[]) => void;
+  setParticipatedProjects: (projects: Project[]) => void;
   loadMembers: () => Promise<void>;
   loadCompetencies: () => Promise<void>;
   loadProjects: (createdBy?: number) => Promise<void>;
+  loadParticipatedProjects: (memberId: number) => Promise<void>;
 
   addProject: (project: Project) => Promise<void>;
   updateProject: (id: number, project: Partial<Project>) => Promise<void>;
@@ -34,10 +37,12 @@ export const useDataStore = create<DataState>()(
       members: [],
       projects: [],
       competencies: [],
+      participatedProjects: [],
 
       setMembers: (members) => set({ members }),
       setProjects: (projects) => set({ projects }),
       setCompetencies: (competencies) => set({ competencies }),
+      setParticipatedProjects: (projects) => set({ participatedProjects: projects }),
 
       loadMembers: async () => {
         const members = await ApiRepository.getMembers();
@@ -52,6 +57,11 @@ export const useDataStore = create<DataState>()(
       loadProjects: async (createdBy) => {
         const projects = await ApiRepository.getProjects(createdBy);
         set({ projects });
+      },
+
+      loadParticipatedProjects: async (memberId) => {
+        const projects = await ApiRepository.getProjectsByParticipation(memberId);
+        set({ participatedProjects: projects });
       },
 
       addProject: async (project) => {

@@ -57,6 +57,10 @@ export const ApiRepository = {
     return request<Project[]>(`/api/projects${query}`);
   },
 
+  getProjectsByParticipation: async (memberId: number): Promise<Project[]> => {
+    return request<Project[]>(`/api/projects?participatedBy=${memberId}`);
+  },
+
   // --- PROYECTOS ---
   createProject: async (project: Project): Promise<Project> => {
     return request<Project>("/api/projects", {
