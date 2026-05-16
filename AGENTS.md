@@ -92,6 +92,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `/api/projects/[id]` - Proyecto individual (GET, PUT, DELETE)
 - `/api/competencies` - CRUD de competencias (GET, POST)
 - `/api/competencies/[id]` - Competencia individual (GET, PUT, DELETE)
+- `/api/projects/participations` - Buscar proyectos por participación (GET)
 
 ## Autenticación
 - Login con hashing/verificación de contraseña usando `bcryptjs`
@@ -103,6 +104,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Skeleton loading: usar variable ternaria con `isLoadingData` para mostrar skeletons mientras cargan datos
 - Variables para grids: evitar errores de sintaxis JSX con operadores ternarios usando variables predefinidas (`studentGrid`, `proyectosGrid`)
 - Envolver secciones ternarias en `<div>` adicional para evitar errores de parsing
+
+## Nuevas Funcionalidades
+- **"Mis Participaciones"**: Nueva página en el dashboard que permite a los usuarios ver los proyectos en los que participan
+- **API de Participaciones**: Nuevo endpoint para buscar proyectos por participación de miembros
+
+## Fixes Implementados
+- **Validación de URLs opcionales**: Corregida la validación de campos URL que eran opcionales en proyectos y miembros
+- **Aprobación de proyectos**: Corregido bug donde aprobar proyectos en Admin borraba campos existentes
+- **Modal de proyectos**: Cierre automático del modal al actualizar proyectos desde el dashboard
 
 ## Historial de Cambios Recientes
 - **Seguridad**: Implementado bcryptjs para hashing, actualizado Next.js a 16.2.6, agregada verificación de rol en páginas admin, eliminados console.logs DEBUG y credenciales demo del login

@@ -128,6 +128,7 @@ Estas credenciales corresponden al seed vigente y son las que se restauran tras 
 | `/api/members/[id]/competencies` | PUT |
 | `/api/projects` | GET, POST |
 | `/api/projects/[id]` | GET, PUT, DELETE |
+| `/api/projects/participations` | GET |
 | `/api/competencies` | GET, POST |
 | `/api/competencies/[id]` | GET, PUT, DELETE |
 
