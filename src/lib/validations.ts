@@ -15,8 +15,8 @@ export const createMemberSchema = z.object({
   role: z.string().optional().or(z.literal("")),
   systemRole: z.enum(["ADMIN", "MEMBER"]).default("MEMBER"),
   academicStatus: z.enum(["STUDENT", "GRADUATE"]).default("STUDENT"),
-  photoUrl: z.string().url("URL de foto inválida").optional().or(z.literal("")),
-  cvUrl: z.string().url("URL de CV inválida").optional().or(z.literal("")),
+  photoUrl: z.union([z.string().url("URL de foto inválida").nullish(), z.literal("")]),
+  cvUrl: z.union([z.string().url("URL de CV inválida").nullish(), z.literal("")]),
 });
 
 export const updateMemberSchema = z.object({
@@ -29,8 +29,8 @@ export const updateMemberSchema = z.object({
   role: z.string().optional(),
   systemRole: z.enum(["ADMIN", "MEMBER"]).optional(),
   academicStatus: z.enum(["STUDENT", "GRADUATE"]).optional(),
-  photoUrl: z.string().url("URL de foto inválida").optional().or(z.literal("")),
-  cvUrl: z.string().url("URL de CV inválida").optional().or(z.literal("")),
+  photoUrl: z.union([z.string().url("URL de foto inválida").nullish(), z.literal("")]),
+  cvUrl: z.union([z.string().url("URL de CV inválida").nullish(), z.literal("")]),
   isBanned: z.boolean().optional(),
 });
 
@@ -40,7 +40,7 @@ export const createProjectSchema = z.object({
   awards: z.string().optional().or(z.literal("")),
   startDate: z.string().min(1, "La fecha de inicio es requerida"),
   endDate: z.string().optional().or(z.literal("")),
-  coverImageUrl: z.string().url("URL de imagen inválida").optional().or(z.literal("")),
+  coverImageUrl: z.union([z.string().url("URL de imagen inválida").nullish(), z.literal("")]),
   createdBy: z.number().min(1, "El creador es requerido"),
 });
 
@@ -50,7 +50,7 @@ export const updateProjectSchema = z.object({
   awards: z.string().optional().or(z.literal("")),
   startDate: z.string().optional(),
   endDate: z.string().optional().or(z.literal("")),
-  coverImageUrl: z.string().url("URL de imagen inválida").optional().or(z.literal("")),
+  coverImageUrl: z.union([z.string().url("URL de imagen inválida").nullish(), z.literal("")]),
   approvalStatus: z.enum(["PENDING", "ACTIVE", "REJECTED"]).optional(),
   products: z.array(z.object({
     id: z.number().optional(),
@@ -58,10 +58,10 @@ export const updateProjectSchema = z.object({
     description: z.string().optional(),
     categoryType: z.string().optional(),
     technologies: z.array(z.string()).optional(),
-    repositoryUrl: z.string().url().optional().or(z.literal("")),
-    demoUrl: z.string().url().optional().or(z.literal("")),
+    repositoryUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
+    demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     publicationSource: z.string().optional().or(z.literal("")),
-    documentUrl: z.string().url().optional().or(z.literal("")),
+    documentUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     location: z.string().optional().or(z.literal("")),
     approvalStatus: z.string().optional(),
     participations: z.array(z.object({
