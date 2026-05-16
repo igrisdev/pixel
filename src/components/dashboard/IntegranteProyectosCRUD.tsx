@@ -110,6 +110,7 @@ export default function IntegranteProyectosCRUD() {
       if (editProjId) {
         await updateProject(editProjId, projFormData);
         setEditProjId(null);
+        setIsAddingProj(false);
         toast.success("Proyecto actualizado");
       } else if (currentUser) {
         const nextId =
