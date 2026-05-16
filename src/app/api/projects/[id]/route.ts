@@ -183,25 +183,33 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const projectId = Number(id);
     const body = updateProjectSchema.parse(await request.json());
 
+    const data: Prisma.ProjectUpdateInput = {};
+
+    if ("title" in body) data.title = body.title!;
+    if ("objective" in body) data.objective = body.objective;
+    if ("awards" in body) data.awards = body.awards || null;
+    if ("startDate" in body) data.startDate = body.startDate ? new Date(body.startDate) : undefined;
+    if ("endDate" in body) data.endDate = body.endDate ? new Date(body.endDate) : null;
+    if ("coverImageUrl" in body) data.coverImageUrl = body.coverImageUrl || null;
+    if ("approvalStatus" in body) data.approvalStatus = body.approvalStatus as any;
+
     await prisma.$transaction(async () => {
-      await prisma.project.update({
-        where: { id: projectId },
-        data: {
-          title: body.title,
-          objective: body.objective,
-          awards: body.awards || null,
-          startDate: body.startDate ? new Date(body.startDate) : undefined,
-          endDate: body.endDate ? new Date(body.endDate) : null,
-          coverImageUrl: body.coverImageUrl || null,
-          approvalStatus: body.approvalStatus || "PENDING",
-        },
-      });
+      if (Object.keys(data).length > 0) {
+        await prisma.project.update({
+          where: { id: projectId },
+          data,
+        });
+      }
 
       if (body.products) {
+        const project = await prisma.project.findUnique({
+          where: { id: projectId },
+          select: { startDate: true },
+        });
         await syncProducts(
           projectId,
           body.products as unknown as AcademicProduct[],
-          body.startDate || new Date().toISOString(),
+          project?.startDate?.toISOString() || new Date().toISOString(),
         );
       }
     });
