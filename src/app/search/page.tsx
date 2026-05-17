@@ -23,8 +23,9 @@ function SearchContent() {
   const [filterType, setFilterType] = useState<FilterOption>(initialType);
 
   useEffect(() => {
-    Promise.all([loadMembers(), loadProjects()])
-      .finally(() => setIsLoadingData(false));
+    Promise.all([loadMembers(), loadProjects()]).finally(() =>
+      setIsLoadingData(false),
+    );
   }, [loadMembers, loadProjects]);
 
   useEffect(() => {
@@ -143,7 +144,7 @@ function SearchContent() {
                 <button
                   key={type}
                   onClick={() => handleFilterChange(type)}
-                  className={`px-4 py-2 text-sm font-mono border-2 transition ${filterType === type ? "bg-[#2D5A27] text-white border-[#2D5A27]" : "bg-transparent text-gray-300 border-gray-600 hover:border-gray-400"}`}
+                  className={`px-4 py-2 text-sm cursor-pointer font-mono border-2 transition ${filterType === type ? "bg-[#2D5A27] text-white border-[#2D5A27]" : "bg-transparent text-gray-300 border-gray-600 hover:border-gray-400"}`}
                 >
                   {type}
                 </button>
@@ -159,43 +160,43 @@ function SearchContent() {
           </div>
         ) : (
           <>
-        {/* ... Resto del componente (Resultados) ... */}
-        {filteredMembers.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
-              Talento ({filteredMembers.length})
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredMembers.map((member) => (
-                <MemberCard key={member.id} member={member} />
-              ))}
-            </div>
-          </div>
-        )}
+            {/* ... Resto del componente (Resultados) ... */}
+            {filteredMembers.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
+                  Talento ({filteredMembers.length})
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {filteredMembers.map((member) => (
+                    <MemberCard key={member.id} member={member} />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {filteredProjects.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
-              Proyectos ({filteredProjects.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {filteredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          </div>
-        )}
+            {filteredProjects.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-[#1E293B] mb-6 border-b-2 border-gray-200 pb-2">
+                  Proyectos ({filteredProjects.length})
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {filteredProjects.map((project) => (
+                    <ProjectCard key={project.id} project={project} />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {filteredMembers.length === 0 && filteredProjects.length === 0 && (
-          <div className="text-center py-20 bg-white pixel-border">
-            <p className="text-xl font-bold text-[#334155] mb-2">
-              No se encontraron resultados.
-            </p>
-            <p className="text-gray-500">
-              Prueba con otros términos de búsqueda o cambia los filtros.
-            </p>
-          </div>
-        )}
+            {filteredMembers.length === 0 && filteredProjects.length === 0 && (
+              <div className="text-center py-20 bg-white pixel-border">
+                <p className="text-xl font-bold text-[#334155] mb-2">
+                  No se encontraron resultados.
+                </p>
+                <p className="text-gray-500">
+                  Prueba con otros términos de búsqueda o cambia los filtros.
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

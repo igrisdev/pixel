@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ExternalLink,
@@ -32,8 +32,6 @@ type ParticipationData = {
 
 export default function ProfilePage() {
   const { id } = useParams();
-  const router = useRouter();
-
   const { members, projects, loadMembers, loadProjects } = useDataStore();
   const { currentUser } = useAuthStore();
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -61,12 +59,12 @@ export default function ProfilePage() {
         <h1 className="text-4xl font-bold text-[#1E293B] mb-4">
           Perfil no encontrado
         </h1>
-        <button
-          onClick={() => router.back()}
+        <Link
+          href="/"
           className="text-[#F37021] hover:underline font-bold cursor-pointer"
         >
           Volver atrás
-        </button>
+        </Link>
       </div>
     );
   }
@@ -141,12 +139,12 @@ export default function ProfilePage() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <button
-        onClick={() => router.back()}
+      <Link
+        href="/"
         className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition cursor-pointer"
       >
         &larr; VOLVER
-      </button>
+      </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* COLUMNA IZQUIERDA: Tarjeta de Identidad (Sticky) */}

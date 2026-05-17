@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   Calendar,
@@ -21,8 +21,6 @@ import { useEffect, useState } from "react";
 
 export default function ProjectPage() {
   const { id } = useParams();
-  const router = useRouter();
-
   const { projects, loadProjects } = useDataStore();
   const { currentUser } = useAuthStore();
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -57,12 +55,12 @@ export default function ProjectPage() {
           Este proyecto no existe o se encuentra actualmente en estado de
           revisión por los administradores.
         </p>
-        <button
-          onClick={() => router.push("/")}
+        <Link
+          href="/"
           className="bg-[#1E293B] text-white px-6 py-2 font-bold hover:bg-[#F37021] transition pixel-border cursor-pointer"
         >
           Volver al Inicio
-        </button>
+        </Link>
       </div>
     );
   }
@@ -81,12 +79,12 @@ export default function ProjectPage() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <button
-        onClick={() => router.back()}
+      <Link
+        href="/"
         className="flex items-center text-[#334155] hover:text-[#F37021] font-mono text-xs mb-8 transition cursor-pointer"
-        >
+      >
         &larr; VOLVER AL CATÁLOGO
-      </button>
+      </Link>
 
       {project.approvalStatus !== "ACTIVE" && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 mb-8 font-medium">
