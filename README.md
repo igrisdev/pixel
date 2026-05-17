@@ -23,7 +23,8 @@ src/
 │   │   ├── audits/         # Auditoría (Admin)
 │   │   ├── competencies/   # Catálogo competencias (Admin)
 │   │   ├── profile/        # Mi perfil (Admin + Member)
-│   │   └── projects/       # Mis proyectos (Admin + Member)
+│   │   ├── projects/       # Mis proyectos (Admin + Member)
+│   │   │   └── participations/ # Mis participaciones (Admin + Member)
 │   ├── search/             # Búsqueda de integrantes
 │   ├── project/[id]/       # Detalle de proyecto
 │   └── profile/[id]/       # Perfil público de miembro
@@ -37,6 +38,7 @@ src/
 ## Rutas Principales
 
 ### Públicas
+
 - `/` — Landing con métricas, proyectos destacados, talento
 - `/login` — Autenticación
 - `/search` — Búsqueda de integrantes
@@ -44,6 +46,7 @@ src/
 - `/profile/[id]` — Perfil público de miembro
 
 ### Dashboard (protegidas)
+
 - `/dashboard` — Redirect según rol
 - `/dashboard/users` — Gestión usuarios (Admin)
 - `/dashboard/approvals` — Aprobaciones (Admin)
@@ -51,6 +54,7 @@ src/
 - `/dashboard/competencies` — Catálogo competencias (Admin)
 - `/dashboard/profile` — Mi perfil (Admin + Member)
 - `/dashboard/projects` — Mis proyectos (Admin + Member)
+- `/dashboard/participations` — Mis participaciones (Admin + Member)
 
 ## Comandos de Desarrollo
 
@@ -102,10 +106,10 @@ npx prisma db seed
 
 ## Credenciales de Prueba
 
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Admin | admin@unimayor.edu.co | admin123 |
-| Miembro | johan@unimayor.edu.co | est123 |
+| Rol     | Email                 | Contraseña |
+| ------- | --------------------- | ---------- |
+| Admin   | admin@unimayor.edu.co | admin123   |
+| Miembro | johan@unimayor.edu.co | est123     |
 
 Estas credenciales corresponden al seed vigente y son las que se restauran tras ejecutar el flujo de recuperación local.
 
@@ -119,18 +123,18 @@ Estas credenciales corresponden al seed vigente y son las que se restauran tras 
 
 ## API Routes
 
-| Ruta | Métodos |
-|------|---------|
-| `/api/auth/login` | POST |
-| `/api/members` | GET, POST |
-| `/api/members/[id]` | GET, PUT, DELETE |
-| `/api/members/[id]/links` | POST, PUT, DELETE |
-| `/api/members/[id]/competencies` | PUT |
-| `/api/projects` | GET, POST |
-| `/api/projects/[id]` | GET, PUT, DELETE |
-| `/api/projects/participations` | GET |
-| `/api/competencies` | GET, POST |
-| `/api/competencies/[id]` | GET, PUT, DELETE |
+| Ruta                             | Métodos           |
+| -------------------------------- | ----------------- |
+| `/api/auth/login`                | POST              |
+| `/api/members`                   | GET, POST         |
+| `/api/members/[id]`              | GET, PUT, DELETE  |
+| `/api/members/[id]/links`        | POST, PUT, DELETE |
+| `/api/members/[id]/competencies` | PUT               |
+| `/api/projects`                  | GET, POST         |
+| `/api/projects/[id]`             | GET, PUT, DELETE  |
+| `/api/projects/participations`   | GET               |
+| `/api/competencies`              | GET, POST         |
+| `/api/competencies/[id]`         | GET, PUT, DELETE  |
 
 ## Deployment (Vercel + Neon)
 
@@ -153,14 +157,14 @@ Estas credenciales corresponden al seed vigente y son las que se restauran tras 
 
 ## Comandos Disponibles
 
-| Comando | Descripción |
-|---------|-------------|
-| `pnpm dev` | Servidor de desarrollo |
-| `pnpm build` | Build de producción |
-| `pnpm start` | Iniciar build de producción |
-| `pnpm lint` | Linting |
-| `npx prisma studio` | Abrir GUI de Prisma |
-| `npx prisma migrate dev` | Nueva migración |
-| `npx prisma migrate deploy` | Aplicar migraciones existentes |
+| Comando                            | Descripción                                    |
+| ---------------------------------- | ---------------------------------------------- |
+| `pnpm dev`                         | Servidor de desarrollo                         |
+| `pnpm build`                       | Build de producción                            |
+| `pnpm start`                       | Iniciar build de producción                    |
+| `pnpm lint`                        | Linting                                        |
+| `npx prisma studio`                | Abrir GUI de Prisma                            |
+| `npx prisma migrate dev`           | Nueva migración                                |
+| `npx prisma migrate deploy`        | Aplicar migraciones existentes                 |
 | `npx prisma db push --force-reset` | Reset local + sincronización rápida con schema |
-| `npx prisma db seed` | Poblar base de datos |
+| `npx prisma db seed`               | Poblar base de datos                           |
