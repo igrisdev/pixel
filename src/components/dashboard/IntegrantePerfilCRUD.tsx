@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Save,
   CheckCircle,
@@ -12,6 +12,8 @@ import {
   UploadCloud,
   Award,
   Pencil,
+  X,
+  FileText,
 } from "lucide-react";
 import EditLinkModal from "./EditLinkModal";
 import toast from "react-hot-toast";
@@ -25,6 +27,12 @@ export default function IntegrantePerfilCRUD() {
   const { currentUser } = useAuthStore();
 
   const user = members.find((m) => m.id === currentUser?.id);
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isUploadingCv, setIsUploadingCv] = useState(false);
 
   // ============================================
   // ESTADO ORIGINAL (para rollback)
@@ -93,6 +101,48 @@ export default function IntegrantePerfilCRUD() {
       setSelectedCompetencies(freshUser.competencies?.map((c) => c.id) || []);
     }
   }, [members, currentUser, isSavingBasic, isSavingLinks, isSavingCompetencies]);
+
+  // ============================================
+  // FUNCIONES DE UPLOAD
+  // ============================================
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const result = await ApiRepository.uploadFile(file, "profiles");
+      setFormData({ ...formData, photoUrl: result.url });
+      toast.success("Foto de perfil actualizada");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al subir la foto");
+    } finally {
+      setIsUploadingPhoto(false);
+      if (photoInputRef.current) {
+        photoInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    setIsUploadingCv(true);
+    try {
+      const result = await ApiRepository.uploadFile(file, "cvs");
+      setFormData({ ...formData, cvUrl: result.url });
+      toast.success("CV actualizado");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al subir el CV");
+    } finally {
+      setIsUploadingCv(false);
+      if (cvInputRef.current) {
+        cvInputRef.current.value = "";
+      }
+    }
+  };
 
   // ============================================
   // FUNCIONES DE GUARDADO (Optimistic)
@@ -248,6 +298,9 @@ export default function IntegrantePerfilCRUD() {
 
   const isAnySaving = isSavingBasic || isSavingLinks || isSavingCompetencies;
 
+  const photoFileName = formData.photoUrl ? formData.photoUrl.split("/").pop() : null;
+  const cvFileName = formData.cvUrl ? formData.cvUrl.split("/").pop() : null;
+
   // ============================================
   // RENDER
   // ============================================
@@ -287,8 +340,11 @@ export default function IntegrantePerfilCRUD() {
           <div className="flex gap-4 items-center p-4 border-2 border-gray-200 bg-[#F8F9FA] mb-5">
             <img
               src={
-                formData.photoUrl ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`
+                formData.photoUrl
+                  ? formData.photoUrl.startsWith("/uploads/")
+                    ? formData.photoUrl
+                    : formData.photoUrl
+                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`
               }
               alt="Perfil"
               className="w-16 h-16 border-2 border-[#1E293B] object-cover bg-white"
@@ -298,23 +354,52 @@ export default function IntegrantePerfilCRUD() {
             />
             <div className="flex-1">
               <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                <ImageIcon className="w-3 h-3 mr-1" /> URL DE FOTO DE PERFIL
+                <ImageIcon className="w-3 h-3 mr-1" /> FOTO DE PERFIL
               </label>
               <div className="flex gap-2">
-                <input
-                  type="url"
-                  disabled={isSavingBasic}
-                  value={formData.photoUrl}
-                  onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                  className="w-full border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  placeholder="https://..."
-                />
+                {photoFileName && formData.photoUrl?.startsWith("/uploads/") ? (
+                  <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 bg-gray-50 text-sm text-gray-600">
+                    <ImageIcon className="w-4 h-4 text-gray-400" />
+                    <span className="truncate">{photoFileName}</span>
+                  </div>
+                ) : (
+                  <input
+                    type="url"
+                    disabled={isSavingBasic}
+                    value={formData.photoUrl}
+                    onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+                    className="flex-1 border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="https://..."
+                  />
+                )}
                 <label
-                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSavingBasic ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSavingBasic || isUploadingPhoto ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
                 >
-                  <UploadCloud className="w-4 h-4 mr-2" /> SUBIR
-                  <input type="file" accept="image/*" className="hidden" disabled={isSavingBasic} />
+                  {isUploadingPhoto ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4 mr-2" /> SUBIR
+                    </>
+                  )}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={isSavingBasic || isUploadingPhoto}
+                  />
                 </label>
+                {formData.photoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, photoUrl: "" })}
+                    className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -372,22 +457,51 @@ export default function IntegrantePerfilCRUD() {
             </div>
 
             <div>
-              <label className="block text-xs font-mono text-gray-500 mb-1">URL CURRÍCULUM (G-Drive, PDF)</label>
+              <label className="block text-xs font-mono text-gray-500 mb-1">CURRÍCULUM (PDF)</label>
               <div className="flex gap-2">
-                <input
-                  type="url"
-                  disabled={isSavingBasic}
-                  value={formData.cvUrl}
-                  onChange={(e) => setFormData({ ...formData, cvUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
-                />
+                {cvFileName && formData.cvUrl?.startsWith("/uploads/") ? (
+                  <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 bg-gray-50 text-sm text-gray-600">
+                    <FileText className="w-4 h-4 text-gray-400" />
+                    <span className="truncate">{cvFileName}</span>
+                  </div>
+                ) : (
+                  <input
+                    type="url"
+                    disabled={isSavingBasic}
+                    value={formData.cvUrl}
+                    onChange={(e) => setFormData({ ...formData, cvUrl: e.target.value })}
+                    placeholder="https://..."
+                    className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+                )}
                 <label
-                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSavingBasic ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSavingBasic || isUploadingCv ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
                 >
-                  <UploadCloud className="w-4 h-4 mr-2" /> PDF
-                  <input type="file" accept="application/pdf" className="hidden" disabled={isSavingBasic} />
+                  {isUploadingCv ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4 mr-2" /> PDF
+                    </>
+                  )}
+                  <input
+                    ref={cvInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={handleCvUpload}
+                    disabled={isSavingBasic || isUploadingCv}
+                  />
                 </label>
+                {formData.cvUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, cvUrl: "" })}
+                    className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
 

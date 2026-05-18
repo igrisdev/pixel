@@ -3,6 +3,7 @@
 import React from "react";
 import { X, Loader2 } from "lucide-react";
 import { ProjectFormData } from "./types";
+import FileUploadInput from "@/components/ui/FileUploadInput";
 
 interface ProjectMacroModalProps {
   editProjId: number | null;
@@ -102,16 +103,15 @@ export default function ProjectMacroModal({
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-mono text-gray-500 mb-1">URL IMAGEN DE PORTADA</label>
-            <input
-              type="url"
-              disabled={isSaving}
-              value={formData.coverImageUrl}
-              onChange={(e) => onChange({ ...formData, coverImageUrl: e.target.value })}
-              className="w-full border-2 border-gray-300 focus:border-[#F37021] p-3 disabled:bg-gray-100"
-            />
-          </div>
+          <FileUploadInput
+            value={formData.coverImageUrl}
+            onChange={(url) => onChange({ ...formData, coverImageUrl: url })}
+            uploadType="covers"
+            accept="image/*"
+            label="IMAGEN DE PORTADA"
+            placeholder="Selecciona una imagen..."
+            preview={true}
+          />
 
           <div className="flex gap-3 pt-2">
             <button

@@ -4,6 +4,7 @@ import React from "react";
 import { X, FileCode, FileText, Folder, Loader2, MapPin, UserPlus, Users } from "lucide-react";
 import { CategoryType, Competency, Member } from "@/types";
 import { DraftParticipant, ProductFormData } from "./types";
+import FileUploadInput from "@/components/ui/FileUploadInput";
 
 interface ProductModalProps {
   projectId: number;
@@ -190,18 +191,18 @@ export default function ProductModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-mono text-gray-500 mb-1">URL DEL DOCUMENTO</label>
-                  <input
-                    type="url"
-                    disabled={isSaving}
+                  <FileUploadInput
                     value={productFormData.documentUrl}
-                    onChange={(e) =>
+                    onChange={(url) =>
                       onProductFormDataChange({
                         ...productFormData,
-                        documentUrl: e.target.value,
+                        documentUrl: url,
                       })
                     }
-                    className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                    uploadType="documents"
+                    accept=".pdf"
+                    label="DOCUMENTO (PDF)"
+                    placeholder="Selecciona un PDF..."
                   />
                 </div>
               </div>
