@@ -90,9 +90,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       ...(body.role && { role: body.role }),
       ...(body.systemRole && { systemRole: body.systemRole }),
       ...(body.academicStatus && { academicStatus: body.academicStatus }),
-      ...(body.photoUrl !== undefined && { photoUrl: body.photoUrl }),
+      ...(body.photoUrl !== undefined && { photoUrl: body.photoUrl as string }),
       ...(body.isBanned !== undefined && { isBanned: body.isBanned }),
-      ...(body.cvUrl !== undefined && { cvUrl: body.cvUrl }),
+      ...(body.cvUrl !== undefined && { cvUrl: body.cvUrl as string }),
     };
 
     if (body.passwordHash) {

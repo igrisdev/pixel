@@ -83,9 +83,9 @@ export async function POST(request: Request) {
         role: body.role ?? "Integrante",
         systemRole: body.systemRole,
         academicStatus: body.academicStatus,
-        photoUrl: body.photoUrl ?? "",
+        photoUrl: (body.photoUrl as string) ?? "",
         isBanned: false,
-        cvUrl: body.cvUrl ?? "",
+        cvUrl: (body.cvUrl as string) ?? "",
       },
       include: memberInclude,
     });

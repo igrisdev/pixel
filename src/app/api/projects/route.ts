@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         awards: body.awards || null,
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
-        coverImageUrl: body.coverImageUrl || null,
+        coverImageUrl: (body.coverImageUrl as string) || null,
         createdBy: body.createdBy,
         approvalStatus: "PENDING",
       },
