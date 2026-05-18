@@ -1,0 +1,52 @@
+services:
+  pixel-db:
+    image: postgres:16
+    container_name: pixel_prod_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: pixel_prod
+    volumes:
+      - pixel_prod_postgres_data:/var/lib/postgresql/data
+    networks:
+      - prod_network
+
+  pixel-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pixel_prod_app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@pixel-db:5432/pixel_prod
+      NODE_ENV: production
+    volumes:
+      - pixel_uploads:/app/uploads
+    depends_on:
+      - pixel-db
+    networks:
+      - prod_network
+
+  pixel-nginx:
+    image: nginx:alpine
+    container_name: pixel_prod_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl/prod:/etc/nginx/ssl:ro
+    depends_on:
+      - pixel-app
+    networks:
+      - prod_network
+
+volumes:
+  pixel_prod_postgres_data:
+  pixel_uploads:
+
+networks:
+  prod_network:
+    driver: bridge
