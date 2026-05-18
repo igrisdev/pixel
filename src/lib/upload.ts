@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { randomUUID } from "crypto";
 
-export const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+export const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 export const ALLOWED_PDF_TYPES = ["application/pdf"];

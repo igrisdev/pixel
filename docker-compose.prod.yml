@@ -22,7 +22,7 @@ services:
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@pixel-db:5432/pixel_prod
       NODE_ENV: production
     volumes:
-      - pixel_uploads:/app/uploads
+      - pixel_uploads:/app/public/uploads
     depends_on:
       - pixel-db
     networks:

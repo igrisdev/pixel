@@ -26,7 +26,7 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - pixel_staging_uploads:/app/uploads
+      - pixel_staging_uploads:/app/public/uploads
     depends_on:
       - pixel-db
     networks:
