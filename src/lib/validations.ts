@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+const uploadUrlSchema = z.string().startsWith("/uploads/");
+const validUrlOrUpload = z.union([
+  z.string().url("URL inválida"),
+  uploadUrlSchema,
+  z.null(),
+  z.literal(""),
+]).optional();
+
 export const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "La contraseña es requerida"),
@@ -15,8 +23,8 @@ export const createMemberSchema = z.object({
   role: z.string().optional().or(z.literal("")),
   systemRole: z.enum(["ADMIN", "MEMBER"]).default("MEMBER"),
   academicStatus: z.enum(["STUDENT", "GRADUATE"]).default("STUDENT"),
-  photoUrl: z.union([z.string().url("URL de foto inválida").nullish(), z.literal("")]),
-  cvUrl: z.union([z.string().url("URL de CV inválida").nullish(), z.literal("")]),
+  photoUrl: validUrlOrUpload,
+  cvUrl: validUrlOrUpload,
 });
 
 export const updateMemberSchema = z.object({
@@ -29,8 +37,8 @@ export const updateMemberSchema = z.object({
   role: z.string().optional(),
   systemRole: z.enum(["ADMIN", "MEMBER"]).optional(),
   academicStatus: z.enum(["STUDENT", "GRADUATE"]).optional(),
-  photoUrl: z.union([z.string().url("URL de foto inválida").nullish(), z.literal("")]),
-  cvUrl: z.union([z.string().url("URL de CV inválida").nullish(), z.literal("")]),
+  photoUrl: validUrlOrUpload,
+  cvUrl: validUrlOrUpload,
   isBanned: z.boolean().optional(),
 });
 
@@ -40,7 +48,7 @@ export const createProjectSchema = z.object({
   awards: z.string().optional().or(z.literal("")),
   startDate: z.string().min(1, "La fecha de inicio es requerida"),
   endDate: z.string().optional().or(z.literal("")),
-  coverImageUrl: z.union([z.string().url("URL de imagen inválida").nullish(), z.literal("")]),
+  coverImageUrl: validUrlOrUpload,
   createdBy: z.number().min(1, "El creador es requerido"),
 });
 
@@ -50,7 +58,7 @@ export const updateProjectSchema = z.object({
   awards: z.string().optional().or(z.literal("")),
   startDate: z.string().optional(),
   endDate: z.string().optional().or(z.literal("")),
-  coverImageUrl: z.union([z.string().url("URL de imagen inválida").nullish(), z.literal("")]),
+  coverImageUrl: validUrlOrUpload,
   approvalStatus: z.enum(["PENDING", "ACTIVE", "REJECTED"]).optional(),
   products: z.array(z.object({
     id: z.number().optional(),
@@ -61,7 +69,7 @@ export const updateProjectSchema = z.object({
     repositoryUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     publicationSource: z.string().optional().or(z.literal("")),
-    documentUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
+    documentUrl: validUrlOrUpload,
     location: z.string().optional().or(z.literal("")),
     approvalStatus: z.string().optional(),
     participations: z.array(z.object({

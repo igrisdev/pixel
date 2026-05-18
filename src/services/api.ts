@@ -144,4 +144,24 @@ export const ApiRepository = {
       body: JSON.stringify({ email, password }),
     });
   },
+
+  // --- UPLOAD ---
+  uploadFile: async (file: File, type: string): Promise<{ url: string; fileName: string; type: string }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", type);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(payload?.error || "Error al subir el archivo");
+    }
+
+    return payload.data;
+  },
 };
