@@ -58,6 +58,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Keep strict typing; avoid `any`; prefer shared app types and Prisma types when working with DB data.
 - Use `@/...` import aliases.
 - Keep existing visual language with Tailwind utilities (including dashed borders, neutral surfaces, and status badges).
+- **All `<button>` elements must include `cursor-pointer` class** in Tailwind CSS styling.
 
 ## Lint baseline (before adding new work)
 - `pnpm lint` currently fails with existing repo errors (not introduced by your change), including `react-hooks/set-state-in-effect` and `@typescript-eslint/no-explicit-any` in dashboard/search components.
