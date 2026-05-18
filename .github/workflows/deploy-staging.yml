@@ -1,0 +1,38 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd ~/pixel
+
+            git checkout develop
+            git pull origin develop
+
+            docker compose -f docker-compose.staging.yml down
+
+            docker compose -f docker-compose.staging.yml build --no-cache
+
+            docker compose -f docker-compose.staging.yml up -d
+
+            docker compose -f docker-compose.staging.yml exec -T pixel-app npx prisma migrate deploy
+
+            docker compose -f docker-compose.staging.yml exec -T pixel-app npx prisma db seed
+
+            docker image prune -f
