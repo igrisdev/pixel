@@ -31,8 +31,12 @@ export default function IntegrantePerfilCRUD() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
+  const getAvatarUrl = (name: string) =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1E293B&color=fff&size=150`;
+
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isUploadingCv, setIsUploadingCv] = useState(false);
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
 
   // ============================================
   // ESTADO ORIGINAL (para rollback)
@@ -43,8 +47,8 @@ export default function IntegrantePerfilCRUD() {
     professionalProfile: user?.professionalProfile || "",
     personalEmail: user?.personalEmail || "",
     cvUrl: user?.cvUrl || "",
-    photoUrl: user?.photoUrl || "",
-    passwordHash: user?.passwordHash || "",
+    photoUrl: user?.photoUrl || getAvatarUrl(user?.fullName || ""),
+    passwordHash: "",
   });
 
   // Estado local (optimistic)
@@ -77,14 +81,15 @@ export default function IntegrantePerfilCRUD() {
   useEffect(() => {
     const freshUser = members.find((m) => m.id === currentUser?.id);
     if (freshUser && !isSavingBasic && !isSavingLinks && !isSavingCompetencies) {
+      const photoUrl = freshUser.photoUrl || getAvatarUrl(freshUser.fullName || "");
       setOriginalData({
         fullName: freshUser.fullName || "",
         role: freshUser.role || "",
         professionalProfile: freshUser.professionalProfile || "",
         personalEmail: freshUser.personalEmail || "",
         cvUrl: freshUser.cvUrl || "",
-        photoUrl: freshUser.photoUrl || "",
-        passwordHash: freshUser.passwordHash || "",
+        photoUrl,
+        passwordHash: "",
       });
       setFormData({
         fullName: freshUser.fullName || "",
@@ -92,8 +97,8 @@ export default function IntegrantePerfilCRUD() {
         professionalProfile: freshUser.professionalProfile || "",
         personalEmail: freshUser.personalEmail || "",
         cvUrl: freshUser.cvUrl || "",
-        photoUrl: freshUser.photoUrl || "",
-        passwordHash: freshUser.passwordHash || "",
+        photoUrl,
+        passwordHash: "",
       });
       setOriginalLinks(freshUser.links || []);
       setLinks([...freshUser.links]);
@@ -158,7 +163,7 @@ export default function IntegrantePerfilCRUD() {
       formData.personalEmail !== originalData.personalEmail ||
       formData.cvUrl !== originalData.cvUrl ||
       formData.photoUrl !== originalData.photoUrl ||
-      formData.passwordHash !== originalData.passwordHash;
+      (isEditingPassword && formData.passwordHash !== originalData.passwordHash);
 
     if (!hasChanges) {
       toast("No hay cambios que guardar", { icon: "ℹ️" });
@@ -167,8 +172,19 @@ export default function IntegrantePerfilCRUD() {
 
     setIsSavingBasic(true);
     try {
-      await updateMember(currentUser.id, formData);
-      setOriginalData({ ...formData });
+      const dataToSend: Record<string, any> = { ...formData };
+      if (!dataToSend.photoUrl) {
+        dataToSend.photoUrl = getAvatarUrl(dataToSend.fullName);
+      }
+      if (!isEditingPassword || !formData.passwordHash) {
+        delete dataToSend.passwordHash;
+      }
+
+      await updateMember(currentUser.id, dataToSend);
+      const savedPhotoUrl = dataToSend.photoUrl || getAvatarUrl(dataToSend.fullName);
+      setOriginalData({ ...formData, photoUrl: savedPhotoUrl, passwordHash: "" });
+      setFormData({ ...formData, photoUrl: savedPhotoUrl, passwordHash: "" });
+      setIsEditingPassword(false);
       setSavedBasic(true);
       toast.success("Información básica guardada");
       setTimeout(() => setSavedBasic(false), 2000);
@@ -285,7 +301,7 @@ export default function IntegrantePerfilCRUD() {
     formData.personalEmail !== originalData.personalEmail ||
     formData.cvUrl !== originalData.cvUrl ||
     formData.photoUrl !== originalData.photoUrl ||
-    formData.passwordHash !== originalData.passwordHash;
+    (isEditingPassword && formData.passwordHash !== originalData.passwordHash);
 
   const dbLinks = links.filter((l) => l.id > 0);
   const dbOriginalLinks = originalLinks.filter((l) => l.id > 0);
@@ -339,17 +355,11 @@ export default function IntegrantePerfilCRUD() {
           {/* FOTO DE PERFIL */}
           <div className="flex gap-4 items-center p-4 border-2 border-gray-200 bg-[#F8F9FA] mb-5">
             <img
-              src={
-                formData.photoUrl
-                  ? formData.photoUrl.startsWith("/uploads/")
-                    ? formData.photoUrl
-                    : formData.photoUrl
-                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=1E293B&color=fff`
-              }
+              src={formData.photoUrl || getAvatarUrl(formData.fullName)}
               alt="Perfil"
               className="w-16 h-16 border-2 border-[#1E293B] object-cover bg-white"
               onError={(e) =>
-                (e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName || "User")}&background=1E293B&color=fff`)
+                (e.currentTarget.src = getAvatarUrl(formData.fullName || "User"))
               }
             />
             <div className="flex-1">
@@ -394,7 +404,7 @@ export default function IntegrantePerfilCRUD() {
                 {formData.photoUrl && (
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, photoUrl: "" })}
+                    onClick={() => setFormData({ ...formData, photoUrl: getAvatarUrl(formData.fullName) })}
                     className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition"
                   >
                     <X className="w-4 h-4" />
@@ -507,16 +517,43 @@ export default function IntegrantePerfilCRUD() {
 
             <div className="pt-4 border-t-2 border-dashed border-gray-200">
               <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                <Lock className="w-3 h-3 mr-1" /> CAMBIAR CONTRASEÑA
+                <Lock className="w-3 h-3 mr-1" /> CONTRASEÑA
               </label>
-              <input
-                type="password"
-                disabled={isSavingBasic}
-                value={formData.passwordHash}
-                onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
-                placeholder="Escribe tu nueva contraseña..."
-                className="w-full border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
+              {!isEditingPassword ? (
+                <div className="flex gap-2 items-center">
+                  <span className="flex-1 text-sm text-gray-500 font-mono">••••••••</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPassword(true)}
+                    disabled={isSavingBasic}
+                    className="bg-[#1E293B] text-white px-4 py-2 text-xs font-bold hover:bg-black transition disabled:opacity-50"
+                  >
+                    Cambiar contraseña
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    disabled={isSavingBasic}
+                    value={formData.passwordHash}
+                    onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
+                    placeholder="Escribe tu nueva contraseña..."
+                    className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, passwordHash: "" });
+                      setIsEditingPassword(false);
+                    }}
+                    disabled={isSavingBasic}
+                    className="bg-gray-200 text-[#1E293B] px-4 py-2 text-xs font-bold hover:bg-gray-300 transition disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </div>
 
             <button
