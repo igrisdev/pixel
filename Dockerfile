@@ -42,6 +42,7 @@ COPY --from=builder /app/public ./public
 
 # Copy Prisma schema, migrations, and generated client
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/generated ./generated
 
 # Create uploads directory with correct permissions
