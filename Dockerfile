@@ -50,7 +50,7 @@ RUN mkdir -p public/uploads .next && \
     chown nextjs:nodejs public/uploads .next
 
 # Install Prisma CLI globally for migrations at startup
-RUN npm install -g prisma@7.8.0 @prisma/client@7.8.0 && npm install dotenv
+RUN npm install -g prisma@7.8.0 @prisma/client@7.8.0
 
 # Copy entrypoint
 COPY --chown=nextjs:nodejs docker-entrypoint.sh .
