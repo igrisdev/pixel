@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, SystemRole, AcademicStatus, ApprovalStatus, CategoryType, CompetencyType } from "../src/generated/client";
+import { PrismaClient, SystemRole, AcademicStatus, ApprovalStatus, CategoryType, CompetencyType } from "../generated/client";
 
 const databaseUrl = process.env.DATABASE_URL || "postgresql://postgres:123@localhost:5432/pixel_db";
 
