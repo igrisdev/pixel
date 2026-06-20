@@ -42,7 +42,6 @@ COPY --from=builder /app/public ./public
 
 # Copy Prisma schema, migrations, and generated client
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/generated ./generated
 
 # Create uploads directory with correct permissions
@@ -51,6 +50,9 @@ RUN mkdir -p public/uploads .next && \
 
 # Install Prisma CLI globally for migrations at startup
 RUN npm install -g prisma@7.8.0 @prisma/client@7.8.0
+
+# dotenv is required by prisma.config.ts but not traced into the standalone output
+RUN npm install dotenv
 
 # Copy entrypoint
 COPY --chown=nextjs:nodejs docker-entrypoint.sh .
