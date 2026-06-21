@@ -52,6 +52,10 @@ RUN mkdir -p public/uploads .next && \
 # Install Prisma CLI globally for migrations at startup
 RUN npm install -g prisma@7.8.0 @prisma/client@7.8.0
 
+# prisma.config.ts importa "prisma/config", pero el standalone de Next.js no incluye
+# el paquete prisma. Enlazamos el paquete global en node_modules para que se resuelva.
+RUN ln -sf /usr/local/lib/node_modules/prisma /app/node_modules/prisma
+
 # Copy entrypoint
 COPY --chown=nextjs:nodejs docker-entrypoint.sh .
 RUN chmod +x docker-entrypoint.sh
