@@ -46,8 +46,8 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/generated ./generated
 
 # Create uploads directory with correct permissions
-RUN mkdir -p public/uploads .next && \
-    chown nextjs:nodejs public/uploads .next
+RUN mkdir -p uploads/profiles uploads/cvs uploads/covers uploads/documents .next && \
+    chown -R nextjs:nodejs uploads .next
 
 # Install Prisma CLI globally for migrations at startup
 RUN npm install -g prisma@7.8.0 @prisma/client@7.8.0
