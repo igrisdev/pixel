@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 
 export async function GET(
   request: NextRequest,
@@ -43,7 +43,7 @@ export async function GET(
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Archivo no encontrado" }, { status: 404 });
   }
 }
