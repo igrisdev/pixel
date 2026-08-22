@@ -1,17 +1,48 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, Folder, FileCode, FileText, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Folder, FileCode, FileText, Calendar, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import toast from "react-hot-toast";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Project, AcademicProduct } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
+import ProductModal from "@/components/ui/project-crud/ProductModal";
+import { DraftParticipant, ProductFormData } from "@/components/ui/project-crud/types";
+
+const emptyProductForm: ProductFormData = {
+  title: "",
+  description: "",
+  categoryType: "DEVELOPMENT",
+  technologiesString: "",
+  repositoryUrl: "",
+  demoUrl: "",
+  publicationSource: "",
+  documentUrl: "",
+  location: "",
+};
 
 export default function ParticipationsPage() {
-  const { participatedProjects, loadParticipatedProjects, members, loadMembers } = useDataStore();
-  const { currentUser } = useAuthStore();
+  const {
+    participatedProjects,
+    loadParticipatedProjects,
+    members,
+    loadMembers,
+    competencies,
+    loadCompetencies,
+    addProductToProject,
+  } = useDataStore();
+  const { currentUser, currentMember } = useAuthStore();
   const [expandedProjects, setExpandedProjects] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+
+  // Estado del modal para agregar un producto interno.
+  const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
+  const [prodFormData, setProdFormData] = useState<ProductFormData>(emptyProductForm);
+  const [draftParticipants, setDraftParticipants] = useState<DraftParticipant[]>([]);
+  const [draftTeamMemberId, setDraftTeamMemberId] = useState("");
+  const [draftTeamRole, setDraftTeamRole] = useState("");
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -19,8 +50,92 @@ export default function ParticipationsPage() {
     Promise.all([
       loadParticipatedProjects(currentUser.id),
       loadMembers(),
+      loadCompetencies(),
     ]).finally(() => setLoading(false));
-  }, [currentUser, loadParticipatedProjects, loadMembers]);
+  }, [currentUser, loadParticipatedProjects, loadMembers, loadCompetencies]);
+
+  const openAddProduct = (project: Project) => {
+    if (!currentUser) return;
+    setActiveProjectId(project.id);
+    setProdFormData(emptyProductForm);
+    setDraftTeamMemberId("");
+    setDraftTeamRole("");
+    // El usuario actual siempre queda como participante del nuevo producto.
+    setDraftParticipants([
+      {
+        tempId: `self-${currentUser.id}`,
+        memberId: currentUser.id,
+        memberName: currentMember?.fullName || currentUser.name,
+        memberPhotoUrl: currentMember?.photoUrl || "",
+        productRole: "Autor",
+      },
+    ]);
+  };
+
+  const closeAddProduct = () => {
+    setActiveProjectId(null);
+    setDraftParticipants([]);
+    setProdFormData(emptyProductForm);
+  };
+
+  const handleAddDraftParticipant = () => {
+    if (!draftTeamMemberId || !draftTeamRole) return;
+    const member = members.find((m) => m.id === Number(draftTeamMemberId));
+    if (!member) return;
+
+    setDraftParticipants((prev) => [
+      ...prev,
+      {
+        tempId: Date.now().toString(),
+        memberId: member.id,
+        memberName: member.fullName,
+        memberPhotoUrl: member.photoUrl,
+        productRole: draftTeamRole,
+      },
+    ]);
+    setDraftTeamMemberId("");
+    setDraftTeamRole("");
+  };
+
+  const handleRemoveDraftParticipant = (tempId: string) => {
+    // No permitimos remover al propio usuario del producto que está creando.
+    if (tempId === `self-${currentUser?.id}`) return;
+    setDraftParticipants((prev) => prev.filter((p) => p.tempId !== tempId));
+  };
+
+  const handleSaveProduct = async (e: React.FormEvent, projectId: number) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    setLoadingAction(`save-prod-${projectId}`);
+    try {
+      await addProductToProject(projectId, {
+        requesterId: currentUser.id,
+        title: prodFormData.title,
+        description: prodFormData.description,
+        categoryType: prodFormData.categoryType,
+        technologies: prodFormData.technologiesString
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        repositoryUrl: prodFormData.repositoryUrl,
+        demoUrl: prodFormData.demoUrl,
+        publicationSource: prodFormData.publicationSource,
+        documentUrl: prodFormData.documentUrl,
+        location: prodFormData.location,
+        participations: draftParticipants.map((d) => ({
+          memberId: d.memberId,
+          productRole: d.productRole,
+        })),
+      });
+      toast.success("Producto agregado. Queda pendiente de aprobación.");
+      closeAddProduct();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo agregar el producto");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
 
   const toggleProject = (projectId: number) => {
     setExpandedProjects((prev) => {
@@ -133,6 +248,14 @@ export default function ParticipationsPage() {
 
                 {isExpanded && (
                   <div className="p-6 bg-white">
+                    <div className="flex justify-end mb-4">
+                      <button
+                        onClick={() => openAddProduct(project)}
+                        className="bg-[#F37021] text-white px-4 py-2 text-sm font-bold border-2 border-[#1E293B] hover:bg-[#e06015] transition cursor-pointer flex items-center"
+                      >
+                        <Plus className="w-4 h-4 mr-2" /> AGREGAR PRODUCTO
+                      </button>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {(project.products || []).map((product) => {
                         const isParticipant = isUserParticipantInProduct(product);
@@ -169,6 +292,7 @@ export default function ParticipationsPage() {
                                     ? "EVENTO"
                                     : "ESCRITO"}
                                 </span>
+                                <BadgeEstado estado={product.approvalStatus} />
                               </div>
                               {isParticipant && (
                                 <span className="bg-[#F37021] text-white text-[10px] font-bold px-2 py-0.5">
@@ -261,6 +385,32 @@ export default function ParticipationsPage() {
             );
           })}
         </div>
+      )}
+
+      {activeProjectId !== null && (
+        <ProductModal
+          projectId={activeProjectId}
+          projectTitle={
+            participatedProjects.find((p) => p.id === activeProjectId)?.title || ""
+          }
+          editProdId={null}
+          loadingAction={loadingAction}
+          productFormData={prodFormData}
+          draftParticipants={draftParticipants}
+          availableMembers={members.filter(
+            (m) => !draftParticipants.some((d) => d.memberId === m.id),
+          )}
+          competencies={competencies}
+          draftTeamMemberId={draftTeamMemberId}
+          draftTeamRole={draftTeamRole}
+          onSubmit={handleSaveProduct}
+          onProductFormDataChange={setProdFormData}
+          onDraftTeamMemberIdChange={setDraftTeamMemberId}
+          onDraftTeamRoleChange={setDraftTeamRole}
+          onAddDraftParticipant={handleAddDraftParticipant}
+          onRemoveDraftParticipant={handleRemoveDraftParticipant}
+          onClose={closeAddProduct}
+        />
       )}
     </div>
   );

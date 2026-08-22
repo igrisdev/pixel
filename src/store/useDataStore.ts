@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Member, Project, Competency } from "@/types";
-import { ApiRepository } from "@/services/api";
+import { ApiRepository, CreateProductPayload } from "@/services/api";
 
 interface DataState {
   members: Member[];
@@ -17,6 +17,8 @@ interface DataState {
   loadCompetencies: () => Promise<void>;
   loadProjects: (createdBy?: number) => Promise<void>;
   loadParticipatedProjects: (memberId: number) => Promise<void>;
+
+  addProductToProject: (projectId: number, payload: CreateProductPayload) => Promise<void>;
 
   addProject: (project: Project) => Promise<void>;
   updateProject: (id: number, project: Partial<Project>) => Promise<void>;
@@ -61,6 +63,13 @@ export const useDataStore = create<DataState>()(
 
       loadParticipatedProjects: async (memberId) => {
         const projects = await ApiRepository.getProjectsByParticipation(memberId);
+        set({ participatedProjects: projects });
+      },
+
+      addProductToProject: async (projectId, payload) => {
+        await ApiRepository.createProductForProject(projectId, payload);
+        // Recargamos las participaciones del solicitante para reflejar el nuevo producto.
+        const projects = await ApiRepository.getProjectsByParticipation(payload.requesterId);
         set({ participatedProjects: projects });
       },
 

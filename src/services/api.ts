@@ -1,4 +1,18 @@
-import { Project, Member, Competency } from "@/types";
+import { Project, Member, Competency, AcademicProduct } from "@/types";
+
+export interface CreateProductPayload {
+  requesterId: number;
+  title: string;
+  description: string;
+  categoryType: string;
+  technologies?: string[];
+  repositoryUrl?: string;
+  demoUrl?: string;
+  publicationSource?: string;
+  documentUrl?: string;
+  location?: string;
+  participations?: { memberId: number; productRole: string }[];
+}
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -79,6 +93,18 @@ export const ApiRepository = {
   deleteProject: async (id: number): Promise<void> => {
     await request<{ success: boolean }>(`/api/projects/${id}`, {
       method: "DELETE",
+    });
+  },
+
+  // --- PRODUCTOS ---
+  // Un integrante agrega un producto interno a un proyecto en el que participa.
+  createProductForProject: async (
+    projectId: number,
+    payload: CreateProductPayload,
+  ): Promise<AcademicProduct> => {
+    return request<AcademicProduct>(`/api/projects/${projectId}/products`, {
+      method: "POST",
+      body: JSON.stringify(payload),
     });
   },
 

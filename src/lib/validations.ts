@@ -82,6 +82,30 @@ export const updateProjectSchema = z.object({
   })).optional(),
 });
 
+export const createProductSchema = z.object({
+  // Miembro que crea el producto: debe participar en el proyecto.
+  requesterId: z.number().min(1, "El solicitante es requerido"),
+  title: z.string().min(1, "El título es requerido").max(200, "Título muy largo"),
+  description: z.string().min(1, "La descripción es requerida"),
+  categoryType: z.enum(["DEVELOPMENT", "EVENT", "WRITING"]),
+  technologies: z.array(z.string()).optional(),
+  repositoryUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
+  demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
+  publicationSource: z.string().optional().or(z.literal("")),
+  documentUrl: validUrlOrUpload,
+  location: z.string().optional().or(z.literal("")),
+  participations: z
+    .array(
+      z.object({
+        memberId: z.number(),
+        productRole: z.string().min(1, "El rol es requerido"),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
 export const createCompetencySchema = z.object({
   name: z.string().min(1, "El nombre es requerido").max(100, "Nombre muy largo"),
   description: z.string().optional().or(z.literal("")),
