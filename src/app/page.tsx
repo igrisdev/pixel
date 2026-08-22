@@ -9,15 +9,24 @@ import MemberSkeleton from "@/components/ui/MemberSkeleton";
 import ProjectSkeleton from "@/components/ui/ProjectSkeleton";
 import EscalatorSkeleton from "@/components/ui/EscalatorSkeleton";
 import { useDataStore } from "@/store/useDataStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useInitialData } from "@/hooks/useInitialData";
 import gsap from "gsap";
 import MemberCard from "@/components/ui/MemberCard";
 
 export default function HomePage() {
   const router = useRouter();
-  const { members, projects } = useDataStore();
+  const { members, projects, loadProjects } = useDataStore();
+  const { currentUser } = useAuthStore();
   const { isLoading: isLoadingData } = useInitialData();
   const [searchInput, setSearchInput] = useState("");
+
+  // El inicio SIEMPRE debe mostrar todos los proyectos. El store de proyectos es
+  // compartido y el dashboard lo sobrescribe con solo los del usuario; por eso
+  // forzamos aquí la carga completa al montar la página de inicio.
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const escalatorRef = useRef<HTMLDivElement>(null);
   const metricsRef = useRef<HTMLDivElement>(null);
@@ -37,8 +46,15 @@ export default function HomePage() {
     .filter((s) => !s.isBanned && s.systemRole !== "ADMIN")
     .slice(0, 8);
 
+  // Se muestran los proyectos ACTIVOS a todos. Además, si hay sesión iniciada,
+  // se incluyen los proyectos propios que aún están PENDIENTES para que el
+  // creador pueda ver cómo se verán.
   const proyectosActivos = projects
-    .filter((p) => p.approvalStatus === "ACTIVE")
+    .filter(
+      (p) =>
+        p.approvalStatus === "ACTIVE" ||
+        (currentUser?.id === p.createdBy && p.approvalStatus === "PENDING"),
+    )
     .slice(0, 6);
 
   const escalatorGrid = isLoadingData ? (
