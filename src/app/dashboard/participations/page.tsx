@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Users, Folder, FileCode, FileText, Calendar, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Users, Folder, FileCode, FileText, Calendar, ChevronDown, ChevronUp, Plus, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -31,13 +31,15 @@ export default function ParticipationsPage() {
     competencies,
     loadCompetencies,
     addProductToProject,
+    updateOwnProduct,
   } = useDataStore();
   const { currentUser, currentMember } = useAuthStore();
   const [expandedProjects, setExpandedProjects] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  // Estado del modal para agregar un producto interno.
+  // Estado del modal para agregar/editar un producto interno.
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [prodFormData, setProdFormData] = useState<ProductFormData>(emptyProductForm);
   const [draftParticipants, setDraftParticipants] = useState<DraftParticipant[]>([]);
   const [draftTeamMemberId, setDraftTeamMemberId] = useState("");
@@ -57,6 +59,7 @@ export default function ParticipationsPage() {
   const openAddProduct = (project: Project) => {
     if (!currentUser) return;
     setActiveProjectId(project.id);
+    setEditingProductId(null);
     setProdFormData(emptyProductForm);
     setDraftTeamMemberId("");
     setDraftTeamRole("");
@@ -72,8 +75,38 @@ export default function ParticipationsPage() {
     ]);
   };
 
+  const openEditProduct = (project: Project, product: AcademicProduct) => {
+    if (!currentUser) return;
+    setActiveProjectId(project.id);
+    setEditingProductId(product.id);
+    setDraftTeamMemberId("");
+    setDraftTeamRole("");
+    setProdFormData({
+      title: product.title,
+      description: product.description,
+      categoryType: product.categoryType,
+      technologiesString: (product.technologies || []).join(", "),
+      repositoryUrl: product.repositoryUrl || "",
+      demoUrl: product.demoUrl || "",
+      publicationSource: product.publicationSource || "",
+      documentUrl: product.documentUrl || "",
+      location: product.location || "",
+    });
+    setDraftParticipants(
+      (product.participations || []).map((p) => ({
+        tempId:
+          p.memberId === currentUser.id ? `self-${currentUser.id}` : p.id.toString(),
+        memberId: p.memberId,
+        memberName: p.memberName,
+        memberPhotoUrl: p.memberPhotoUrl || "",
+        productRole: p.productRole,
+      })),
+    );
+  };
+
   const closeAddProduct = () => {
     setActiveProjectId(null);
+    setEditingProductId(null);
     setDraftParticipants([]);
     setProdFormData(emptyProductForm);
   };
@@ -108,30 +141,37 @@ export default function ParticipationsPage() {
     if (!currentUser) return;
 
     setLoadingAction(`save-prod-${projectId}`);
+    const payload = {
+      requesterId: currentUser.id,
+      title: prodFormData.title,
+      description: prodFormData.description,
+      categoryType: prodFormData.categoryType,
+      technologies: prodFormData.technologiesString
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      repositoryUrl: prodFormData.repositoryUrl,
+      demoUrl: prodFormData.demoUrl,
+      publicationSource: prodFormData.publicationSource,
+      documentUrl: prodFormData.documentUrl,
+      location: prodFormData.location,
+      participations: draftParticipants.map((d) => ({
+        memberId: d.memberId,
+        productRole: d.productRole,
+      })),
+    };
+
     try {
-      await addProductToProject(projectId, {
-        requesterId: currentUser.id,
-        title: prodFormData.title,
-        description: prodFormData.description,
-        categoryType: prodFormData.categoryType,
-        technologies: prodFormData.technologiesString
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-        repositoryUrl: prodFormData.repositoryUrl,
-        demoUrl: prodFormData.demoUrl,
-        publicationSource: prodFormData.publicationSource,
-        documentUrl: prodFormData.documentUrl,
-        location: prodFormData.location,
-        participations: draftParticipants.map((d) => ({
-          memberId: d.memberId,
-          productRole: d.productRole,
-        })),
-      });
-      toast.success("Producto agregado. Queda pendiente de aprobación.");
+      if (editingProductId) {
+        await updateOwnProduct(projectId, editingProductId, payload);
+        toast.success("Producto actualizado. Queda pendiente de aprobación.");
+      } else {
+        await addProductToProject(projectId, payload);
+        toast.success("Producto agregado. Queda pendiente de aprobación.");
+      }
       closeAddProduct();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No se pudo agregar el producto");
+      toast.error(error instanceof Error ? error.message : "No se pudo guardar el producto");
     } finally {
       setLoadingAction(null);
     }
@@ -294,11 +334,22 @@ export default function ParticipationsPage() {
                                 </span>
                                 <BadgeEstado estado={product.approvalStatus} />
                               </div>
-                              {isParticipant && (
-                                <span className="bg-[#F37021] text-white text-[10px] font-bold px-2 py-0.5">
-                                  PARTICIPAS
-                                </span>
-                              )}
+                              <div className="flex items-center gap-2">
+                                {product.createdBy === currentUser?.id && (
+                                  <button
+                                    onClick={() => openEditProduct(project, product)}
+                                    className="text-gray-500 hover:text-[#F37021] border border-gray-300 hover:border-[#F37021] p-1 transition cursor-pointer"
+                                    title="Editar mi producto"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {isParticipant && (
+                                  <span className="bg-[#F37021] text-white text-[10px] font-bold px-2 py-0.5">
+                                    PARTICIPAS
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             <h4 className="font-bold text-[#1E293B] mb-1 line-clamp-1">
@@ -393,7 +444,7 @@ export default function ParticipationsPage() {
           projectTitle={
             participatedProjects.find((p) => p.id === activeProjectId)?.title || ""
           }
-          editProdId={null}
+          editProdId={editingProductId}
           loadingAction={loadingAction}
           productFormData={prodFormData}
           draftParticipants={draftParticipants}

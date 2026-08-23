@@ -37,6 +37,7 @@ function toProjectResponse(project: ProjectWithRelations): Project {
       description: prod.description,
       categoryType: prod.categoryType as CategoryType,
       approvalStatus: prod.approvalStatus as ApprovalStatus,
+      createdBy: prod.createdBy ?? undefined,
       technologies: Array.isArray(prod.technologies) ? (prod.technologies as string[]) : undefined,
       repositoryUrl: prod.repositoryUrl ?? undefined,
       demoUrl: prod.demoUrl ?? undefined,

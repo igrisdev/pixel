@@ -54,6 +54,7 @@ export interface AcademicProduct {
   description: string;
   categoryType: CategoryType;
   approvalStatus: ApprovalStatus;
+  createdBy?: number;
   technologies?: string[];
   repositoryUrl?: string;
   demoUrl?: string;

@@ -108,6 +108,18 @@ export const ApiRepository = {
     });
   },
 
+  // Editar un producto propio (solo el creador). Reusa el mismo payload.
+  updateOwnProduct: async (
+    projectId: number,
+    productId: number,
+    payload: CreateProductPayload,
+  ): Promise<AcademicProduct> => {
+    return request<AcademicProduct>(`/api/projects/${projectId}/products/${productId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
   // --- MIEMBROS / USUARIOS ---
   updateMember: async (id: number, data: Partial<Member>): Promise<Member> => {
     return request<Member>(`/api/members/${id}`, {

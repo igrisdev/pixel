@@ -19,6 +19,7 @@ interface DataState {
   loadParticipatedProjects: (memberId: number) => Promise<void>;
 
   addProductToProject: (projectId: number, payload: CreateProductPayload) => Promise<void>;
+  updateOwnProduct: (projectId: number, productId: number, payload: CreateProductPayload) => Promise<void>;
 
   addProject: (project: Project) => Promise<void>;
   updateProject: (id: number, project: Partial<Project>) => Promise<void>;
@@ -69,6 +70,12 @@ export const useDataStore = create<DataState>()(
       addProductToProject: async (projectId, payload) => {
         await ApiRepository.createProductForProject(projectId, payload);
         // Recargamos las participaciones del solicitante para reflejar el nuevo producto.
+        const projects = await ApiRepository.getProjectsByParticipation(payload.requesterId);
+        set({ participatedProjects: projects });
+      },
+
+      updateOwnProduct: async (projectId, productId, payload) => {
+        await ApiRepository.updateOwnProduct(projectId, productId, payload);
         const projects = await ApiRepository.getProjectsByParticipation(payload.requesterId);
         set({ participatedProjects: projects });
       },
