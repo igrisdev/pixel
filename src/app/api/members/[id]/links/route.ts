@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createLinkSchema, updateLinkSchema } from "@/lib/validations";
+import { requireSelfOrAdmin } from "@/lib/auth";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const memberId = Number(id);
+
+    const auth = await requireSelfOrAdmin(request, memberId);
+    if (auth.error) return auth.error;
+
     const body = createLinkSchema.parse(await request.json());
     const { platform, url } = body;
 
@@ -31,6 +36,10 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   try {
     const { id } = await context.params;
     const memberId = Number(id);
+
+    const auth = await requireSelfOrAdmin(request, memberId);
+    if (auth.error) return auth.error;
+
     const { searchParams } = new URL(request.url);
     const linkId = searchParams.get("linkId");
 
@@ -56,6 +65,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   try {
     const { id } = await context.params;
     const memberId = Number(id);
+
+    const auth = await requireSelfOrAdmin(request, memberId);
+    if (auth.error) return auth.error;
+
     const { searchParams } = new URL(request.url);
     const linkId = searchParams.get("linkId");
     const body = updateLinkSchema.parse(await request.json());

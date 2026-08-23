@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import { createProductSchema } from "@/lib/validations";
+import { requireAuth } from "@/lib/auth";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
 
@@ -54,7 +55,13 @@ export async function PUT(
     const { id, productId: productIdParam } = await context.params;
     const projectId = Number(id);
     const productId = Number(productIdParam);
+
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     const body = createProductSchema.parse(await request.json());
+    // El solicitante se toma de la sesión, no del body (no falsificable).
+    const requesterId = auth.session.userId;
 
     const product = await prisma.academicProduct.findUnique({
       where: { id: productId },
@@ -66,7 +73,7 @@ export async function PUT(
     }
 
     // Autorización: solo el creador del producto puede editarlo.
-    if (product.createdBy !== body.requesterId) {
+    if (product.createdBy !== requesterId) {
       return NextResponse.json(
         { error: "Solo puedes editar los productos que tú creaste." },
         { status: 403 },
@@ -75,9 +82,9 @@ export async function PUT(
 
     // El creador siempre permanece como participante.
     const participationsInput = [...(body.participations || [])];
-    if (!participationsInput.some((p) => p.memberId === body.requesterId)) {
+    if (!participationsInput.some((p) => p.memberId === requesterId)) {
       participationsInput.unshift({
-        memberId: body.requesterId,
+        memberId: requesterId,
         productRole: "Autor",
         startDate: undefined,
         endDate: undefined,

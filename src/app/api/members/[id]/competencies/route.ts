@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateCompetenciesSchema } from "@/lib/validations";
+import { requireSelfOrAdmin } from "@/lib/auth";
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const memberId = Number(id);
+
+    const auth = await requireSelfOrAdmin(request, memberId);
+    if (auth.error) return auth.error;
+
     const body = updateCompetenciesSchema.parse(await request.json());
     const { competencyIds } = body;
 

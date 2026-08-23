@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
@@ -8,17 +8,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, currentUser } = useAuthStore();
+  const { login } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (currentUser) {
-      router.push("/dashboard");
-    }
-  }, [currentUser, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +32,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-  if (currentUser) return null;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#F8F9FA] relative p-4">

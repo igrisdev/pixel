@@ -4,6 +4,7 @@ import { ensureMemberExists } from "@/lib/member-provision";
 import { CategoryType, ApprovalStatus, Project, Participation, AcademicProduct } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { updateProjectSchema } from "@/lib/validations";
+import { requireAuth } from "@/lib/auth";
 
 const projectInclude = {
   products: {
@@ -182,7 +183,32 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   try {
     const { id } = await context.params;
     const projectId = Number(id);
+
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+    const isAdmin = auth.session.role === "ADMIN";
+
+    // Solo el creador del proyecto o un admin pueden modificarlo.
+    const existing = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { createdBy: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
+    }
+    if (!isAdmin && existing.createdBy !== auth.session.userId) {
+      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+    }
+
     const body = updateProjectSchema.parse(await request.json());
+
+    // Cambiar el estado de aprobación es una acción exclusiva de admin.
+    if ("approvalStatus" in body && !isAdmin) {
+      return NextResponse.json(
+        { error: "Solo un administrador puede cambiar el estado de aprobación." },
+        { status: 403 },
+      );
+    }
 
     const data: Prisma.ProjectUpdateInput = {};
 
@@ -239,10 +265,24 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 
-export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const projectId = Number(id);
+
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
+    const existing = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { createdBy: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
+    }
+    if (auth.session.role !== "ADMIN" && existing.createdBy !== auth.session.userId) {
+      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+    }
 
     await prisma.project.delete({ where: { id: projectId } });
 

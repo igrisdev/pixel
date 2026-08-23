@@ -15,7 +15,8 @@ interface AuthState {
   userRole: SystemRole | null;
   currentMember: Member | null;
   login: (email: string, pass: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  hydrate: () => Promise<void>;
   updateCurrentUser: (updates: Partial<CurrentUser>) => void;
 }
 
@@ -52,8 +53,33 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await ApiRepository.logout();
+        } catch {
+          // Aunque falle el servidor, limpiamos el estado local.
+        }
         set({ currentUser: null, userRole: null, currentMember: null });
+      },
+
+      // Revalida la sesión contra la cookie httpOnly (fuente de verdad del
+      // servidor). El estado persistido en localStorage es solo caché de UI.
+      hydrate: async () => {
+        try {
+          const member = await ApiRepository.me();
+          set({
+            currentUser: {
+              id: member.id,
+              name: member.fullName,
+              role: member.systemRole,
+              email: member.institutionalEmail,
+            },
+            userRole: member.systemRole,
+            currentMember: member,
+          });
+        } catch {
+          set({ currentUser: null, userRole: null, currentMember: null });
+        }
       },
 
       updateCurrentUser: (updates) =>

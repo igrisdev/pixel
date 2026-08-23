@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Competency } from "@/types";
 import { CompetencyType } from "@/generated/client";
 import { updateCompetencySchema } from "@/lib/validations";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -41,6 +42,9 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const { id } = await context.params;
     const competencyId = Number(id);
     const body = updateCompetencySchema.parse(await request.json());
@@ -76,8 +80,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 
-export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const { id } = await context.params;
     const competencyId = Number(id);
 

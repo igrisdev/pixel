@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { loginSchema } from "@/lib/validations";
+import { attachSessionCookie } from "@/lib/auth";
 
 const memberInclude = {
   competencies: true,
@@ -76,7 +77,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ data: toMemberResponse(member) });
+    // Emitimos la sesión firmada en una cookie httpOnly sobre la respuesta.
+    const response = NextResponse.json({ data: toMemberResponse(member) });
+    await attachSessionCookie(response, { userId: member.id, role: member.systemRole });
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error interno";
     return NextResponse.json(

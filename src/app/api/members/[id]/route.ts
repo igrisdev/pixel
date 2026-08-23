@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import type { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { updateMemberSchema } from "@/lib/validations";
+import { requireAdmin, requireSelfOrAdmin } from "@/lib/auth";
 
 const memberInclude = {
   competencies: true,
@@ -18,7 +19,7 @@ function toMemberResponse(member: MemberWithRelations): Member {
     fullName: member.fullName,
     institutionalEmail: member.institutionalEmail,
     personalEmail: member.personalEmail ?? "",
-    passwordHash: member.passwordHash,
+    passwordHash: "", // Nunca exponer el hash de contraseña al cliente.
     professionalProfile: member.professionalProfile ?? "",
     career: member.career,
     role: member.role,
@@ -79,7 +80,18 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;
     const memberId = Number(id);
 
+    const auth = await requireSelfOrAdmin(request, memberId);
+    if (auth.error) return auth.error;
+    const isAdmin = auth.session.role === "ADMIN";
+
     const body = updateMemberSchema.parse(await request.json());
+
+    // Solo un admin puede cambiar el rol de sistema o el estado de baneo:
+    // evita escalada de privilegios de un usuario editando su propio perfil.
+    if (!isAdmin) {
+      delete body.systemRole;
+      delete body.isBanned;
+    }
 
     const updateData: Record<string, unknown> = {
       ...(body.fullName && { fullName: body.fullName }),
@@ -120,8 +132,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   }
 }
 
-export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const { id } = await context.params;
     const memberId = Number(id);
 

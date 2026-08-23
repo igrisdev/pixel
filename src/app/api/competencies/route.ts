@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Competency } from "@/types";
 import { CompetencyType } from "@/generated/client";
 import { createCompetencySchema } from "@/lib/validations";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -34,6 +35,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const body = createCompetencySchema.parse(await request.json());
 
     const created = await prisma.competency.create({

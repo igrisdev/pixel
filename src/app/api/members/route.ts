@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
+import { requireAdmin } from "@/lib/auth";
 import { createMemberSchema } from "@/lib/validations";
 
 const memberInclude = {
@@ -18,7 +19,7 @@ function toMemberResponse(member: MemberWithRelations): Member {
     fullName: member.fullName,
     institutionalEmail: member.institutionalEmail,
     personalEmail: member.personalEmail ?? "",
-    passwordHash: member.passwordHash,
+    passwordHash: "", // Nunca exponer el hash de contraseña al cliente.
     professionalProfile: member.professionalProfile ?? "",
     career: member.career,
     role: member.role,
@@ -69,6 +70,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const body = createMemberSchema.parse(await request.json());
     const hashedPassword = await bcrypt.hash(body.passwordHash, 10);
 

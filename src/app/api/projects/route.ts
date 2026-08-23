@@ -4,6 +4,7 @@ import { ensureMemberExists } from "@/lib/member-provision";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { createProjectSchema } from "@/lib/validations";
+import { requireAuth } from "@/lib/auth";
 
 const projectInclude = {
   products: {
@@ -110,9 +111,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     const body = createProjectSchema.parse(await request.json());
 
-    await ensureMemberExists(body.createdBy);
+    // El creador se toma de la sesión, no del body (no falsificable).
+    const createdBy = auth.session.userId;
+    await ensureMemberExists(createdBy);
 
     const created = await prisma.project.create({
       data: {
@@ -122,7 +128,7 @@ export async function POST(request: Request) {
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
         coverImageUrl: (body.coverImageUrl as string) || null,
-        createdBy: body.createdBy,
+        createdBy,
         approvalStatus: "PENDING",
       },
       include: projectInclude,

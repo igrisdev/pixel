@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import { createProductSchema } from "@/lib/validations";
+import { requireAuth } from "@/lib/auth";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
 
@@ -50,7 +51,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   try {
     const { id } = await context.params;
     const projectId = Number(id);
+
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     const body = createProductSchema.parse(await request.json());
+    // El solicitante se toma de la sesión, no del body (no falsificable).
+    const requesterId = auth.session.userId;
 
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -63,13 +70,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     // Autorización: el solicitante debe ser creador del proyecto o participar
     // en alguno de sus productos.
-    const isCreator = project.createdBy === body.requesterId;
+    const isCreator = project.createdBy === requesterId;
     let isParticipant = false;
 
     if (!isCreator) {
       const participation = await prisma.participation.findFirst({
         where: {
-          memberId: body.requesterId,
+          memberId: requesterId,
           product: { projectId },
         },
         select: { id: true },
@@ -86,9 +93,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     // El solicitante siempre queda como participante del nuevo producto.
     const participationsInput = [...(body.participations || [])];
-    if (!participationsInput.some((p) => p.memberId === body.requesterId)) {
+    if (!participationsInput.some((p) => p.memberId === requesterId)) {
       participationsInput.unshift({
-        memberId: body.requesterId,
+        memberId: requesterId,
         productRole: "Autor",
         startDate: undefined,
         endDate: undefined,
@@ -107,7 +114,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         description: body.description,
         categoryType: body.categoryType,
         approvalStatus: "PENDING",
-        createdBy: body.requesterId,
+        createdBy: requesterId,
         technologies: body.technologies && body.technologies.length > 0 ? body.technologies : undefined,
         repositoryUrl: body.repositoryUrl || null,
         demoUrl: body.demoUrl || null,

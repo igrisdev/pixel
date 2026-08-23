@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import { ensureUploadDir, generateFileName, validateFile, UploadType, UPLOAD_CONFIG } from "@/lib/upload";
+import { requireAuth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const type = formData.get("type") as string | null;

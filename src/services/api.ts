@@ -183,6 +183,15 @@ export const ApiRepository = {
     });
   },
 
+  // Rehidrata la sesión desde la cookie httpOnly.
+  me: async (): Promise<Member> => {
+    return request<Member>("/api/auth/me");
+  },
+
+  logout: async (): Promise<void> => {
+    await request<{ success: boolean }>("/api/auth/logout", { method: "POST" });
+  },
+
   // --- UPLOAD ---
   uploadFile: async (file: File, type: string): Promise<{ url: string; fileName: string; type: string }> => {
     const formData = new FormData();

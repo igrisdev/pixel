@@ -1,6 +1,6 @@
 "use client"; // Necesario para Zustand y hooks de Next.js
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { User } from "lucide-react";
@@ -11,7 +11,12 @@ export default function Navbar() {
   const router = useRouter();
 
   // Consumimos el estado de Zustand
-  const { userRole } = useAuthStore();
+  const { userRole, hydrate } = useAuthStore();
+
+  // Revalidamos la sesión con el servidor (cookie httpOnly) al cargar la app.
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
   // No mostramos el Navbar en la página de Login
   if (pathname === "/login") return null;
