@@ -187,7 +187,7 @@ export default function HomePage() {
               <div className="inline-block bg-[#1E293B] text-white px-3 py-1 text-xs font-mono mb-6 pixel-border">
                 V.2026 - SEMILLERO PIXEL
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2D5A27] tracking-tight mb-4 flex items-center gap-3 whitespace-nowrap">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2D5A27] tracking-tight mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 md:whitespace-nowrap">
                 Buscador de{" "}
                 <span className="text-[#F37021] pixel-font text-2xl md:text-3xl lg:text-4xl mt-2">
                   TALENTO
