@@ -1,29 +1,16 @@
 import { prisma } from "@/lib/prisma";
 
+// Verifica que el integrante exista. Antes creaba cuentas automáticamente con
+// una contraseña conocida ("temporal123"), lo que permitía generar cuentas
+// funcionales pasando IDs arbitrarios. Ahora solo valida: si no existe, lanza
+// un error y la operación se rechaza.
 export async function ensureMemberExists(memberId: number) {
   const existing = await prisma.member.findUnique({
     where: { id: memberId },
     select: { id: true },
   });
 
-  if (existing) return;
-
-  await prisma.member.create({
-    data: {
-      id: memberId,
-      fullName: `Integrante ${memberId}`,
-      institutionalEmail: `member${memberId}@pixel.local`,
-      personalEmail: null,
-      passwordHash: "temporal123",
-      professionalProfile:
-        "Perfil temporal creado automáticamente para mantener integridad referencial.",
-      career: "Sin definir",
-      role: "Sin definir",
-      systemRole: "MEMBER",
-      academicStatus: "STUDENT",
-      photoUrl: null,
-      isBanned: false,
-      cvUrl: null,
-    },
-  });
+  if (!existing) {
+    throw new Error(`El integrante con id ${memberId} no existe.`);
+  }
 }

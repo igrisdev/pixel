@@ -5,6 +5,7 @@ import { Member, Competency, ProfessionalLink } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { loginSchema } from "@/lib/validations";
 import { attachSessionCookie } from "@/lib/auth";
+import { hitRateLimit, resetRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const memberInclude = {
   competencies: true,
@@ -50,6 +51,16 @@ export async function POST(request: Request) {
   try {
     const { email, password } = loginSchema.parse(await request.json());
 
+    // Rate limiting por IP + email: máximo 5 intentos cada 15 minutos.
+    const rateKey = `login:${getClientIp(request)}:${email.toLowerCase()}`;
+    const limit = await hitRateLimit(rateKey);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Inténtalo más tarde." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const member = await prisma.member.findFirst({
       where: { institutionalEmail: email },
       include: memberInclude,
@@ -76,6 +87,9 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    // Login exitoso: limpiamos el contador de intentos de esta clave.
+    await resetRateLimit(rateKey);
 
     // Emitimos la sesión firmada en una cookie httpOnly sobre la respuesta.
     const response = NextResponse.json({ data: toMemberResponse(member) });

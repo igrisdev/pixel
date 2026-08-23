@@ -71,3 +71,8 @@ export type AcademicProduct = Prisma.AcademicProductModel
  * 
  */
 export type Participation = Prisma.ParticipationModel
+/**
+ * Model RateLimit
+ * 
+ */
+export type RateLimit = Prisma.RateLimitModel

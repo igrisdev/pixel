@@ -140,3 +140,11 @@ model Participation {
   member         Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
   product        AcademicProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
+
+// Limitador de tasa persistente (ventana fija). Una fila por clave (p. ej.
+// "login:<ip>:<email>") con su contador y el instante de reinicio.
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+}

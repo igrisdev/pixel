@@ -71,7 +71,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Contraseñas en texto plano: admin123 (admin), est123 (miembros)
 - Credenciales de prueba:
   - Admin: admin@unimayor.edu.co / admin123
-  - Miembro: johan@unimayor.edu.co / est123
+  - Miembro: jmalvarez@unimayor.edu.co / est123
 
 ## Recuperación local de acceso admin
 - Incidente resuelto: en local hubo un cambio accidental de contraseña de admin.
@@ -81,7 +81,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   3. `npx prisma db seed`
 - Este flujo **borra datos locales** y restaura las credenciales del seed vigente:
   - Admin: `admin@unimayor.edu.co / admin123`
-  - Miembro: `johan@unimayor.edu.co / est123`
+  - Miembro: `jmalvarez@unimayor.edu.co / est123`
 
 ## API Routes
 - `/api/auth/login` - Autenticación de usuarios (POST)
