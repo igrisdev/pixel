@@ -16,6 +16,7 @@ import { Project, AcademicProduct, CategoryType, Participation } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProjectMacroModal from "@/components/ui/project-crud/ProjectMacroModal";
 import ProductModal from "@/components/ui/project-crud/ProductModal";
+import { suggestTeamFromProject } from "@/components/ui/project-crud/team-suggestions";
 import ProductCard from "@/components/ui/project-crud/ProductCard";
 import {
   DraftParticipant,
@@ -197,7 +198,13 @@ export default function IntegranteProyectosCRUD() {
       location: "",
     });
 
-    // Añadimos por defecto al usuario actual como Líder
+    // Añadimos por defecto al usuario actual como Líder y sugerimos el equipo
+    // de los demás productos del proyecto, para no elegirlos otra vez a mano.
+    const project = projects.find((p) => p.id === projectId);
+    const suggested = project
+      ? suggestTeamFromProject(project).filter((p) => p.memberId !== currentUser?.id)
+      : [];
+
     const userDetails = members.find((m) => m.id === currentUser?.id);
     if (userDetails) {
       setDraftParticipants([
@@ -208,9 +215,10 @@ export default function IntegranteProyectosCRUD() {
           memberPhotoUrl: userDetails.photoUrl,
           productRole: "Líder de Producto",
         },
+        ...suggested,
       ]);
     } else {
-      setDraftParticipants([]);
+      setDraftParticipants(suggested);
     }
   };
 

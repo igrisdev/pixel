@@ -6,6 +6,8 @@ export type DraftParticipant = {
   memberName: string;
   memberPhotoUrl: string;
   productRole: string;
+  // Marca a quienes vienen sugeridos desde otros productos del proyecto.
+  suggested?: boolean;
 };
 
 export type ProjectFormData = {

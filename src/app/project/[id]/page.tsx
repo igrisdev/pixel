@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
+import ProductGallery from "@/components/ui/ProductGallery";
 import { formatDate } from "@/lib/date";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, useState } from "react";
@@ -180,24 +181,10 @@ export default function ProjectPage() {
                     </p>
 
                     {product.images && product.images.length > 0 && (
-                      <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {product.images.map((url, i) => (
-                          <a
-                            key={`${url}-${i}`}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block border-2 border-gray-200 bg-white aspect-square overflow-hidden hover:border-[#F37021] transition"
-                          >
-                            <img
-                              src={url}
-                              alt={`${product.title} - imagen ${i + 1}`}
-                              loading="lazy"
-                              className="w-full h-full object-cover hover:scale-105 transition duration-300"
-                            />
-                          </a>
-                        ))}
-                      </div>
+                      <ProductGallery
+                        images={product.images}
+                        title={product.title}
+                      />
                     )}
 
                     {product.categoryType === "DEVELOPMENT" && (

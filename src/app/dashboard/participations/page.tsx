@@ -9,6 +9,7 @@ import { Project, AcademicProduct } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProductModal from "@/components/ui/project-crud/ProductModal";
 import { DraftParticipant, ProductFormData } from "@/components/ui/project-crud/types";
+import { suggestTeamFromProject } from "@/components/ui/project-crud/team-suggestions";
 
 const emptyProductForm: ProductFormData = {
   title: "",
@@ -64,16 +65,20 @@ export default function ParticipationsPage() {
     setProdFormData(emptyProductForm);
     setDraftTeamMemberId("");
     setDraftTeamRole("");
-    // El usuario actual siempre queda como participante del nuevo producto.
-    setDraftParticipants([
-      {
-        tempId: `self-${currentUser.id}`,
-        memberId: currentUser.id,
-        memberName: currentMember?.fullName || currentUser.name,
-        memberPhotoUrl: currentMember?.photoUrl || "",
-        productRole: "Autor",
-      },
-    ]);
+    // El usuario actual siempre queda como participante del nuevo producto, y
+    // el resto del equipo se sugiere desde los otros productos del proyecto.
+    const self: DraftParticipant = {
+      tempId: `self-${currentUser.id}`,
+      memberId: currentUser.id,
+      memberName: currentMember?.fullName || currentUser.name,
+      memberPhotoUrl: currentMember?.photoUrl || "",
+      productRole: "Autor",
+    };
+    const suggested = suggestTeamFromProject(project).filter(
+      (p) => p.memberId !== currentUser.id,
+    );
+
+    setDraftParticipants([self, ...suggested]);
   };
 
   const openEditProduct = (project: Project, product: AcademicProduct) => {

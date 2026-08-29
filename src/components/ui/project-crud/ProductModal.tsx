@@ -247,6 +247,13 @@ export default function ProductModal({
               <Users className="w-5 h-5 mr-2 text-[#2D5A27]" /> Equipo del Producto
             </h5>
 
+            {draftParticipants.some((p) => p.suggested) && (
+              <p className="text-xs text-[#334155] bg-orange-50 border border-[#F37021]/40 p-2 mb-3">
+                Precargamos el equipo de los otros productos de este proyecto. Quita
+                con <strong>✕</strong> a quienes no participaron en este producto.
+              </p>
+            )}
+
             <ul className="space-y-2 mb-4">
               {draftParticipants.map((part) => (
                 <li
@@ -261,8 +268,15 @@ export default function ProductModal({
                     />
                     <div>
                       <span className="font-bold text-[#1E293B] block">{part.memberName}</span>
-                      <span className="text-xs text-[#2D5A27] font-mono font-bold bg-green-50 px-1 border border-green-200">
-                        {part.productRole}
+                      <span className="inline-flex flex-wrap items-center gap-1">
+                        <span className="text-xs text-[#2D5A27] font-mono font-bold bg-green-50 px-1 border border-green-200">
+                          {part.productRole}
+                        </span>
+                        {part.suggested && (
+                          <span className="text-[10px] text-[#F37021] font-mono font-bold bg-orange-50 px-1 border border-[#F37021]/40">
+                            SUGERIDO
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
