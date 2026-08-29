@@ -179,6 +179,27 @@ export default function ProjectPage() {
                       {product.description}
                     </p>
 
+                    {product.images && product.images.length > 0 && (
+                      <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {product.images.map((url, i) => (
+                          <a
+                            key={`${url}-${i}`}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block border-2 border-gray-200 bg-white aspect-square overflow-hidden hover:border-[#F37021] transition"
+                          >
+                            <img
+                              src={url}
+                              alt={`${product.title} - imagen ${i + 1}`}
+                              loading="lazy"
+                              className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
                     {product.categoryType === "DEVELOPMENT" && (
                       <div className="mb-4">
                         <div className="flex flex-wrap gap-2 mb-4">

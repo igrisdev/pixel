@@ -112,8 +112,11 @@ model AcademicProduct {
   approvalStatus    ApprovalStatus @default(PENDING)
   createdBy         Int?           // Miembro que creó el producto (null para productos legados/admin)
   
-  technologies      Json?          
-  
+  technologies      Json?
+
+  // Galería del producto: array de URLs de imágenes (máximo 10).
+  images            Json?
+
   repositoryUrl     String?
   demoUrl           String?
   publicationSource String?

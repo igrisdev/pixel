@@ -40,6 +40,7 @@ function toProjectResponse(project: ProjectWithRelations) {
       approvalStatus: prod.approvalStatus as ApprovalStatus,
       createdBy: prod.createdBy ?? undefined,
       technologies: Array.isArray(prod.technologies) ? (prod.technologies as string[]) : undefined,
+      images: Array.isArray(prod.images) ? (prod.images as string[]) : undefined,
       repositoryUrl: prod.repositoryUrl ?? undefined,
       demoUrl: prod.demoUrl ?? undefined,
       publicationSource: prod.publicationSource ?? undefined,

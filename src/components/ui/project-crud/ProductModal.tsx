@@ -5,6 +5,7 @@ import { X, FileCode, FileText, Folder, Loader2, MapPin, UserPlus, Users } from 
 import { CategoryType, Competency, Member } from "@/types";
 import { DraftParticipant, ProductFormData } from "./types";
 import FileUploadInput from "@/components/ui/FileUploadInput";
+import ProductImagesInput from "@/components/ui/ProductImagesInput";
 
 interface ProductModalProps {
   projectId: number;
@@ -116,6 +117,19 @@ export default function ProductModal({
               }
               rows={2}
               className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+            />
+          </div>
+
+          <div className="p-4 border border-gray-200 bg-white">
+            <ProductImagesInput
+              value={productFormData.images}
+              onChange={(images) =>
+                onProductFormDataChange({
+                  ...productFormData,
+                  images,
+                })
+              }
+              disabled={isSaving}
             />
           </div>
 

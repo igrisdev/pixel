@@ -1,4 +1,13 @@
-import { z } from "zod";
+import { z, ZodError } from "zod";
+
+// Devuelve un mensaje legible si el error viene de una validación Zod,
+// o null si es otro tipo de error. Permite responder 400 en vez de 500.
+export function zodErrorMessage(error: unknown): string | null {
+  if (error instanceof ZodError) {
+    return error.issues.map((issue) => issue.message).join(" ");
+  }
+  return null;
+}
 
 const uploadUrlSchema = z.string().startsWith("/uploads/");
 const validUrlOrUpload = z.union([
@@ -7,6 +16,15 @@ const validUrlOrUpload = z.union([
   z.null(),
   z.literal(""),
 ]).optional();
+
+// Máximo de imágenes permitidas en la galería de un producto académico.
+export const MAX_PRODUCT_IMAGES = 10;
+
+// Galería de imágenes de un producto: rutas subidas o URLs externas.
+const productImagesSchema = z
+  .array(z.union([z.string().url("URL de imagen inválida"), uploadUrlSchema]))
+  .max(MAX_PRODUCT_IMAGES, `Máximo ${MAX_PRODUCT_IMAGES} imágenes por producto`)
+  .optional();
 
 export const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -66,6 +84,7 @@ export const updateProjectSchema = z.object({
     description: z.string().optional(),
     categoryType: z.string().optional(),
     technologies: z.array(z.string()).optional(),
+    images: productImagesSchema,
     repositoryUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     publicationSource: z.string().optional().or(z.literal("")),
@@ -89,6 +108,7 @@ export const createProductSchema = z.object({
   description: z.string().min(1, "La descripción es requerida"),
   categoryType: z.enum(["DEVELOPMENT", "EVENT", "WRITING"]),
   technologies: z.array(z.string()).optional(),
+  images: productImagesSchema,
   repositoryUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
   demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
   publicationSource: z.string().optional().or(z.literal("")),

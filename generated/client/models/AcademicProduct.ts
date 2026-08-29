@@ -81,6 +81,7 @@ export type AcademicProductCountAggregateOutputType = {
   approvalStatus: number
   createdBy: number
   technologies: number
+  images: number
   repositoryUrl: number
   demoUrl: number
   publicationSource: number
@@ -147,6 +148,7 @@ export type AcademicProductCountAggregateInputType = {
   approvalStatus?: true
   createdBy?: true
   technologies?: true
+  images?: true
   repositoryUrl?: true
   demoUrl?: true
   publicationSource?: true
@@ -252,6 +254,7 @@ export type AcademicProductGroupByOutputType = {
   approvalStatus: $Enums.ApprovalStatus
   createdBy: number | null
   technologies: runtime.JsonValue | null
+  images: runtime.JsonValue | null
   repositoryUrl: string | null
   demoUrl: string | null
   publicationSource: string | null
@@ -293,6 +296,7 @@ export type AcademicProductWhereInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFilter<"AcademicProduct"> | $Enums.ApprovalStatus
   createdBy?: Prisma.IntNullableFilter<"AcademicProduct"> | number | null
   technologies?: Prisma.JsonNullableFilter<"AcademicProduct">
+  images?: Prisma.JsonNullableFilter<"AcademicProduct">
   repositoryUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   demoUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
@@ -313,6 +317,7 @@ export type AcademicProductOrderByWithRelationInput = {
   approvalStatus?: Prisma.SortOrder
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder
   technologies?: Prisma.SortOrderInput | Prisma.SortOrder
+  images?: Prisma.SortOrderInput | Prisma.SortOrder
   repositoryUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   demoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   publicationSource?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -336,6 +341,7 @@ export type AcademicProductWhereUniqueInput = Prisma.AtLeast<{
   approvalStatus?: Prisma.EnumApprovalStatusFilter<"AcademicProduct"> | $Enums.ApprovalStatus
   createdBy?: Prisma.IntNullableFilter<"AcademicProduct"> | number | null
   technologies?: Prisma.JsonNullableFilter<"AcademicProduct">
+  images?: Prisma.JsonNullableFilter<"AcademicProduct">
   repositoryUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   demoUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
@@ -356,6 +362,7 @@ export type AcademicProductOrderByWithAggregationInput = {
   approvalStatus?: Prisma.SortOrder
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder
   technologies?: Prisma.SortOrderInput | Prisma.SortOrder
+  images?: Prisma.SortOrderInput | Prisma.SortOrder
   repositoryUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   demoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   publicationSource?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -382,6 +389,7 @@ export type AcademicProductScalarWhereWithAggregatesInput = {
   approvalStatus?: Prisma.EnumApprovalStatusWithAggregatesFilter<"AcademicProduct"> | $Enums.ApprovalStatus
   createdBy?: Prisma.IntNullableWithAggregatesFilter<"AcademicProduct"> | number | null
   technologies?: Prisma.JsonNullableWithAggregatesFilter<"AcademicProduct">
+  images?: Prisma.JsonNullableWithAggregatesFilter<"AcademicProduct">
   repositoryUrl?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
   demoUrl?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
@@ -398,6 +406,7 @@ export type AcademicProductCreateInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -418,6 +427,7 @@ export type AcademicProductUncheckedCreateInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -435,6 +445,7 @@ export type AcademicProductUpdateInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -455,6 +466,7 @@ export type AcademicProductUncheckedUpdateInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -474,6 +486,7 @@ export type AcademicProductCreateManyInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -490,6 +503,7 @@ export type AcademicProductUpdateManyMutationInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -508,6 +522,7 @@ export type AcademicProductUncheckedUpdateManyInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -536,6 +551,7 @@ export type AcademicProductCountOrderByAggregateInput = {
   approvalStatus?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   technologies?: Prisma.SortOrder
+  images?: Prisma.SortOrder
   repositoryUrl?: Prisma.SortOrder
   demoUrl?: Prisma.SortOrder
   publicationSource?: Prisma.SortOrder
@@ -671,6 +687,7 @@ export type AcademicProductCreateWithoutProjectInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -689,6 +706,7 @@ export type AcademicProductUncheckedCreateWithoutProjectInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -737,6 +755,7 @@ export type AcademicProductScalarWhereInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFilter<"AcademicProduct"> | $Enums.ApprovalStatus
   createdBy?: Prisma.IntNullableFilter<"AcademicProduct"> | number | null
   technologies?: Prisma.JsonNullableFilter<"AcademicProduct">
+  images?: Prisma.JsonNullableFilter<"AcademicProduct">
   repositoryUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   demoUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
@@ -753,6 +772,7 @@ export type AcademicProductCreateWithoutParticipationsInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -772,6 +792,7 @@ export type AcademicProductUncheckedCreateWithoutParticipationsInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -804,6 +825,7 @@ export type AcademicProductUpdateWithoutParticipationsInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -823,6 +845,7 @@ export type AcademicProductUncheckedUpdateWithoutParticipationsInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -840,6 +863,7 @@ export type AcademicProductCreateManyProjectInput = {
   approvalStatus?: $Enums.ApprovalStatus
   createdBy?: number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: string | null
   demoUrl?: string | null
   publicationSource?: string | null
@@ -856,6 +880,7 @@ export type AcademicProductUpdateWithoutProjectInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -874,6 +899,7 @@ export type AcademicProductUncheckedUpdateWithoutProjectInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -892,6 +918,7 @@ export type AcademicProductUncheckedUpdateManyWithoutProjectInput = {
   approvalStatus?: Prisma.EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
   createdBy?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   technologies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  images?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -941,6 +968,7 @@ export type AcademicProductSelect<ExtArgs extends runtime.Types.Extensions.Inter
   approvalStatus?: boolean
   createdBy?: boolean
   technologies?: boolean
+  images?: boolean
   repositoryUrl?: boolean
   demoUrl?: boolean
   publicationSource?: boolean
@@ -962,6 +990,7 @@ export type AcademicProductSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   approvalStatus?: boolean
   createdBy?: boolean
   technologies?: boolean
+  images?: boolean
   repositoryUrl?: boolean
   demoUrl?: boolean
   publicationSource?: boolean
@@ -981,6 +1010,7 @@ export type AcademicProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   approvalStatus?: boolean
   createdBy?: boolean
   technologies?: boolean
+  images?: boolean
   repositoryUrl?: boolean
   demoUrl?: boolean
   publicationSource?: boolean
@@ -1000,6 +1030,7 @@ export type AcademicProductSelectScalar = {
   approvalStatus?: boolean
   createdBy?: boolean
   technologies?: boolean
+  images?: boolean
   repositoryUrl?: boolean
   demoUrl?: boolean
   publicationSource?: boolean
@@ -1009,7 +1040,7 @@ export type AcademicProductSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AcademicProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "categoryType" | "approvalStatus" | "createdBy" | "technologies" | "repositoryUrl" | "demoUrl" | "publicationSource" | "documentUrl" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["academicProduct"]>
+export type AcademicProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "categoryType" | "approvalStatus" | "createdBy" | "technologies" | "images" | "repositoryUrl" | "demoUrl" | "publicationSource" | "documentUrl" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["academicProduct"]>
 export type AcademicProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   participations?: boolean | Prisma.AcademicProduct$participationsArgs<ExtArgs>
@@ -1037,6 +1068,7 @@ export type $AcademicProductPayload<ExtArgs extends runtime.Types.Extensions.Int
     approvalStatus: $Enums.ApprovalStatus
     createdBy: number | null
     technologies: runtime.JsonValue | null
+    images: runtime.JsonValue | null
     repositoryUrl: string | null
     demoUrl: string | null
     publicationSource: string | null
@@ -1477,6 +1509,7 @@ export interface AcademicProductFieldRefs {
   readonly approvalStatus: Prisma.FieldRef<"AcademicProduct", 'ApprovalStatus'>
   readonly createdBy: Prisma.FieldRef<"AcademicProduct", 'Int'>
   readonly technologies: Prisma.FieldRef<"AcademicProduct", 'Json'>
+  readonly images: Prisma.FieldRef<"AcademicProduct", 'Json'>
   readonly repositoryUrl: Prisma.FieldRef<"AcademicProduct", 'String'>
   readonly demoUrl: Prisma.FieldRef<"AcademicProduct", 'String'>
   readonly publicationSource: Prisma.FieldRef<"AcademicProduct", 'String'>

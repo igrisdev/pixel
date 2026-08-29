@@ -6,6 +6,7 @@ export interface CreateProductPayload {
   description: string;
   categoryType: string;
   technologies?: string[];
+  images?: string[];
   repositoryUrl?: string;
   demoUrl?: string;
   publicationSource?: string;

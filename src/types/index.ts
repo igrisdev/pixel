@@ -56,6 +56,7 @@ export interface AcademicProduct {
   approvalStatus: ApprovalStatus;
   createdBy?: number;
   technologies?: string[];
+  images?: string[];
   repositoryUrl?: string;
   demoUrl?: string;
   publicationSource?: string;

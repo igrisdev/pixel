@@ -66,6 +66,7 @@ export default function IntegranteProyectosCRUD() {
     description: "",
     categoryType: "DEVELOPMENT" as CategoryType,
     technologiesString: "",
+    images: [],
     repositoryUrl: "",
     demoUrl: "",
     publicationSource: "",
@@ -188,6 +189,7 @@ export default function IntegranteProyectosCRUD() {
       description: "",
       categoryType: "DEVELOPMENT",
       technologiesString: "",
+      images: [],
       repositoryUrl: "",
       demoUrl: "",
       publicationSource: "",
@@ -218,6 +220,7 @@ export default function IntegranteProyectosCRUD() {
       description: prod.description,
       categoryType: prod.categoryType,
       technologiesString: prod.technologies?.join(", ") || "",
+      images: prod.images || [],
       repositoryUrl: prod.repositoryUrl || "",
       demoUrl: prod.demoUrl || "",
       publicationSource: prod.publicationSource || "",
@@ -283,6 +286,7 @@ export default function IntegranteProyectosCRUD() {
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
+        images: prodFormData.images,
         repositoryUrl: prodFormData.repositoryUrl,
         demoUrl: prodFormData.demoUrl,
         publicationSource: prodFormData.publicationSource,

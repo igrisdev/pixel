@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
-import { createProductSchema } from "@/lib/validations";
+import { createProductSchema, zodErrorMessage } from "@/lib/validations";
 import { requireAuth } from "@/lib/auth";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
@@ -26,6 +26,7 @@ function toProductResponse(prod: ProductWithRelations) {
     approvalStatus: prod.approvalStatus as ApprovalStatus,
     createdBy: prod.createdBy ?? undefined,
     technologies: Array.isArray(prod.technologies) ? (prod.technologies as string[]) : undefined,
+    images: Array.isArray(prod.images) ? (prod.images as string[]) : undefined,
     repositoryUrl: prod.repositoryUrl ?? undefined,
     demoUrl: prod.demoUrl ?? undefined,
     publicationSource: prod.publicationSource ?? undefined,
@@ -108,6 +109,8 @@ export async function PUT(
           categoryType: body.categoryType,
           approvalStatus: "PENDING",
           technologies: body.technologies && body.technologies.length > 0 ? body.technologies : undefined,
+          // Un array vacío sí se guarda: permite quitar todas las imágenes.
+          images: body.images,
           repositoryUrl: body.repositoryUrl || null,
           demoUrl: body.demoUrl || null,
           publicationSource: body.publicationSource || null,
@@ -136,6 +139,11 @@ export async function PUT(
 
     return NextResponse.json({ data: updated ? toProductResponse(updated) : null });
   } catch (error) {
+    const invalid = zodErrorMessage(error);
+    if (invalid) {
+      return NextResponse.json({ error: invalid }, { status: 400 });
+    }
+
     const message = error instanceof Error ? error.message : "Error interno";
     return NextResponse.json(
       {

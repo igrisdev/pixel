@@ -15,6 +15,7 @@ const emptyProductForm: ProductFormData = {
   description: "",
   categoryType: "DEVELOPMENT",
   technologiesString: "",
+  images: [],
   repositoryUrl: "",
   demoUrl: "",
   publicationSource: "",
@@ -86,6 +87,7 @@ export default function ParticipationsPage() {
       description: product.description,
       categoryType: product.categoryType,
       technologiesString: (product.technologies || []).join(", "),
+      images: product.images || [],
       repositoryUrl: product.repositoryUrl || "",
       demoUrl: product.demoUrl || "",
       publicationSource: product.publicationSource || "",
@@ -150,6 +152,7 @@ export default function ParticipationsPage() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      images: prodFormData.images,
       repositoryUrl: prodFormData.repositoryUrl,
       demoUrl: prodFormData.demoUrl,
       publicationSource: prodFormData.publicationSource,
@@ -362,6 +365,24 @@ export default function ParticipationsPage() {
                             {isParticipant && userRole && (
                               <div className="text-xs font-mono text-[#F37021] font-semibold bg-white px-2 py-1 border border-[#F37021] inline-block">
                                 Tu rol: {userRole}
+                              </div>
+                            )}
+
+                            {product.images && product.images.length > 0 && (
+                              <div className="mt-3 flex flex-wrap gap-1">
+                                {product.images.slice(0, 4).map((url, i) => (
+                                  <img
+                                    key={`${url}-${i}`}
+                                    src={url}
+                                    alt={`Imagen ${i + 1}`}
+                                    className="w-10 h-10 object-cover border border-gray-300 bg-white"
+                                  />
+                                ))}
+                                {product.images.length > 4 && (
+                                  <span className="w-10 h-10 border border-gray-300 bg-gray-50 text-[10px] text-gray-500 flex items-center justify-center font-mono">
+                                    +{product.images.length - 4}
+                                  </span>
+                                )}
                               </div>
                             )}
 

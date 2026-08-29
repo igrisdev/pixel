@@ -22,6 +22,7 @@ export type ProductFormData = {
   description: string;
   categoryType: CategoryType;
   technologiesString: string;
+  images: string[];
   repositoryUrl: string;
   demoUrl: string;
   publicationSource: string;

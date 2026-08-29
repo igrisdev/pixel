@@ -1034,6 +1034,7 @@ export const AcademicProductScalarFieldEnum = {
   approvalStatus: 'approvalStatus',
   createdBy: 'createdBy',
   technologies: 'technologies',
+  images: 'images',
   repositoryUrl: 'repositoryUrl',
   demoUrl: 'demoUrl',
   publicationSource: 'publicationSource',

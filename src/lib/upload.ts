@@ -10,7 +10,7 @@ export const ALLOWED_PDF_TYPES = ["application/pdf"];
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 export const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
 
-export type UploadType = "profiles" | "cvs" | "covers" | "documents";
+export type UploadType = "profiles" | "cvs" | "covers" | "documents" | "products";
 
 export const UPLOAD_CONFIG: Record<UploadType, { allowedTypes: string[]; maxSize: number }> = {
   profiles: {
@@ -28,6 +28,11 @@ export const UPLOAD_CONFIG: Record<UploadType, { allowedTypes: string[]; maxSize
   documents: {
     allowedTypes: ALLOWED_PDF_TYPES,
     maxSize: MAX_PDF_SIZE,
+  },
+  // Galería de imágenes de los productos académicos.
+  products: {
+    allowedTypes: ALLOWED_IMAGE_TYPES,
+    maxSize: MAX_IMAGE_SIZE,
   },
 };
 
