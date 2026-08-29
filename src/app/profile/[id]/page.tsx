@@ -97,7 +97,7 @@ export default function ProfilePage() {
           date: `${formatDate(participation.startDate)} - ${participation.endDate ? formatDate(participation.endDate) : "Presente"}`,
           tech: prod.technologies || [],
           source: prod.publicationSource || "",
-          location: prod.location || "",
+          location: prod.city || "",
           isProjectHead: project.createdBy === student.id, // Es líder si creó el Proyecto Macro
         };
       });

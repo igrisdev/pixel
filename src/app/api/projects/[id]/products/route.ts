@@ -31,7 +31,11 @@ function toProductResponse(prod: ProductWithRelations) {
     demoUrl: prod.demoUrl ?? undefined,
     publicationSource: prod.publicationSource ?? undefined,
     documentUrl: prod.documentUrl ?? undefined,
-    location: prod.location ?? undefined,
+    city: prod.city ?? undefined,
+    eventName: prod.eventName ?? undefined,
+    venue: prod.venue ?? undefined,
+    startDate: prod.startDate?.toISOString(),
+    endDate: prod.endDate?.toISOString(),
     participations: (prod.participations || []).map((part) => ({
       id: part.id,
       memberId: part.memberId,
@@ -122,7 +126,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         demoUrl: body.demoUrl || null,
         publicationSource: body.publicationSource || null,
         documentUrl: body.documentUrl || null,
-        location: body.location || null,
+        city: body.city || null,
+        eventName: body.eventName || null,
+        venue: body.venue || null,
+        startDate: body.startDate ? new Date(body.startDate) : null,
+        endDate: body.endDate ? new Date(body.endDate) : null,
         participations: {
           create: participationsInput.map((p) => ({
             memberId: p.memberId,

@@ -10,6 +10,7 @@ import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProductModal from "@/components/ui/project-crud/ProductModal";
 import { DraftParticipant, ProductFormData } from "@/components/ui/project-crud/types";
 import { suggestTeamFromProject } from "@/components/ui/project-crud/team-suggestions";
+import { categoryShortLabel } from "@/lib/category";
 
 const emptyProductForm: ProductFormData = {
   title: "",
@@ -21,7 +22,11 @@ const emptyProductForm: ProductFormData = {
   demoUrl: "",
   publicationSource: "",
   documentUrl: "",
-  location: "",
+  city: "",
+  eventName: "",
+  venue: "",
+  startDate: "",
+  endDate: "",
 };
 
 export default function ParticipationsPage() {
@@ -97,7 +102,11 @@ export default function ParticipationsPage() {
       demoUrl: product.demoUrl || "",
       publicationSource: product.publicationSource || "",
       documentUrl: product.documentUrl || "",
-      location: product.location || "",
+      city: product.city || "",
+      eventName: product.eventName || "",
+      venue: product.venue || "",
+      startDate: product.startDate ? product.startDate.slice(0, 10) : "",
+      endDate: product.endDate ? product.endDate.slice(0, 10) : "",
     });
     setDraftParticipants(
       (product.participations || []).map((p) => ({
@@ -162,7 +171,11 @@ export default function ParticipationsPage() {
       demoUrl: prodFormData.demoUrl,
       publicationSource: prodFormData.publicationSource,
       documentUrl: prodFormData.documentUrl,
-      location: prodFormData.location,
+      city: prodFormData.city,
+      eventName: prodFormData.eventName,
+      venue: prodFormData.venue,
+      startDate: prodFormData.startDate,
+      endDate: prodFormData.endDate,
       participations: draftParticipants.map((d) => ({
         memberId: d.memberId,
         productRole: d.productRole,
@@ -334,11 +347,7 @@ export default function ParticipationsPage() {
                                     ? "bg-purple-100 text-purple-700"
                                     : "bg-green-100 text-green-700"
                                 }`}>
-                                  {product.categoryType === "DEVELOPMENT"
-                                    ? "DESARROLLO"
-                                    : product.categoryType === "EVENT"
-                                    ? "EVENTO"
-                                    : "ESCRITO"}
+                                  {categoryShortLabel(product.categoryType)}
                                 </span>
                                 <BadgeEstado estado={product.approvalStatus} />
                               </div>

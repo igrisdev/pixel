@@ -1039,7 +1039,11 @@ export const AcademicProductScalarFieldEnum = {
   demoUrl: 'demoUrl',
   publicationSource: 'publicationSource',
   documentUrl: 'documentUrl',
-  location: 'location',
+  city: 'city',
+  eventName: 'eventName',
+  venue: 'venue',
+  startDate: 'startDate',
+  endDate: 'endDate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -121,7 +121,13 @@ model AcademicProduct {
   demoUrl           String?
   publicationSource String?
   documentUrl       String?
-  location          String?
+
+  // Contexto opcional, disponible para cualquier categoría de producto.
+  city              String?   // Ciudad
+  eventName         String?   // Nombre del evento
+  venue             String?   // Lugar del evento (universidad, auditorio, etc.)
+  startDate         DateTime? // Fecha de inicio
+  endDate           DateTime? // Fecha de fin
 
   // Relaciones
   project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)

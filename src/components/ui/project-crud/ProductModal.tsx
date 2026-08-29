@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { X, FileCode, FileText, Folder, Loader2, MapPin, UserPlus, Users } from "lucide-react";
+import { X, Calendar, FileCode, FileText, Folder, Loader2, MapPin, UserPlus, Users } from "lucide-react";
 import { CategoryType, Competency, Member } from "@/types";
 import { DraftParticipant, ProductFormData } from "./types";
 import FileUploadInput from "@/components/ui/FileUploadInput";
 import ProductImagesInput from "@/components/ui/ProductImagesInput";
+import { CATEGORY_LABELS } from "@/lib/category";
 
 interface ProductModalProps {
   projectId: number;
@@ -97,9 +98,9 @@ export default function ProductModal({
                 className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 disabled={!!editProdId || isSaving}
               >
-                <option value="DEVELOPMENT">Software / Desarrollo</option>
-                <option value="WRITING">Artículo / Memoria</option>
-                <option value="EVENT">Evento</option>
+                <option value="DEVELOPMENT">{CATEGORY_LABELS.DEVELOPMENT}</option>
+                <option value="WRITING">{CATEGORY_LABELS.WRITING}</option>
+                <option value="EVENT">{CATEGORY_LABELS.EVENT}</option>
               </select>
             </div>
           </div>
@@ -133,6 +134,7 @@ export default function ProductModal({
             />
           </div>
 
+          {productFormData.categoryType !== "EVENT" && (
           <div className="p-4 border border-gray-200 bg-gray-50">
             {productFormData.categoryType === "DEVELOPMENT" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -221,25 +223,88 @@ export default function ProductModal({
                 </div>
               </div>
             )}
-            {productFormData.categoryType === "EVENT" && (
+          </div>
+          )}
+
+          {/* Contexto opcional: aplica a cualquier categoría de producto. */}
+          <div className="p-4 border border-gray-200 bg-gray-50 space-y-4">
+            <p className="text-xs font-mono text-gray-500 flex items-center">
+              <MapPin className="w-3 h-3 mr-1" /> CONTEXTO DEL PRODUCTO (OPCIONAL)
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
-                  <MapPin className="w-3 h-3 mr-1" /> CIUDAD / LOCALIDAD DEL EVENTO
-                </label>
+                <label className="block text-xs font-mono text-gray-500 mb-1">CIUDAD</label>
                 <input
                   type="text"
                   disabled={isSaving}
-                  value={productFormData.location}
+                  value={productFormData.city}
                   onChange={(e) =>
-                    onProductFormDataChange({
-                      ...productFormData,
-                      location: e.target.value,
-                    })
+                    onProductFormDataChange({ ...productFormData, city: e.target.value })
+                  }
+                  placeholder="Popayán"
+                  className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-mono text-gray-500 mb-1">EVENTO</label>
+                <input
+                  type="text"
+                  disabled={isSaving}
+                  value={productFormData.eventName}
+                  onChange={(e) =>
+                    onProductFormDataChange({ ...productFormData, eventName: e.target.value })
+                  }
+                  placeholder="Congreso Nacional de Ingeniería"
+                  className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-mono text-gray-500 mb-1">LUGAR</label>
+                <input
+                  type="text"
+                  disabled={isSaving}
+                  value={productFormData.venue}
+                  onChange={(e) =>
+                    onProductFormDataChange({ ...productFormData, venue: e.target.value })
+                  }
+                  placeholder="Universidad Colegio Mayor"
+                  className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                  <Calendar className="w-3 h-3 mr-1" /> FECHA DE INICIO
+                </label>
+                <input
+                  type="date"
+                  disabled={isSaving}
+                  value={productFormData.startDate}
+                  onChange={(e) =>
+                    onProductFormDataChange({ ...productFormData, startDate: e.target.value })
                   }
                   className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
                 />
               </div>
-            )}
+              <div>
+                <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
+                  <Calendar className="w-3 h-3 mr-1" /> FECHA DE FIN
+                </label>
+                <input
+                  type="date"
+                  disabled={isSaving}
+                  min={productFormData.startDate || undefined}
+                  value={productFormData.endDate}
+                  onChange={(e) =>
+                    onProductFormDataChange({ ...productFormData, endDate: e.target.value })
+                  }
+                  className="w-full border border-gray-300 p-2 focus:border-[#F37021] disabled:bg-gray-100"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="bg-white p-4 border border-gray-200">

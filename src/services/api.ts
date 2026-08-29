@@ -11,7 +11,11 @@ export interface CreateProductPayload {
   demoUrl?: string;
   publicationSource?: string;
   documentUrl?: string;
-  location?: string;
+  city?: string;
+  eventName?: string;
+  venue?: string;
+  startDate?: string;
+  endDate?: string;
   participations?: { memberId: number; productRole: string }[];
 }
 

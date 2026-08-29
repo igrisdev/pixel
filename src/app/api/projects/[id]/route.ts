@@ -45,7 +45,11 @@ function toProjectResponse(project: ProjectWithRelations): Project {
       demoUrl: prod.demoUrl ?? undefined,
       publicationSource: prod.publicationSource ?? undefined,
       documentUrl: prod.documentUrl ?? undefined,
-      location: prod.location ?? undefined,
+      city: prod.city ?? undefined,
+      eventName: prod.eventName ?? undefined,
+      venue: prod.venue ?? undefined,
+      startDate: prod.startDate?.toISOString(),
+      endDate: prod.endDate?.toISOString(),
       participations: (prod.participations || []).map((part) => ({
         id: part.id,
         memberId: part.memberId,
@@ -129,7 +133,11 @@ async function syncProducts(projectId: number, incomingProducts: ProductPayload[
       demoUrl: prod.demoUrl || null,
       publicationSource: prod.publicationSource || null,
       documentUrl: prod.documentUrl || null,
-      location: prod.location || null,
+      city: prod.city || null,
+      eventName: prod.eventName || null,
+      venue: prod.venue || null,
+      startDate: prod.startDate ? new Date(prod.startDate) : null,
+      endDate: prod.endDate ? new Date(prod.endDate) : null,
     };
 
     let productId = prod.id;

@@ -72,7 +72,11 @@ export default function IntegranteProyectosCRUD() {
     demoUrl: "",
     publicationSource: "",
     documentUrl: "",
-    location: "",
+    city: "",
+    eventName: "",
+    venue: "",
+    startDate: "",
+    endDate: "",
   });
 
   // Estados temporales para los miembros del equipo en el formulario del producto
@@ -195,7 +199,11 @@ export default function IntegranteProyectosCRUD() {
       demoUrl: "",
       publicationSource: "",
       documentUrl: "",
-      location: "",
+      city: "",
+      eventName: "",
+      venue: "",
+      startDate: "",
+      endDate: "",
     });
 
     // Añadimos por defecto al usuario actual como Líder y sugerimos el equipo
@@ -233,7 +241,11 @@ export default function IntegranteProyectosCRUD() {
       demoUrl: prod.demoUrl || "",
       publicationSource: prod.publicationSource || "",
       documentUrl: prod.documentUrl || "",
-      location: prod.location || "",
+      city: prod.city || "",
+      eventName: prod.eventName || "",
+      venue: prod.venue || "",
+      startDate: prod.startDate ? prod.startDate.slice(0, 10) : "",
+      endDate: prod.endDate ? prod.endDate.slice(0, 10) : "",
     });
     setEditProdId(prod.id);
     setActiveFormProjectId(projectId);
@@ -299,7 +311,11 @@ export default function IntegranteProyectosCRUD() {
         demoUrl: prodFormData.demoUrl,
         publicationSource: prodFormData.publicationSource,
         documentUrl: prodFormData.documentUrl,
-        location: prodFormData.location,
+        city: prodFormData.city,
+        eventName: prodFormData.eventName,
+        venue: prodFormData.venue,
+        startDate: prodFormData.startDate,
+        endDate: prodFormData.endDate,
       };
 
       // Mapeamos los participantes del borrador al formato final

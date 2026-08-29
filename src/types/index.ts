@@ -61,7 +61,12 @@ export interface AcademicProduct {
   demoUrl?: string;
   publicationSource?: string;
   documentUrl?: string;
-  location?: string;
+  // Contexto opcional, disponible en cualquier categoría.
+  city?: string;
+  eventName?: string;
+  venue?: string;
+  startDate?: string;
+  endDate?: string;
   participations?: Participation[];
 }
 

@@ -50,7 +50,11 @@ export type AcademicProductMinAggregateOutputType = {
   demoUrl: string | null
   publicationSource: string | null
   documentUrl: string | null
-  location: string | null
+  city: string | null
+  eventName: string | null
+  venue: string | null
+  startDate: Date | null
+  endDate: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -67,7 +71,11 @@ export type AcademicProductMaxAggregateOutputType = {
   demoUrl: string | null
   publicationSource: string | null
   documentUrl: string | null
-  location: string | null
+  city: string | null
+  eventName: string | null
+  venue: string | null
+  startDate: Date | null
+  endDate: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -86,7 +94,11 @@ export type AcademicProductCountAggregateOutputType = {
   demoUrl: number
   publicationSource: number
   documentUrl: number
-  location: number
+  city: number
+  eventName: number
+  venue: number
+  startDate: number
+  endDate: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -117,7 +129,11 @@ export type AcademicProductMinAggregateInputType = {
   demoUrl?: true
   publicationSource?: true
   documentUrl?: true
-  location?: true
+  city?: true
+  eventName?: true
+  venue?: true
+  startDate?: true
+  endDate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -134,7 +150,11 @@ export type AcademicProductMaxAggregateInputType = {
   demoUrl?: true
   publicationSource?: true
   documentUrl?: true
-  location?: true
+  city?: true
+  eventName?: true
+  venue?: true
+  startDate?: true
+  endDate?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -153,7 +173,11 @@ export type AcademicProductCountAggregateInputType = {
   demoUrl?: true
   publicationSource?: true
   documentUrl?: true
-  location?: true
+  city?: true
+  eventName?: true
+  venue?: true
+  startDate?: true
+  endDate?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -259,7 +283,11 @@ export type AcademicProductGroupByOutputType = {
   demoUrl: string | null
   publicationSource: string | null
   documentUrl: string | null
-  location: string | null
+  city: string | null
+  eventName: string | null
+  venue: string | null
+  startDate: Date | null
+  endDate: Date | null
   createdAt: Date
   updatedAt: Date
   _count: AcademicProductCountAggregateOutputType | null
@@ -301,7 +329,11 @@ export type AcademicProductWhereInput = {
   demoUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   documentUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
-  location?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  city?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  eventName?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  venue?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  startDate?: Prisma.DateTimeNullableFilter<"AcademicProduct"> | Date | string | null
+  endDate?: Prisma.DateTimeNullableFilter<"AcademicProduct"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AcademicProduct"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AcademicProduct"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -322,7 +354,11 @@ export type AcademicProductOrderByWithRelationInput = {
   demoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   publicationSource?: Prisma.SortOrderInput | Prisma.SortOrder
   documentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  location?: Prisma.SortOrderInput | Prisma.SortOrder
+  city?: Prisma.SortOrderInput | Prisma.SortOrder
+  eventName?: Prisma.SortOrderInput | Prisma.SortOrder
+  venue?: Prisma.SortOrderInput | Prisma.SortOrder
+  startDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
@@ -346,7 +382,11 @@ export type AcademicProductWhereUniqueInput = Prisma.AtLeast<{
   demoUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   documentUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
-  location?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  city?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  eventName?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  venue?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  startDate?: Prisma.DateTimeNullableFilter<"AcademicProduct"> | Date | string | null
+  endDate?: Prisma.DateTimeNullableFilter<"AcademicProduct"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AcademicProduct"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AcademicProduct"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -367,7 +407,11 @@ export type AcademicProductOrderByWithAggregationInput = {
   demoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   publicationSource?: Prisma.SortOrderInput | Prisma.SortOrder
   documentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  location?: Prisma.SortOrderInput | Prisma.SortOrder
+  city?: Prisma.SortOrderInput | Prisma.SortOrder
+  eventName?: Prisma.SortOrderInput | Prisma.SortOrder
+  venue?: Prisma.SortOrderInput | Prisma.SortOrder
+  startDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AcademicProductCountOrderByAggregateInput
@@ -394,7 +438,11 @@ export type AcademicProductScalarWhereWithAggregatesInput = {
   demoUrl?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
   documentUrl?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
-  location?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
+  city?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
+  eventName?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
+  venue?: Prisma.StringNullableWithAggregatesFilter<"AcademicProduct"> | string | null
+  startDate?: Prisma.DateTimeNullableWithAggregatesFilter<"AcademicProduct"> | Date | string | null
+  endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"AcademicProduct"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AcademicProduct"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AcademicProduct"> | Date | string
 }
@@ -411,7 +459,11 @@ export type AcademicProductCreateInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutProductsInput
@@ -432,7 +484,11 @@ export type AcademicProductUncheckedCreateInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutProductInput
@@ -450,7 +506,11 @@ export type AcademicProductUpdateInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutProductsNestedInput
@@ -471,7 +531,11 @@ export type AcademicProductUncheckedUpdateInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.ParticipationUncheckedUpdateManyWithoutProductNestedInput
@@ -491,7 +555,11 @@ export type AcademicProductCreateManyInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -508,7 +576,11 @@ export type AcademicProductUpdateManyMutationInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -527,7 +599,11 @@ export type AcademicProductUncheckedUpdateManyInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -556,7 +632,11 @@ export type AcademicProductCountOrderByAggregateInput = {
   demoUrl?: Prisma.SortOrder
   publicationSource?: Prisma.SortOrder
   documentUrl?: Prisma.SortOrder
-  location?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  eventName?: Prisma.SortOrder
+  venue?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -579,7 +659,11 @@ export type AcademicProductMaxOrderByAggregateInput = {
   demoUrl?: Prisma.SortOrder
   publicationSource?: Prisma.SortOrder
   documentUrl?: Prisma.SortOrder
-  location?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  eventName?: Prisma.SortOrder
+  venue?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -596,7 +680,11 @@ export type AcademicProductMinOrderByAggregateInput = {
   demoUrl?: Prisma.SortOrder
   publicationSource?: Prisma.SortOrder
   documentUrl?: Prisma.SortOrder
-  location?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  eventName?: Prisma.SortOrder
+  venue?: Prisma.SortOrder
+  startDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -692,7 +780,11 @@ export type AcademicProductCreateWithoutProjectInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.ParticipationCreateNestedManyWithoutProductInput
@@ -711,7 +803,11 @@ export type AcademicProductUncheckedCreateWithoutProjectInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutProductInput
@@ -760,7 +856,11 @@ export type AcademicProductScalarWhereInput = {
   demoUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   publicationSource?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
   documentUrl?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
-  location?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  city?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  eventName?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  venue?: Prisma.StringNullableFilter<"AcademicProduct"> | string | null
+  startDate?: Prisma.DateTimeNullableFilter<"AcademicProduct"> | Date | string | null
+  endDate?: Prisma.DateTimeNullableFilter<"AcademicProduct"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AcademicProduct"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AcademicProduct"> | Date | string
 }
@@ -777,7 +877,11 @@ export type AcademicProductCreateWithoutParticipationsInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutProductsInput
@@ -797,7 +901,11 @@ export type AcademicProductUncheckedCreateWithoutParticipationsInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -830,7 +938,11 @@ export type AcademicProductUpdateWithoutParticipationsInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutProductsNestedInput
@@ -850,7 +962,11 @@ export type AcademicProductUncheckedUpdateWithoutParticipationsInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -868,7 +984,11 @@ export type AcademicProductCreateManyProjectInput = {
   demoUrl?: string | null
   publicationSource?: string | null
   documentUrl?: string | null
-  location?: string | null
+  city?: string | null
+  eventName?: string | null
+  venue?: string | null
+  startDate?: Date | string | null
+  endDate?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -885,7 +1005,11 @@ export type AcademicProductUpdateWithoutProjectInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.ParticipationUpdateManyWithoutProductNestedInput
@@ -904,7 +1028,11 @@ export type AcademicProductUncheckedUpdateWithoutProjectInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.ParticipationUncheckedUpdateManyWithoutProductNestedInput
@@ -923,7 +1051,11 @@ export type AcademicProductUncheckedUpdateManyWithoutProjectInput = {
   demoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  eventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -973,7 +1105,11 @@ export type AcademicProductSelect<ExtArgs extends runtime.Types.Extensions.Inter
   demoUrl?: boolean
   publicationSource?: boolean
   documentUrl?: boolean
-  location?: boolean
+  city?: boolean
+  eventName?: boolean
+  venue?: boolean
+  startDate?: boolean
+  endDate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -995,7 +1131,11 @@ export type AcademicProductSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   demoUrl?: boolean
   publicationSource?: boolean
   documentUrl?: boolean
-  location?: boolean
+  city?: boolean
+  eventName?: boolean
+  venue?: boolean
+  startDate?: boolean
+  endDate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -1015,7 +1155,11 @@ export type AcademicProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   demoUrl?: boolean
   publicationSource?: boolean
   documentUrl?: boolean
-  location?: boolean
+  city?: boolean
+  eventName?: boolean
+  venue?: boolean
+  startDate?: boolean
+  endDate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -1035,12 +1179,16 @@ export type AcademicProductSelectScalar = {
   demoUrl?: boolean
   publicationSource?: boolean
   documentUrl?: boolean
-  location?: boolean
+  city?: boolean
+  eventName?: boolean
+  venue?: boolean
+  startDate?: boolean
+  endDate?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AcademicProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "categoryType" | "approvalStatus" | "createdBy" | "technologies" | "images" | "repositoryUrl" | "demoUrl" | "publicationSource" | "documentUrl" | "location" | "createdAt" | "updatedAt", ExtArgs["result"]["academicProduct"]>
+export type AcademicProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "categoryType" | "approvalStatus" | "createdBy" | "technologies" | "images" | "repositoryUrl" | "demoUrl" | "publicationSource" | "documentUrl" | "city" | "eventName" | "venue" | "startDate" | "endDate" | "createdAt" | "updatedAt", ExtArgs["result"]["academicProduct"]>
 export type AcademicProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   participations?: boolean | Prisma.AcademicProduct$participationsArgs<ExtArgs>
@@ -1073,7 +1221,11 @@ export type $AcademicProductPayload<ExtArgs extends runtime.Types.Extensions.Int
     demoUrl: string | null
     publicationSource: string | null
     documentUrl: string | null
-    location: string | null
+    city: string | null
+    eventName: string | null
+    venue: string | null
+    startDate: Date | null
+    endDate: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["academicProduct"]>
@@ -1514,7 +1666,11 @@ export interface AcademicProductFieldRefs {
   readonly demoUrl: Prisma.FieldRef<"AcademicProduct", 'String'>
   readonly publicationSource: Prisma.FieldRef<"AcademicProduct", 'String'>
   readonly documentUrl: Prisma.FieldRef<"AcademicProduct", 'String'>
-  readonly location: Prisma.FieldRef<"AcademicProduct", 'String'>
+  readonly city: Prisma.FieldRef<"AcademicProduct", 'String'>
+  readonly eventName: Prisma.FieldRef<"AcademicProduct", 'String'>
+  readonly venue: Prisma.FieldRef<"AcademicProduct", 'String'>
+  readonly startDate: Prisma.FieldRef<"AcademicProduct", 'DateTime'>
+  readonly endDate: Prisma.FieldRef<"AcademicProduct", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"AcademicProduct", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AcademicProduct", 'DateTime'>
 }

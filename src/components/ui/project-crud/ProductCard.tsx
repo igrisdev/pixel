@@ -2,6 +2,7 @@ import React from "react";
 import { Edit, Loader2, Trash2 } from "lucide-react";
 import { AcademicProduct } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
+import { CATEGORY_SHORT_LABELS } from "@/lib/category";
 
 type Props = {
   product: AcademicProduct;
@@ -10,11 +11,7 @@ type Props = {
   onDelete: () => void;
 };
 
-const categoryLabel = {
-  DEVELOPMENT: "DESARROLLO",
-  WRITING: "ESCRITO",
-  EVENT: "EVENTO",
-} as const;
+const categoryLabel = CATEGORY_SHORT_LABELS;
 
 const categoryColor = {
   DEVELOPMENT: "bg-blue-600",

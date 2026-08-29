@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import BadgeEstado from "@/components/ui/BadgeEstado";
+import { categoryShortLabel } from "@/lib/category";
 import { useDataStore } from "@/store/useDataStore";
 
 export default function AdminAprobaciones() {
@@ -224,7 +225,7 @@ export default function AdminAprobaciones() {
                     <span
                       className={`text-[10px] font-mono font-bold px-2 py-1 inline-block text-white ${prod.categoryType === "DEVELOPMENT" ? "bg-blue-600" : prod.categoryType === "WRITING" ? "bg-purple-600" : "bg-[#F37021]"}`}
                     >
-                      {prod.categoryType}
+                      {categoryShortLabel(prod.categoryType)}
                     </span>
                     <h3 className="font-bold text-lg text-[#1E293B]">
                       {prod.title}

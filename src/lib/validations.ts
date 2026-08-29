@@ -89,7 +89,11 @@ export const updateProjectSchema = z.object({
     demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
     publicationSource: z.string().optional().or(z.literal("")),
     documentUrl: validUrlOrUpload,
-    location: z.string().optional().or(z.literal("")),
+    city: z.string().optional().or(z.literal("")),
+    eventName: z.string().optional().or(z.literal("")),
+    venue: z.string().optional().or(z.literal("")),
+    startDate: z.string().optional().or(z.literal("")),
+    endDate: z.string().optional().or(z.literal("")),
     approvalStatus: z.string().optional(),
     participations: z.array(z.object({
       id: z.number().optional(),
@@ -113,7 +117,12 @@ export const createProductSchema = z.object({
   demoUrl: z.union([z.string().url("URL inválida").nullish(), z.literal("")]),
   publicationSource: z.string().optional().or(z.literal("")),
   documentUrl: validUrlOrUpload,
-  location: z.string().optional().or(z.literal("")),
+  // Contexto opcional, común a todas las categorías.
+  city: z.string().optional().or(z.literal("")),
+  eventName: z.string().optional().or(z.literal("")),
+  venue: z.string().optional().or(z.literal("")),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   participations: z
     .array(
       z.object({

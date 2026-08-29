@@ -29,5 +29,10 @@ export type ProductFormData = {
   demoUrl: string;
   publicationSource: string;
   documentUrl: string;
-  location: string;
+  // Contexto opcional, común a todas las categorías.
+  city: string;
+  eventName: string;
+  venue: string;
+  startDate: string;
+  endDate: string;
 };

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Code, Calendar } from "lucide-react";
 import { Project } from "@/types";
 import { formatYear } from "@/lib/date";
+import { categoryShortLabel } from "@/lib/category";
 
 export default function ProjectCard({ project }: { project: Project }) {
   const projects = project.products || [];
@@ -37,7 +38,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         <div className="absolute top-3 left-3 flex gap-1">
           {primerProducto && (
             <div className="bg-[#F37021] text-white text-[10px] font-mono px-2 py-1 font-bold shadow-md">
-              {primerProducto.categoryType}
+              {categoryShortLabel(primerProducto.categoryType)}
             </div>
           )}
           {estaFinalizado ? (

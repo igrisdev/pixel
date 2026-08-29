@@ -45,7 +45,11 @@ function toProjectResponse(project: ProjectWithRelations) {
       demoUrl: prod.demoUrl ?? undefined,
       publicationSource: prod.publicationSource ?? undefined,
       documentUrl: prod.documentUrl ?? undefined,
-      location: prod.location ?? undefined,
+      city: prod.city ?? undefined,
+      eventName: prod.eventName ?? undefined,
+      venue: prod.venue ?? undefined,
+      startDate: prod.startDate?.toISOString(),
+      endDate: prod.endDate?.toISOString(),
       participations: (prod.participations || []).map((part) => ({
         id: part.id,
         memberId: part.memberId,

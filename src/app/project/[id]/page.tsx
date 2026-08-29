@@ -13,9 +13,13 @@ import {
   AlertCircle,
   Lock,
   Loader2,
+  MapPin,
+  Building2,
+  Megaphone,
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import ProductGallery from "@/components/ui/ProductGallery";
+import { categoryShortLabel } from "@/lib/category";
 import { formatDate } from "@/lib/date";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, useState } from "react";
@@ -165,7 +169,7 @@ export default function ProjectPage() {
                             : "bg-[#F37021]"
                       }`}
                     >
-                      {product.categoryType}
+                      {categoryShortLabel(product.categoryType)}
                     </div>
 
                     <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24 flex items-center gap-2">
@@ -179,6 +183,39 @@ export default function ProjectPage() {
                     <p className="text-sm text-[#334155] mb-4 leading-relaxed">
                       {product.description}
                     </p>
+
+                    {(product.eventName ||
+                      product.venue ||
+                      product.city ||
+                      product.startDate) && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {product.eventName && (
+                          <span className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center font-mono text-[#334155]">
+                            <Megaphone className="w-3 h-3 mr-1 text-[#F37021]" />
+                            {product.eventName}
+                          </span>
+                        )}
+                        {product.venue && (
+                          <span className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center font-mono text-[#334155]">
+                            <Building2 className="w-3 h-3 mr-1 text-[#2D5A27]" />
+                            {product.venue}
+                          </span>
+                        )}
+                        {product.city && (
+                          <span className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center font-mono text-[#334155]">
+                            <MapPin className="w-3 h-3 mr-1 text-[#2D5A27]" />
+                            {product.city}
+                          </span>
+                        )}
+                        {product.startDate && (
+                          <span className="text-xs bg-white border border-gray-300 px-2 py-1 flex items-center font-mono text-[#334155]">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            {formatDate(product.startDate)}
+                            {product.endDate && ` — ${formatDate(product.endDate)}`}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {product.images && product.images.length > 0 && (
                       <ProductGallery

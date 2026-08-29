@@ -5,6 +5,7 @@ import { Trash2, Search, Eye, Edit3, Loader2, ChevronDown, ChevronRight, FileCod
 import Link from "next/link";
 import toast from "react-hot-toast";
 import BadgeEstado from "@/components/ui/BadgeEstado";
+import { categoryShortLabel } from "@/lib/category";
 import { useDataStore } from "@/store/useDataStore";
 import { formatDate } from "@/lib/date";
 
@@ -256,7 +257,7 @@ export default function AdminAuditoriaCRUD() {
                               prod.categoryType === "DEVELOPMENT" ? "bg-blue-600" : 
                               prod.categoryType === "WRITING" ? "bg-purple-600" : "bg-[#F37021]"
                             }`}>
-                              {prod.categoryType}
+                              {categoryShortLabel(prod.categoryType)}
                             </span>
                             <h4 className="font-bold text-[#1E293B] text-sm truncate">{prod.title}</h4>
                             <BadgeEstado estado={prod.approvalStatus as any} />
