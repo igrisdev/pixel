@@ -17,6 +17,7 @@ import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProjectMacroModal from "@/components/ui/project-crud/ProjectMacroModal";
 import ProductModal from "@/components/ui/project-crud/ProductModal";
 import { suggestTeamFromProject } from "@/components/ui/project-crud/team-suggestions";
+import { DEFAULT_CREATOR_ROLE } from "@/lib/roles";
 import ProductCard from "@/components/ui/project-crud/ProductCard";
 import {
   DraftParticipant,
@@ -26,13 +27,10 @@ import {
 import toast from "react-hot-toast";
 
 export default function IntegranteProyectosCRUD() {
-  // <-- MODIFICADO: Importamos también 'competencies'
   const {
     projects,
     members,
-    competencies,
     loadMembers,
-    loadCompetencies,
     loadProjects,
     addProject,
     updateProject,
@@ -94,7 +92,6 @@ export default function IntegranteProyectosCRUD() {
     void Promise.all([
       loadProjects(currentUser.id),
       loadMembers(),
-      loadCompetencies(),
     ]).catch((error) => {
       setErrorMessage(
         error instanceof Error
@@ -102,7 +99,7 @@ export default function IntegranteProyectosCRUD() {
           : "No se pudieron cargar los datos del dashboard",
       );
     });
-  }, [currentUser, loadProjects, loadMembers, loadCompetencies]);
+  }, [currentUser, loadProjects, loadMembers]);
 
   // ------------------------------------------------------------------------
   // LÓGICA: PROYECTOS MACRO
@@ -221,7 +218,7 @@ export default function IntegranteProyectosCRUD() {
           memberId: userDetails.id,
           memberName: userDetails.fullName,
           memberPhotoUrl: userDetails.photoUrl,
-          productRole: "Líder de Producto",
+          productRole: DEFAULT_CREATOR_ROLE,
         },
         ...suggested,
       ]);
@@ -548,7 +545,6 @@ await updateProject(projectId, {
                     productFormData={prodFormData}
                     draftParticipants={draftParticipants}
                     availableMembers={availableMembers}
-                    competencies={competencies}
                     draftTeamMemberId={draftTeamMemberId}
                     draftTeamRole={draftTeamRole}
                     onSubmit={handleSaveProduct}

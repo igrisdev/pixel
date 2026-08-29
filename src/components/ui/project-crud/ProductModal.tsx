@@ -2,11 +2,12 @@
 
 import React from "react";
 import { X, Calendar, FileCode, FileText, Folder, Loader2, MapPin, UserPlus, Users } from "lucide-react";
-import { CategoryType, Competency, Member } from "@/types";
+import { CategoryType, Member } from "@/types";
 import { DraftParticipant, ProductFormData } from "./types";
 import FileUploadInput from "@/components/ui/FileUploadInput";
 import ProductImagesInput from "@/components/ui/ProductImagesInput";
 import { CATEGORY_LABELS } from "@/lib/category";
+import { CROSS_ROLES, categoryRoleGroupLabel, rolesForCategory } from "@/lib/roles";
 
 interface ProductModalProps {
   projectId: number;
@@ -16,7 +17,6 @@ interface ProductModalProps {
   productFormData: ProductFormData;
   draftParticipants: DraftParticipant[];
   availableMembers: Member[];
-  competencies: Competency[];
   draftTeamMemberId: string;
   draftTeamRole: string;
   onSubmit: (e: React.FormEvent, projectId: number) => void;
@@ -36,7 +36,6 @@ export default function ProductModal({
   productFormData,
   draftParticipants,
   availableMembers,
-  competencies,
   draftTeamMemberId,
   draftTeamRole,
   onSubmit,
@@ -89,12 +88,14 @@ export default function ProductModal({
               <label className="block text-xs font-mono text-gray-500 mb-1">CATEGORÍA</label>
               <select
                 value={productFormData.categoryType}
-                onChange={(e) =>
+                onChange={(e) => {
                   onProductFormDataChange({
                     ...productFormData,
                     categoryType: e.target.value as CategoryType,
-                  })
-                }
+                  });
+                  // El rol elegido puede no existir en la nueva categoría.
+                  onDraftTeamRoleChange("");
+                }}
                 className="w-full border-2 border-gray-300 p-2 focus:border-[#F37021] bg-white disabled:bg-gray-100"
                 disabled={!!editProdId || isSaving}
               >
@@ -383,27 +384,20 @@ export default function ProductModal({
                   onChange={(e) => onDraftTeamRoleChange(e.target.value)}
                   className="w-full min-w-0 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
                 >
-                  <option value="">Asignar un rol / competencia...</option>
-                  <option value="Líder de Producto" className="font-bold">
-                    Líder de Producto / Autor Principal
-                  </option>
-                  <optgroup label="Competencias Técnicas">
-                    {competencies
-                      .filter((c) => c.type === "TECHNICAL")
-                      .map((c) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
+                  <option value="">Asignar un rol...</option>
+                  <optgroup label={categoryRoleGroupLabel(productFormData.categoryType)}>
+                    {rolesForCategory(productFormData.categoryType).map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
                   </optgroup>
-                  <optgroup label="Competencias Transversales">
-                    {competencies
-                      .filter((c) => c.type === "SOFT")
-                      .map((c) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
+                  <optgroup label="Roles generales">
+                    {CROSS_ROLES.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
                   </optgroup>
                 </select>
 

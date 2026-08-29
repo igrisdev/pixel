@@ -11,6 +11,7 @@ import ProductModal from "@/components/ui/project-crud/ProductModal";
 import { DraftParticipant, ProductFormData } from "@/components/ui/project-crud/types";
 import { suggestTeamFromProject } from "@/components/ui/project-crud/team-suggestions";
 import { categoryShortLabel } from "@/lib/category";
+import { DEFAULT_CREATOR_ROLE } from "@/lib/roles";
 
 const emptyProductForm: ProductFormData = {
   title: "",
@@ -35,8 +36,6 @@ export default function ParticipationsPage() {
     loadParticipatedProjects,
     members,
     loadMembers,
-    competencies,
-    loadCompetencies,
     addProductToProject,
     updateOwnProduct,
   } = useDataStore();
@@ -59,9 +58,14 @@ export default function ParticipationsPage() {
     Promise.all([
       loadParticipatedProjects(currentUser.id),
       loadMembers(),
-      loadCompetencies(),
     ]).finally(() => setLoading(false));
-  }, [currentUser, loadParticipatedProjects, loadMembers, loadCompetencies]);
+  }, [currentUser, loadParticipatedProjects, loadMembers]);
+
+  // Los proyectos que yo creé ya se gestionan en "Mis Proyectos"; aquí solo
+  // mostramos aquellos en los que participo sin ser el creador.
+  const projectsAsParticipant = participatedProjects.filter(
+    (p) => p.createdBy !== currentUser?.id,
+  );
 
   const openAddProduct = (project: Project) => {
     if (!currentUser) return;
@@ -77,7 +81,7 @@ export default function ParticipationsPage() {
       memberId: currentUser.id,
       memberName: currentMember?.fullName || currentUser.name,
       memberPhotoUrl: currentMember?.photoUrl || "",
-      productRole: "Autor",
+      productRole: DEFAULT_CREATOR_ROLE,
     };
     const suggested = suggestTeamFromProject(project).filter(
       (p) => p.memberId !== currentUser.id,
@@ -240,11 +244,11 @@ export default function ParticipationsPage() {
           <Users className="w-6 h-6 mr-3 text-[#F37021]" /> Mis Participaciones
         </h2>
         <div className="text-sm text-gray-500 font-mono">
-          {participatedProjects.length} proyecto{participatedProjects.length !== 1 ? 's' : ''}
+          {projectsAsParticipant.length} proyecto{projectsAsParticipant.length !== 1 ? 's' : ''}
         </div>
       </div>
 
-      {participatedProjects.length === 0 ? (
+      {projectsAsParticipant.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-gray-300 bg-gray-50">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 font-medium mb-2">
@@ -256,7 +260,7 @@ export default function ParticipationsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {participatedProjects.map((project) => {
+          {projectsAsParticipant.map((project) => {
             const userProducts = (project.products || []).filter(isUserParticipantInProduct);
             const isExpanded = expandedProjects.has(project.id);
 
@@ -276,11 +280,6 @@ export default function ParticipationsPage() {
                           PROYECTO
                         </span>
                         <BadgeEstado estado={project.approvalStatus} />
-                        {project.createdBy === currentUser?.id && (
-                          <span className="bg-[#2D5A27] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
-                            CREADOR
-                          </span>
-                        )}
                       </div>
                       <h3 className="text-xl font-bold text-[#1E293B] mb-2">
                         {project.title}
@@ -477,7 +476,7 @@ export default function ParticipationsPage() {
         <ProductModal
           projectId={activeProjectId}
           projectTitle={
-            participatedProjects.find((p) => p.id === activeProjectId)?.title || ""
+            projectsAsParticipant.find((p) => p.id === activeProjectId)?.title || ""
           }
           editProdId={editingProductId}
           loadingAction={loadingAction}
@@ -486,7 +485,6 @@ export default function ParticipationsPage() {
           availableMembers={members.filter(
             (m) => !draftParticipants.some((d) => d.memberId === m.id),
           )}
-          competencies={competencies}
           draftTeamMemberId={draftTeamMemberId}
           draftTeamRole={draftTeamRole}
           onSubmit={handleSaveProduct}
