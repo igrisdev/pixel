@@ -342,12 +342,12 @@ export default function IntegrantePerfilCRUD() {
             </p>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                <span className="text-sm font-semibold text-gray-600">Correo:</span>
-                <span className="text-sm font-mono text-[#1E293B]">{user?.institutionalEmail}</span>
+                <span className="text-sm font-semibold text-gray-600 shrink-0">Correo:</span>
+                <span className="text-sm font-mono text-[#1E293B] min-w-0 break-all text-right">{user?.institutionalEmail}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-gray-600">Carrera:</span>
-                <span className="text-sm font-mono text-[#1E293B]">{user?.career}</span>
+                <span className="text-sm font-semibold text-gray-600 shrink-0">Carrera:</span>
+                <span className="text-sm font-mono text-[#1E293B] min-w-0 break-all text-right">{user?.career}</span>
               </div>
             </div>
           </div>
@@ -357,19 +357,19 @@ export default function IntegrantePerfilCRUD() {
             <img
               src={formData.photoUrl || getAvatarUrl(formData.fullName)}
               alt="Perfil"
-              className="w-16 h-16 border-2 border-[#1E293B] object-cover bg-white"
+              className="w-16 h-16 border-2 border-[#1E293B] object-cover bg-white shrink-0"
               onError={(e) =>
                 (e.currentTarget.src = getAvatarUrl(formData.fullName || "User"))
               }
             />
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label className="block text-xs font-mono text-gray-500 mb-1 flex items-center">
                 <ImageIcon className="w-3 h-3 mr-1" /> FOTO DE PERFIL
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {photoFileName && formData.photoUrl?.startsWith("/uploads/") ? (
-                  <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 bg-gray-50 text-sm text-gray-600">
-                    <ImageIcon className="w-4 h-4 text-gray-400" />
+                  <div className="basis-full sm:basis-auto flex-1 min-w-0 flex items-center gap-2 p-2 border-2 border-gray-300 bg-gray-50 text-sm text-gray-600">
+                    <ImageIcon className="w-4 h-4 text-gray-400 shrink-0" />
                     <span className="truncate">{photoFileName}</span>
                   </div>
                 ) : (
@@ -378,12 +378,12 @@ export default function IntegrantePerfilCRUD() {
                     disabled={isSavingBasic}
                     value={formData.photoUrl}
                     onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                    className="flex-1 border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-0 border-2 border-gray-300 p-2 outline-none focus:border-[#F37021] text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="https://..."
                   />
                 )}
                 <label
-                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSavingBasic || isUploadingPhoto ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center shrink-0 cursor-pointer hover:bg-black transition ${isSavingBasic || isUploadingPhoto ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
                 >
                   {isUploadingPhoto ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -405,7 +405,7 @@ export default function IntegrantePerfilCRUD() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, photoUrl: getAvatarUrl(formData.fullName) })}
-                    className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition"
+                    className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition shrink-0"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -468,10 +468,10 @@ export default function IntegrantePerfilCRUD() {
 
             <div>
               <label className="block text-xs font-mono text-gray-500 mb-1">CURRÍCULUM (PDF)</label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {cvFileName && formData.cvUrl?.startsWith("/uploads/") ? (
-                  <div className="flex-1 flex items-center gap-2 p-2 border-2 border-gray-300 bg-gray-50 text-sm text-gray-600">
-                    <FileText className="w-4 h-4 text-gray-400" />
+                  <div className="basis-full sm:basis-auto flex-1 min-w-0 flex items-center gap-2 p-2 border-2 border-gray-300 bg-gray-50 text-sm text-gray-600">
+                    <FileText className="w-4 h-4 text-gray-400 shrink-0" />
                     <span className="truncate">{cvFileName}</span>
                   </div>
                 ) : (
@@ -481,11 +481,11 @@ export default function IntegrantePerfilCRUD() {
                     value={formData.cvUrl}
                     onChange={(e) => setFormData({ ...formData, cvUrl: e.target.value })}
                     placeholder="https://..."
-                    className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-0 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 )}
                 <label
-                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-black transition ${isSavingBasic || isUploadingCv ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+                  className={`bg-[#1E293B] text-white px-4 py-2 text-xs font-bold flex items-center justify-center shrink-0 cursor-pointer hover:bg-black transition ${isSavingBasic || isUploadingCv ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
                 >
                   {isUploadingCv ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -507,7 +507,7 @@ export default function IntegrantePerfilCRUD() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, cvUrl: "" })}
-                    className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition"
+                    className="bg-red-500 text-white px-3 py-2 text-xs font-bold hover:bg-red-600 transition shrink-0"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -595,12 +595,12 @@ export default function IntegrantePerfilCRUD() {
               Añade enlaces a tu portafolio, repositorios o perfiles de LinkedIn.
             </p>
 
-            <form onSubmit={handleAddLink} className="flex gap-2 mb-8">
+            <form onSubmit={handleAddLink} className="flex flex-col sm:flex-row gap-2 mb-8">
               <select
                 disabled={isSavingLinks}
                 value={newLink.platform}
                 onChange={(e) => setNewLink({ ...newLink, platform: e.target.value })}
-                className="border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="shrink-0 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] font-medium text-[#1E293B] bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option>GitHub</option>
                 <option>LinkedIn</option>
@@ -614,12 +614,12 @@ export default function IntegrantePerfilCRUD() {
                 required
                 value={newLink.url}
                 onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                className="flex-1 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="flex-1 min-w-0 border-2 border-gray-300 p-3 outline-none focus:border-[#F37021] disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
               <button
                 type="submit"
                 disabled={isSavingLinks || !newLink.url.trim()}
-                className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 border-2 border-[#2D5A27] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-3 border-2 border-[#2D5A27] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0 cursor-pointer"
               >
                 {isSavingLinks ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
               </button>
