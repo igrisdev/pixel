@@ -299,6 +299,7 @@ export type MemberWhereInput = {
   links?: Prisma.ProfessionalLinkListRelationFilter
   participations?: Prisma.ParticipationListRelationFilter
   projectsCreated?: Prisma.ProjectListRelationFilter
+  projectMemberships?: Prisma.ProjectMemberListRelationFilter
   competencies?: Prisma.CompetencyListRelationFilter
 }
 
@@ -321,6 +322,7 @@ export type MemberOrderByWithRelationInput = {
   links?: Prisma.ProfessionalLinkOrderByRelationAggregateInput
   participations?: Prisma.ParticipationOrderByRelationAggregateInput
   projectsCreated?: Prisma.ProjectOrderByRelationAggregateInput
+  projectMemberships?: Prisma.ProjectMemberOrderByRelationAggregateInput
   competencies?: Prisma.CompetencyOrderByRelationAggregateInput
 }
 
@@ -346,6 +348,7 @@ export type MemberWhereUniqueInput = Prisma.AtLeast<{
   links?: Prisma.ProfessionalLinkListRelationFilter
   participations?: Prisma.ParticipationListRelationFilter
   projectsCreated?: Prisma.ProjectListRelationFilter
+  projectMemberships?: Prisma.ProjectMemberListRelationFilter
   competencies?: Prisma.CompetencyListRelationFilter
 }, "id" | "institutionalEmail">
 
@@ -411,6 +414,7 @@ export type MemberCreateInput = {
   links?: Prisma.ProfessionalLinkCreateNestedManyWithoutMemberInput
   participations?: Prisma.ParticipationCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyCreateNestedManyWithoutMembersInput
 }
 
@@ -433,6 +437,7 @@ export type MemberUncheckedCreateInput = {
   links?: Prisma.ProfessionalLinkUncheckedCreateNestedManyWithoutMemberInput
   participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyUncheckedCreateNestedManyWithoutMembersInput
 }
 
@@ -454,6 +459,7 @@ export type MemberUpdateInput = {
   links?: Prisma.ProfessionalLinkUpdateManyWithoutMemberNestedInput
   participations?: Prisma.ParticipationUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUpdateManyWithoutMembersNestedInput
 }
 
@@ -476,6 +482,7 @@ export type MemberUncheckedUpdateInput = {
   links?: Prisma.ProfessionalLinkUncheckedUpdateManyWithoutMemberNestedInput
   participations?: Prisma.ParticipationUncheckedUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUncheckedUpdateManyWithoutMembersNestedInput
 }
 
@@ -707,6 +714,20 @@ export type MemberUpdateOneRequiredWithoutProjectsCreatedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MemberUpdateToOneWithWhereWithoutProjectsCreatedInput, Prisma.MemberUpdateWithoutProjectsCreatedInput>, Prisma.MemberUncheckedUpdateWithoutProjectsCreatedInput>
 }
 
+export type MemberCreateNestedOneWithoutProjectMembershipsInput = {
+  create?: Prisma.XOR<Prisma.MemberCreateWithoutProjectMembershipsInput, Prisma.MemberUncheckedCreateWithoutProjectMembershipsInput>
+  connectOrCreate?: Prisma.MemberCreateOrConnectWithoutProjectMembershipsInput
+  connect?: Prisma.MemberWhereUniqueInput
+}
+
+export type MemberUpdateOneRequiredWithoutProjectMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.MemberCreateWithoutProjectMembershipsInput, Prisma.MemberUncheckedCreateWithoutProjectMembershipsInput>
+  connectOrCreate?: Prisma.MemberCreateOrConnectWithoutProjectMembershipsInput
+  upsert?: Prisma.MemberUpsertWithoutProjectMembershipsInput
+  connect?: Prisma.MemberWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MemberUpdateToOneWithWhereWithoutProjectMembershipsInput, Prisma.MemberUpdateWithoutProjectMembershipsInput>, Prisma.MemberUncheckedUpdateWithoutProjectMembershipsInput>
+}
+
 export type MemberCreateNestedOneWithoutParticipationsInput = {
   create?: Prisma.XOR<Prisma.MemberCreateWithoutParticipationsInput, Prisma.MemberUncheckedCreateWithoutParticipationsInput>
   connectOrCreate?: Prisma.MemberCreateOrConnectWithoutParticipationsInput
@@ -738,6 +759,7 @@ export type MemberCreateWithoutLinksInput = {
   updatedAt?: Date | string
   participations?: Prisma.ParticipationCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyCreateNestedManyWithoutMembersInput
 }
 
@@ -759,6 +781,7 @@ export type MemberUncheckedCreateWithoutLinksInput = {
   updatedAt?: Date | string
   participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyUncheckedCreateNestedManyWithoutMembersInput
 }
 
@@ -795,6 +818,7 @@ export type MemberUpdateWithoutLinksInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.ParticipationUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUpdateManyWithoutMembersNestedInput
 }
 
@@ -816,6 +840,7 @@ export type MemberUncheckedUpdateWithoutLinksInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participations?: Prisma.ParticipationUncheckedUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUncheckedUpdateManyWithoutMembersNestedInput
 }
 
@@ -837,6 +862,7 @@ export type MemberCreateWithoutCompetenciesInput = {
   links?: Prisma.ProfessionalLinkCreateNestedManyWithoutMemberInput
   participations?: Prisma.ParticipationCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberCreateNestedManyWithoutMemberInput
 }
 
 export type MemberUncheckedCreateWithoutCompetenciesInput = {
@@ -858,6 +884,7 @@ export type MemberUncheckedCreateWithoutCompetenciesInput = {
   links?: Prisma.ProfessionalLinkUncheckedCreateNestedManyWithoutMemberInput
   participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutMemberInput
 }
 
 export type MemberCreateOrConnectWithoutCompetenciesInput = {
@@ -919,6 +946,7 @@ export type MemberCreateWithoutProjectsCreatedInput = {
   updatedAt?: Date | string
   links?: Prisma.ProfessionalLinkCreateNestedManyWithoutMemberInput
   participations?: Prisma.ParticipationCreateNestedManyWithoutMemberInput
+  projectMemberships?: Prisma.ProjectMemberCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyCreateNestedManyWithoutMembersInput
 }
 
@@ -940,6 +968,7 @@ export type MemberUncheckedCreateWithoutProjectsCreatedInput = {
   updatedAt?: Date | string
   links?: Prisma.ProfessionalLinkUncheckedCreateNestedManyWithoutMemberInput
   participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutMemberInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyUncheckedCreateNestedManyWithoutMembersInput
 }
 
@@ -976,6 +1005,7 @@ export type MemberUpdateWithoutProjectsCreatedInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.ProfessionalLinkUpdateManyWithoutMemberNestedInput
   participations?: Prisma.ParticipationUpdateManyWithoutMemberNestedInput
+  projectMemberships?: Prisma.ProjectMemberUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUpdateManyWithoutMembersNestedInput
 }
 
@@ -997,6 +1027,109 @@ export type MemberUncheckedUpdateWithoutProjectsCreatedInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.ProfessionalLinkUncheckedUpdateManyWithoutMemberNestedInput
   participations?: Prisma.ParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedUpdateManyWithoutMemberNestedInput
+  competencies?: Prisma.CompetencyUncheckedUpdateManyWithoutMembersNestedInput
+}
+
+export type MemberCreateWithoutProjectMembershipsInput = {
+  fullName: string
+  institutionalEmail: string
+  personalEmail?: string | null
+  passwordHash: string
+  professionalProfile?: string | null
+  career: string
+  role: string
+  systemRole?: $Enums.SystemRole
+  academicStatus?: $Enums.AcademicStatus
+  photoUrl?: string | null
+  isBanned?: boolean
+  cvUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  links?: Prisma.ProfessionalLinkCreateNestedManyWithoutMemberInput
+  participations?: Prisma.ParticipationCreateNestedManyWithoutMemberInput
+  projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  competencies?: Prisma.CompetencyCreateNestedManyWithoutMembersInput
+}
+
+export type MemberUncheckedCreateWithoutProjectMembershipsInput = {
+  id?: number
+  fullName: string
+  institutionalEmail: string
+  personalEmail?: string | null
+  passwordHash: string
+  professionalProfile?: string | null
+  career: string
+  role: string
+  systemRole?: $Enums.SystemRole
+  academicStatus?: $Enums.AcademicStatus
+  photoUrl?: string | null
+  isBanned?: boolean
+  cvUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  links?: Prisma.ProfessionalLinkUncheckedCreateNestedManyWithoutMemberInput
+  participations?: Prisma.ParticipationUncheckedCreateNestedManyWithoutMemberInput
+  projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  competencies?: Prisma.CompetencyUncheckedCreateNestedManyWithoutMembersInput
+}
+
+export type MemberCreateOrConnectWithoutProjectMembershipsInput = {
+  where: Prisma.MemberWhereUniqueInput
+  create: Prisma.XOR<Prisma.MemberCreateWithoutProjectMembershipsInput, Prisma.MemberUncheckedCreateWithoutProjectMembershipsInput>
+}
+
+export type MemberUpsertWithoutProjectMembershipsInput = {
+  update: Prisma.XOR<Prisma.MemberUpdateWithoutProjectMembershipsInput, Prisma.MemberUncheckedUpdateWithoutProjectMembershipsInput>
+  create: Prisma.XOR<Prisma.MemberCreateWithoutProjectMembershipsInput, Prisma.MemberUncheckedCreateWithoutProjectMembershipsInput>
+  where?: Prisma.MemberWhereInput
+}
+
+export type MemberUpdateToOneWithWhereWithoutProjectMembershipsInput = {
+  where?: Prisma.MemberWhereInput
+  data: Prisma.XOR<Prisma.MemberUpdateWithoutProjectMembershipsInput, Prisma.MemberUncheckedUpdateWithoutProjectMembershipsInput>
+}
+
+export type MemberUpdateWithoutProjectMembershipsInput = {
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  institutionalEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  personalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  professionalProfile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  career?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  academicStatus?: Prisma.EnumAcademicStatusFieldUpdateOperationsInput | $Enums.AcademicStatus
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBanned?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cvUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  links?: Prisma.ProfessionalLinkUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.ParticipationUpdateManyWithoutMemberNestedInput
+  projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  competencies?: Prisma.CompetencyUpdateManyWithoutMembersNestedInput
+}
+
+export type MemberUncheckedUpdateWithoutProjectMembershipsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  institutionalEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  personalEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  professionalProfile?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  career?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  systemRole?: Prisma.EnumSystemRoleFieldUpdateOperationsInput | $Enums.SystemRole
+  academicStatus?: Prisma.EnumAcademicStatusFieldUpdateOperationsInput | $Enums.AcademicStatus
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBanned?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cvUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  links?: Prisma.ProfessionalLinkUncheckedUpdateManyWithoutMemberNestedInput
+  participations?: Prisma.ParticipationUncheckedUpdateManyWithoutMemberNestedInput
+  projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
   competencies?: Prisma.CompetencyUncheckedUpdateManyWithoutMembersNestedInput
 }
 
@@ -1017,6 +1150,7 @@ export type MemberCreateWithoutParticipationsInput = {
   updatedAt?: Date | string
   links?: Prisma.ProfessionalLinkCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyCreateNestedManyWithoutMembersInput
 }
 
@@ -1038,6 +1172,7 @@ export type MemberUncheckedCreateWithoutParticipationsInput = {
   updatedAt?: Date | string
   links?: Prisma.ProfessionalLinkUncheckedCreateNestedManyWithoutMemberInput
   projectsCreated?: Prisma.ProjectUncheckedCreateNestedManyWithoutCreatorInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutMemberInput
   competencies?: Prisma.CompetencyUncheckedCreateNestedManyWithoutMembersInput
 }
 
@@ -1074,6 +1209,7 @@ export type MemberUpdateWithoutParticipationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.ProfessionalLinkUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUpdateManyWithoutMembersNestedInput
 }
 
@@ -1095,6 +1231,7 @@ export type MemberUncheckedUpdateWithoutParticipationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   links?: Prisma.ProfessionalLinkUncheckedUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedUpdateManyWithoutMemberNestedInput
   competencies?: Prisma.CompetencyUncheckedUpdateManyWithoutMembersNestedInput
 }
 
@@ -1116,6 +1253,7 @@ export type MemberUpdateWithoutCompetenciesInput = {
   links?: Prisma.ProfessionalLinkUpdateManyWithoutMemberNestedInput
   participations?: Prisma.ParticipationUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUpdateManyWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateWithoutCompetenciesInput = {
@@ -1137,6 +1275,7 @@ export type MemberUncheckedUpdateWithoutCompetenciesInput = {
   links?: Prisma.ProfessionalLinkUncheckedUpdateManyWithoutMemberNestedInput
   participations?: Prisma.ParticipationUncheckedUpdateManyWithoutMemberNestedInput
   projectsCreated?: Prisma.ProjectUncheckedUpdateManyWithoutCreatorNestedInput
+  projectMemberships?: Prisma.ProjectMemberUncheckedUpdateManyWithoutMemberNestedInput
 }
 
 export type MemberUncheckedUpdateManyWithoutCompetenciesInput = {
@@ -1166,6 +1305,7 @@ export type MemberCountOutputType = {
   links: number
   participations: number
   projectsCreated: number
+  projectMemberships: number
   competencies: number
 }
 
@@ -1173,6 +1313,7 @@ export type MemberCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   links?: boolean | MemberCountOutputTypeCountLinksArgs
   participations?: boolean | MemberCountOutputTypeCountParticipationsArgs
   projectsCreated?: boolean | MemberCountOutputTypeCountProjectsCreatedArgs
+  projectMemberships?: boolean | MemberCountOutputTypeCountProjectMembershipsArgs
   competencies?: boolean | MemberCountOutputTypeCountCompetenciesArgs
 }
 
@@ -1210,6 +1351,13 @@ export type MemberCountOutputTypeCountProjectsCreatedArgs<ExtArgs extends runtim
 /**
  * MemberCountOutputType without action
  */
+export type MemberCountOutputTypeCountProjectMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectMemberWhereInput
+}
+
+/**
+ * MemberCountOutputType without action
+ */
 export type MemberCountOutputTypeCountCompetenciesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.CompetencyWhereInput
 }
@@ -1234,6 +1382,7 @@ export type MemberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   links?: boolean | Prisma.Member$linksArgs<ExtArgs>
   participations?: boolean | Prisma.Member$participationsArgs<ExtArgs>
   projectsCreated?: boolean | Prisma.Member$projectsCreatedArgs<ExtArgs>
+  projectMemberships?: boolean | Prisma.Member$projectMembershipsArgs<ExtArgs>
   competencies?: boolean | Prisma.Member$competenciesArgs<ExtArgs>
   _count?: boolean | Prisma.MemberCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["member"]>
@@ -1297,6 +1446,7 @@ export type MemberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   links?: boolean | Prisma.Member$linksArgs<ExtArgs>
   participations?: boolean | Prisma.Member$participationsArgs<ExtArgs>
   projectsCreated?: boolean | Prisma.Member$projectsCreatedArgs<ExtArgs>
+  projectMemberships?: boolean | Prisma.Member$projectMembershipsArgs<ExtArgs>
   competencies?: boolean | Prisma.Member$competenciesArgs<ExtArgs>
   _count?: boolean | Prisma.MemberCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1309,6 +1459,7 @@ export type $MemberPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     links: Prisma.$ProfessionalLinkPayload<ExtArgs>[]
     participations: Prisma.$ParticipationPayload<ExtArgs>[]
     projectsCreated: Prisma.$ProjectPayload<ExtArgs>[]
+    projectMemberships: Prisma.$ProjectMemberPayload<ExtArgs>[]
     competencies: Prisma.$CompetencyPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1724,6 +1875,7 @@ export interface Prisma__MemberClient<T, Null = never, ExtArgs extends runtime.T
   links<T extends Prisma.Member$linksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$linksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProfessionalLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   participations<T extends Prisma.Member$participationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$participationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ParticipationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectsCreated<T extends Prisma.Member$projectsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$projectsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projectMemberships<T extends Prisma.Member$projectMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$projectMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   competencies<T extends Prisma.Member$competenciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Member$competenciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompetencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2231,6 +2383,30 @@ export type Member$projectsCreatedArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.ProjectScalarFieldEnum | Prisma.ProjectScalarFieldEnum[]
+}
+
+/**
+ * Member.projectMemberships
+ */
+export type Member$projectMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectMember
+   */
+  select?: Prisma.ProjectMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectMember
+   */
+  omit?: Prisma.ProjectMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectMemberInclude<ExtArgs> | null
+  where?: Prisma.ProjectMemberWhereInput
+  orderBy?: Prisma.ProjectMemberOrderByWithRelationInput | Prisma.ProjectMemberOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectMemberScalarFieldEnum | Prisma.ProjectMemberScalarFieldEnum[]
 }
 
 /**

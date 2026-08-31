@@ -43,6 +43,14 @@ export const CategoryType = {
 export type CategoryType = (typeof CategoryType)[keyof typeof CategoryType]
 
 
+export const ProjectAccess = {
+  LEADER: 'LEADER',
+  COLLABORATOR: 'COLLABORATOR'
+} as const
+
+export type ProjectAccess = (typeof ProjectAccess)[keyof typeof ProjectAccess]
+
+
 export const CompetencyType = {
   TECHNICAL: 'TECHNICAL',
   SOFT: 'SOFT'

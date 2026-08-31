@@ -282,6 +282,24 @@ export default function ParticipationsPage() {
                         PROYECTO
                       </span>
                       <BadgeEstado estado={project.approvalStatus} />
+                      {(() => {
+                        // Nivel de acceso propio dentro del equipo del proyecto.
+                        const mine = (project.members || []).find(
+                          (m) => m.memberId === currentUser?.id,
+                        );
+                        if (!mine) return null;
+                        return (
+                          <span
+                            className={`text-[10px] font-mono font-bold px-2 py-1 inline-block border ${
+                              mine.access === "LEADER"
+                                ? "bg-orange-50 text-[#F37021] border-[#F37021]"
+                                : "bg-green-50 text-[#2D5A27] border-[#2D5A27]"
+                            }`}
+                          >
+                            {mine.access === "LEADER" ? "LÍDER" : "COLABORADOR"}
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div className="flex items-center gap-3 min-w-0 ml-auto">

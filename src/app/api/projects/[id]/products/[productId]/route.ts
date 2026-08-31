@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import { createProductSchema, zodErrorMessage } from "@/lib/validations";
 import { requireAuth } from "@/lib/auth";
+import { getProjectPermissions } from "@/lib/project-access";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
 
@@ -77,8 +78,10 @@ export async function PUT(
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
     }
 
-    // Autorización: solo el creador del producto puede editarlo.
-    if (product.createdBy !== requesterId) {
+    // Autorización: el creador del producto, o quien lidera el proyecto
+    // (creador del proyecto, Líder o admin), que sí pueden tocar cualquiera.
+    const perms = await getProjectPermissions(projectId, auth.session);
+    if (product.createdBy !== requesterId && !perms.canManageAllProducts) {
       return NextResponse.json(
         { error: "Solo puedes editar los productos que tú creaste." },
         { status: 403 },

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Member, Project, Competency } from "@/types";
+import { Member, Project, Competency, ProjectPayload } from "@/types";
 import { ApiRepository, CreateProductPayload } from "@/services/api";
 
 interface DataState {
@@ -21,8 +21,8 @@ interface DataState {
   addProductToProject: (projectId: number, payload: CreateProductPayload) => Promise<void>;
   updateOwnProduct: (projectId: number, productId: number, payload: CreateProductPayload) => Promise<void>;
 
-  addProject: (project: Project) => Promise<void>;
-  updateProject: (id: number, project: Partial<Project>) => Promise<void>;
+  addProject: (project: ProjectPayload) => Promise<void>;
+  updateProject: (id: number, project: ProjectPayload) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
 
   updateMember: (id: number, member: Partial<Member>) => Promise<void>;

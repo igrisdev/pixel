@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
-import { CategoryType, ApprovalStatus, Project, Participation, AcademicProduct } from "@/types";
+import { CategoryType, ApprovalStatus, Project, Participation, AcademicProduct, ProjectAccess } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { updateProjectSchema } from "@/lib/validations";
 import { requireAuth } from "@/lib/auth";
+import { getProjectPermissions } from "@/lib/project-access";
 
 const projectInclude = {
+  members: {
+    include: {
+      member: true,
+    },
+  },
   products: {
     include: {
       participations: {
@@ -31,6 +37,14 @@ function toProjectResponse(project: ProjectWithRelations): Project {
     createdBy: project.createdBy,
     coverImageUrl: project.coverImageUrl ?? "",
     approvalStatus: project.approvalStatus as ApprovalStatus,
+    members: (project.members || []).map((pm) => ({
+      id: pm.id,
+      memberId: pm.memberId,
+      access: pm.access as ProjectAccess,
+      memberName: pm.member.fullName,
+      memberPhotoUrl: pm.member.photoUrl ?? "",
+      memberCareer: pm.member.career ?? "",
+    })),
     products: (project.products || []).map((prod) => ({
       id: prod.id,
       projectId: prod.projectId,
@@ -160,6 +174,34 @@ async function syncProducts(projectId: number, incomingProducts: ProductPayload[
   }
 }
 
+// Reemplaza el equipo del proyecto por el recibido. El creador nunca se guarda
+// aquí: su acceso es implícito y no se le puede revocar.
+async function syncProjectMembers(
+  projectId: number,
+  incoming: { memberId: number; access: "LEADER" | "COLLABORATOR" }[],
+) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { createdBy: true },
+  });
+  const team = incoming.filter((m) => m.memberId !== project?.createdBy);
+
+  await Promise.all(team.map((m) => ensureMemberExists(m.memberId)));
+
+  const keepIds = team.map((m) => m.memberId);
+  await prisma.projectMember.deleteMany({
+    where: { projectId, memberId: { notIn: keepIds.length > 0 ? keepIds : [-1] } },
+  });
+
+  for (const m of team) {
+    await prisma.projectMember.upsert({
+      where: { projectId_memberId: { projectId, memberId: m.memberId } },
+      create: { projectId, memberId: m.memberId, access: m.access },
+      update: { access: m.access },
+    });
+  }
+}
+
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
@@ -198,15 +240,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (auth.error) return auth.error;
     const isAdmin = auth.session.role === "ADMIN";
 
-    // Solo el creador del proyecto o un admin pueden modificarlo.
-    const existing = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { createdBy: true },
-    });
-    if (!existing) {
+    // Pueden editar el creador, un admin o quien tenga acceso de Líder.
+    const perms = await getProjectPermissions(projectId, auth.session);
+    if (!perms.exists) {
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
-    if (!isAdmin && existing.createdBy !== auth.session.userId) {
+    if (!perms.canEditProject) {
       return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
 
@@ -236,6 +275,13 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
           where: { id: projectId },
           data,
         });
+      }
+
+      if (body.members) {
+        if (!perms.canManageTeam) {
+          throw new Error("No puedes gestionar el equipo de este proyecto.");
+        }
+        await syncProjectMembers(projectId, body.members);
       }
 
       if (body.products) {
@@ -283,15 +329,17 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     const auth = await requireAuth(request);
     if (auth.error) return auth.error;
 
-    const existing = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { createdBy: true },
-    });
-    if (!existing) {
+    // Eliminar es irreversible y arrastra productos y participaciones:
+    // se reserva al creador y a los administradores.
+    const perms = await getProjectPermissions(projectId, auth.session);
+    if (!perms.exists) {
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
-    if (auth.session.role !== "ADMIN" && existing.createdBy !== auth.session.userId) {
-      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+    if (!perms.canDeleteProject) {
+      return NextResponse.json(
+        { error: "Solo el creador del proyecto puede eliminarlo." },
+        { status: 403 },
+      );
     }
 
     await prisma.project.delete({ where: { id: projectId } });

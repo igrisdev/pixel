@@ -1,4 +1,12 @@
-import { CategoryType } from "@/types";
+import { CategoryType, ProjectAccess } from "@/types";
+
+// Integrante del equipo del proyecto en el formulario.
+export type DraftProjectMember = {
+  memberId: number;
+  memberName: string;
+  memberPhotoUrl: string;
+  access: ProjectAccess;
+};
 
 export type DraftParticipant = {
   tempId: string;

@@ -55,6 +55,7 @@ export const ModelName = {
   ProfessionalLink: 'ProfessionalLink',
   Competency: 'Competency',
   Project: 'Project',
+  ProjectMember: 'ProjectMember',
   AcademicProduct: 'AcademicProduct',
   Participation: 'Participation',
   RateLimit: 'RateLimit'
@@ -132,6 +133,17 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProjectMemberScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  memberId: 'memberId',
+  access: 'access',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectMemberScalarFieldEnum = (typeof ProjectMemberScalarFieldEnum)[keyof typeof ProjectMemberScalarFieldEnum]
 
 
 export const AcademicProductScalarFieldEnum = {

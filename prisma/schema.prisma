@@ -30,6 +30,12 @@ enum CategoryType {
   WRITING
 }
 
+// Nivel de acceso de un integrante sobre un proyecto macro.
+enum ProjectAccess {
+  LEADER       // Puede editar el proyecto y gestionar su equipo
+  COLLABORATOR // Solo puede aportar productos
+}
+
 enum CompetencyType {
   TECHNICAL
   SOFT
@@ -56,6 +62,7 @@ model Member {
   links               ProfessionalLink[]
   participations      Participation[]
   projectsCreated     Project[]          @relation("ProjectCreator")
+  projectMemberships  ProjectMember[]
 
   // Relación Muchos a Muchos implícita con Competency
   competencies        Competency[]
@@ -98,9 +105,26 @@ model Project {
   // Relaciones
   creator        Member         @relation("ProjectCreator", fields: [createdBy], references: [id])
   products       AcademicProduct[]
+  members        ProjectMember[]
 
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+}
+
+// Equipo del proyecto macro. Independiente de las participaciones en
+// productos: define quién puede trabajar sobre el proyecto y con qué permisos.
+model ProjectMember {
+  id        Int           @id @default(autoincrement())
+  projectId Int
+  memberId  Int
+  access    ProjectAccess @default(COLLABORATOR)
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  member    Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, memberId])
 }
 
 model AcademicProduct {

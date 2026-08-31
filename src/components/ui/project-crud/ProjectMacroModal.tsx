@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { X, Loader2 } from "lucide-react";
-import { ProjectFormData } from "./types";
+import { X, Loader2, UserPlus, Users } from "lucide-react";
+import { ProjectFormData, DraftProjectMember } from "./types";
 import FileUploadInput from "@/components/ui/FileUploadInput";
+import { Member } from "@/types";
 
 interface ProjectMacroModalProps {
   editProjId: number | null;
@@ -12,6 +13,15 @@ interface ProjectMacroModalProps {
   onChange: (next: ProjectFormData) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
+  // Equipo del proyecto: quién puede trabajar en él y con qué permisos.
+  teamMembers: DraftProjectMember[];
+  availableMembers: Member[];
+  draftMemberId: string;
+  draftAccess: "LEADER" | "COLLABORATOR";
+  onDraftMemberIdChange: (value: string) => void;
+  onDraftAccessChange: (value: "LEADER" | "COLLABORATOR") => void;
+  onAddTeamMember: () => void;
+  onRemoveTeamMember: (memberId: number) => void;
 }
 
 export default function ProjectMacroModal({
@@ -21,6 +31,14 @@ export default function ProjectMacroModal({
   onChange,
   onSubmit,
   onClose,
+  teamMembers,
+  availableMembers,
+  draftMemberId,
+  draftAccess,
+  onDraftMemberIdChange,
+  onDraftAccessChange,
+  onAddTeamMember,
+  onRemoveTeamMember,
 }: ProjectMacroModalProps) {
   const isSaving = loadingAction === "save-project";
 
@@ -112,6 +130,105 @@ export default function ProjectMacroModal({
             placeholder="Selecciona una imagen..."
             preview={true}
           />
+
+          {/* EQUIPO DEL PROYECTO */}
+          <div className="p-4 border border-gray-200 bg-gray-50">
+            <h5 className="font-bold text-[#1E293B] flex items-center mb-1">
+              <Users className="w-5 h-5 mr-2 text-[#2D5A27]" /> Equipo del Proyecto
+            </h5>
+            <p className="text-xs text-gray-500 mb-3">
+              Quienes agregues aquí verán el proyecto en “Mis Participaciones” y
+              podrán aportar productos. El rol concreto se asigna en cada producto.
+            </p>
+
+            <ul className="space-y-2 mb-4">
+              {teamMembers.map((m) => (
+                <li
+                  key={m.memberId}
+                  className="flex justify-between items-center bg-white border border-gray-200 p-3 text-sm gap-2"
+                >
+                  <div className="flex items-center min-w-0">
+                    <img
+                      src={m.memberPhotoUrl || undefined}
+                      alt={m.memberName}
+                      className="w-8 h-8 mr-3 object-cover border border-[#1E293B] bg-white shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <span className="font-bold text-[#1E293B] block truncate">
+                        {m.memberName}
+                      </span>
+                      <span
+                        className={`text-[10px] font-mono font-bold px-1 border ${
+                          m.access === "LEADER"
+                            ? "text-[#F37021] bg-orange-50 border-[#F37021]/40"
+                            : "text-[#2D5A27] bg-green-50 border-green-200"
+                        }`}
+                      >
+                        {m.access === "LEADER" ? "LÍDER" : "COLABORADOR"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveTeamMember(m.memberId)}
+                    disabled={isSaving}
+                    className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition cursor-pointer disabled:opacity-50 shrink-0"
+                    title="Quitar del equipo"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </li>
+              ))}
+              {teamMembers.length === 0 && (
+                <li className="text-center p-4 border border-dashed border-gray-300 text-gray-500 text-sm">
+                  Solo tú tienes acceso a este proyecto.
+                </li>
+              )}
+            </ul>
+
+            {availableMembers.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-gray-100 p-3 border border-gray-200">
+                <select
+                  value={draftMemberId}
+                  onChange={(e) => onDraftMemberIdChange(e.target.value)}
+                  disabled={isSaving}
+                  className="w-full min-w-0 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
+                >
+                  <option value="">Seleccionar integrante...</option>
+                  {availableMembers.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.fullName}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={draftAccess}
+                  onChange={(e) =>
+                    onDraftAccessChange(e.target.value as "LEADER" | "COLLABORATOR")
+                  }
+                  disabled={isSaving}
+                  className="w-full min-w-0 text-sm border-2 border-gray-300 p-2 bg-white outline-none focus:border-[#F37021]"
+                >
+                  <option value="COLLABORATOR">Colaborador (agrega productos)</option>
+                  <option value="LEADER">Líder (edita el proyecto)</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={onAddTeamMember}
+                  disabled={!draftMemberId || isSaving}
+                  className="bg-[#1E293B] text-white px-4 py-2 text-sm font-bold hover:bg-black transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" /> AÑADIR
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 italic">
+                No hay más integrantes disponibles para añadir.
+              </p>
+            )}
+          </div>
 
           <div className="flex gap-3 pt-2">
             <button

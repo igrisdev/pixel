@@ -62,6 +62,11 @@ export type Competency = Prisma.CompetencyModel
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model ProjectMember
+ * 
+ */
+export type ProjectMember = Prisma.ProjectMemberModel
+/**
  * Model AcademicProduct
  * 
  */

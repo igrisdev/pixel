@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
-import type { CategoryType, ApprovalStatus } from "@/types";
+import type { CategoryType, ApprovalStatus, ProjectAccess } from "@/types";
 import type { Prisma } from "@/generated/client";
 import { createProjectSchema } from "@/lib/validations";
 import { requireAuth } from "@/lib/auth";
 
 const projectInclude = {
+  members: {
+    include: {
+      member: true,
+    },
+  },
   products: {
     include: {
       participations: {
@@ -31,6 +36,14 @@ function toProjectResponse(project: ProjectWithRelations) {
     createdBy: project.createdBy,
     coverImageUrl: project.coverImageUrl ?? "",
     approvalStatus: project.approvalStatus,
+    members: (project.members || []).map((pm) => ({
+      id: pm.id,
+      memberId: pm.memberId,
+      access: pm.access as ProjectAccess,
+      memberName: pm.member.fullName,
+      memberPhotoUrl: pm.member.photoUrl ?? "",
+      memberCareer: pm.member.career ?? "",
+    })),
     products: (project.products || []).map((prod) => ({
       id: prod.id,
       projectId: prod.projectId,
@@ -79,17 +92,14 @@ export async function GET(request: Request) {
 
     if (participatedBy) {
       const memberId = Number(participatedBy);
+      // Aparece si participa en algún producto O si forma parte del equipo
+      // del proyecto, aunque todavía no tenga productos asignados.
       where = {
         ...where,
-        products: {
-          some: {
-            participations: {
-              some: {
-                memberId,
-              },
-            },
-          },
-        },
+        OR: [
+          { products: { some: { participations: { some: { memberId } } } } },
+          { members: { some: { memberId } } },
+        ],
       };
     }
 
@@ -125,6 +135,10 @@ export async function POST(request: Request) {
     const createdBy = auth.session.userId;
     await ensureMemberExists(createdBy);
 
+    // El creador no se guarda en el equipo: su acceso es implícito y total.
+    const team = (body.members || []).filter((m) => m.memberId !== createdBy);
+    await Promise.all(team.map((m) => ensureMemberExists(m.memberId)));
+
     const created = await prisma.project.create({
       data: {
         title: body.title,
@@ -135,6 +149,9 @@ export async function POST(request: Request) {
         coverImageUrl: (body.coverImageUrl as string) || null,
         createdBy,
         approvalStatus: "PENDING",
+        members: {
+          create: team.map((m) => ({ memberId: m.memberId, access: m.access })),
+        },
       },
       include: projectInclude,
     });

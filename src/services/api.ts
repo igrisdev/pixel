@@ -1,4 +1,4 @@
-import { Project, Member, Competency, AcademicProduct } from "@/types";
+import { Project, Member, Competency, AcademicProduct, ProjectPayload } from "@/types";
 
 export interface CreateProductPayload {
   requesterId: number;
@@ -81,14 +81,14 @@ export const ApiRepository = {
   },
 
   // --- PROYECTOS ---
-  createProject: async (project: Project): Promise<Project> => {
+  createProject: async (project: ProjectPayload): Promise<Project> => {
     return request<Project>("/api/projects", {
       method: "POST",
       body: JSON.stringify(project),
     });
   },
 
-  updateProject: async (id: number, data: Partial<Project>): Promise<Project> => {
+  updateProject: async (id: number, data: ProjectPayload): Promise<Project> => {
     return request<Project>(`/api/projects/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),

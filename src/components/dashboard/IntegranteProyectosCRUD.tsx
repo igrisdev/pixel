@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Project, AcademicProduct, CategoryType, Participation } from "@/types";
+import { Project, AcademicProduct, CategoryType, Participation, ProjectAccess, ProjectPayload } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProjectMacroModal from "@/components/ui/project-crud/ProjectMacroModal";
 import ProductModal from "@/components/ui/project-crud/ProductModal";
@@ -21,6 +21,7 @@ import { DEFAULT_CREATOR_ROLE } from "@/lib/roles";
 import ProductCard from "@/components/ui/project-crud/ProductCard";
 import {
   DraftParticipant,
+  DraftProjectMember,
   ProductFormData,
   ProjectFormData,
 } from "@/components/ui/project-crud/types";
@@ -84,6 +85,31 @@ export default function IntegranteProyectosCRUD() {
   const [draftTeamMemberId, setDraftTeamMemberId] = useState("");
   const [draftTeamRole, setDraftTeamRole] = useState("");
 
+  // --- ESTADOS: EQUIPO DEL PROYECTO MACRO ---
+  const [projTeam, setProjTeam] = useState<DraftProjectMember[]>([]);
+  const [projDraftMemberId, setProjDraftMemberId] = useState("");
+  const [projDraftAccess, setProjDraftAccess] = useState<ProjectAccess>("COLLABORATOR");
+
+  const addProjTeamMember = () => {
+    const member = members.find((m) => m.id === Number(projDraftMemberId));
+    if (!member) return;
+    setProjTeam((prev) => [
+      ...prev.filter((p) => p.memberId !== member.id),
+      {
+        memberId: member.id,
+        memberName: member.fullName,
+        memberPhotoUrl: member.photoUrl,
+        access: projDraftAccess,
+      },
+    ]);
+    setProjDraftMemberId("");
+    setProjDraftAccess("COLLABORATOR");
+  };
+
+  const removeProjTeamMember = (memberId: number) => {
+    setProjTeam((prev) => prev.filter((p) => p.memberId !== memberId));
+  };
+
   // Filtrar proyectos del usuario actual
   const misProyectos = projects.filter((p) => p.createdBy === currentUser?.id);
 
@@ -110,8 +136,10 @@ export default function IntegranteProyectosCRUD() {
     setErrorMessage(null);
 
     try {
+      const teamPayload = projTeam.map((m) => ({ memberId: m.memberId, access: m.access }));
+
       if (editProjId) {
-        await updateProject(editProjId, projFormData);
+        await updateProject(editProjId, { ...projFormData, members: teamPayload });
         setEditProjId(null);
         setIsAddingProj(false);
         toast.success("Proyecto actualizado");
@@ -119,12 +147,13 @@ export default function IntegranteProyectosCRUD() {
         const nextId =
           projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
 
-        const newProj: Project = {
+        const newProj: ProjectPayload = {
           id: nextId,
           ...projFormData,
           createdBy: currentUser.id,
           approvalStatus: "PENDING",
           products: [],
+          members: teamPayload,
         };
 
         await addProject(newProj);
@@ -139,6 +168,7 @@ export default function IntegranteProyectosCRUD() {
         endDate: "",
         coverImageUrl: "",
       });
+      setProjTeam([]);
     } catch (error) {
       toast.error("No se pudo guardar el proyecto");
       setErrorMessage(error instanceof Error ? error.message : "No se pudo guardar el proyecto");
@@ -167,6 +197,16 @@ export default function IntegranteProyectosCRUD() {
   };
 
   const handleEditProjectClick = (p: Project) => {
+    setProjTeam(
+      (p.members || []).map((m) => ({
+        memberId: m.memberId,
+        memberName: m.memberName,
+        memberPhotoUrl: m.memberPhotoUrl,
+        access: m.access,
+      })),
+    );
+    setProjDraftMemberId("");
+    setProjDraftAccess("COLLABORATOR");
     setProjFormData({
       title: p.title,
       objective: p.objective,
@@ -424,6 +464,10 @@ await updateProject(projectId, {
           onClick={() => {
             setIsAddingProj(!isAddingProj);
             setEditProjId(null);
+            // Empezamos siempre con un equipo vacío al crear.
+            setProjTeam([]);
+            setProjDraftMemberId("");
+            setProjDraftAccess("COLLABORATOR");
           }}
           disabled={loadingAction !== null}
           className="bg-[#2D5A27] hover:bg-[#1f3f1b] text-white px-5 py-2.5 text-sm font-bold border-2 border-[#1E293B] flex items-center transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -444,6 +488,16 @@ await updateProject(projectId, {
           formData={projFormData}
           onChange={setProjFormData}
           onSubmit={handleSaveProject}
+          teamMembers={projTeam}
+          availableMembers={members.filter(
+            (m) => m.id !== currentUser?.id && !projTeam.some((t) => t.memberId === m.id),
+          )}
+          draftMemberId={projDraftMemberId}
+          draftAccess={projDraftAccess}
+          onDraftMemberIdChange={setProjDraftMemberId}
+          onDraftAccessChange={setProjDraftAccess}
+          onAddTeamMember={addProjTeamMember}
+          onRemoveTeamMember={removeProjTeamMember}
           onClose={() => {
             setIsAddingProj(false);
             setEditProjId(null);

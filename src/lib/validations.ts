@@ -60,6 +60,16 @@ export const updateMemberSchema = z.object({
   isBanned: z.boolean().optional(),
 });
 
+// Equipo del proyecto macro: integrante + nivel de acceso.
+const projectMembersSchema = z
+  .array(
+    z.object({
+      memberId: z.number(),
+      access: z.enum(["LEADER", "COLLABORATOR"]).default("COLLABORATOR"),
+    }),
+  )
+  .optional();
+
 export const createProjectSchema = z.object({
   title: z.string().min(1, "El título es requerido").max(200, "Título muy largo"),
   objective: z.string().min(1, "El objetivo es requerido"),
@@ -68,6 +78,7 @@ export const createProjectSchema = z.object({
   endDate: z.string().optional().or(z.literal("")),
   coverImageUrl: validUrlOrUpload,
   createdBy: z.number().min(1, "El creador es requerido"),
+  members: projectMembersSchema,
 });
 
 export const updateProjectSchema = z.object({
@@ -78,6 +89,7 @@ export const updateProjectSchema = z.object({
   endDate: z.string().optional().or(z.literal("")),
   coverImageUrl: validUrlOrUpload,
   approvalStatus: z.enum(["PENDING", "ACTIVE", "REJECTED"]).optional(),
+  members: projectMembersSchema,
   products: z.array(z.object({
     id: z.number().optional(),
     title: z.string().min(1),

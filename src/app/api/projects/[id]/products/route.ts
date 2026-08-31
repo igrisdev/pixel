@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import { createProductSchema, zodErrorMessage } from "@/lib/validations";
 import { requireAuth } from "@/lib/auth";
+import { getProjectPermissions } from "@/lib/project-access";
 import type { CategoryType, ApprovalStatus } from "@/types";
 import type { Prisma } from "@/generated/client";
 
@@ -73,23 +74,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: "Proyecto no encontrado" }, { status: 404 });
     }
 
-    // Autorización: el solicitante debe ser creador del proyecto o participar
-    // en alguno de sus productos.
-    const isCreator = project.createdBy === requesterId;
-    let isParticipant = false;
-
-    if (!isCreator) {
-      const participation = await prisma.participation.findFirst({
-        where: {
-          memberId: requesterId,
-          product: { projectId },
-        },
-        select: { id: true },
-      });
-      isParticipant = Boolean(participation);
-    }
-
-    if (!isCreator && !isParticipant) {
+    // Autorización: creador, admin, equipo del proyecto (Líder o Colaborador)
+    // o participante de algún producto.
+    const perms = await getProjectPermissions(projectId, auth.session);
+    if (!perms.canAddProducts) {
       return NextResponse.json(
         { error: "No participas en este proyecto." },
         { status: 403 },
