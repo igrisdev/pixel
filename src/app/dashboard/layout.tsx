@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Users,
+  Loader2,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -25,14 +26,30 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { currentUser, logout } = useAuthStore();
+  const { currentUser, logout, authChecked, hydrate } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Al recargar, el estado persistido todavía no está disponible en el primer
+  // render. Preguntamos al servidor por la cookie de sesión antes de decidir.
   useEffect(() => {
-    if (!currentUser) {
+    if (!authChecked) void hydrate();
+  }, [authChecked, hydrate]);
+
+  // Solo redirigimos cuando ya sabemos con certeza que no hay sesión.
+  useEffect(() => {
+    if (authChecked && !currentUser) {
       router.push("/login");
     }
-  }, [currentUser, router]);
+  }, [authChecked, currentUser, router]);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#F37021] mr-3" />
+        <span className="text-gray-500 font-mono">Verificando sesión...</span>
+      </div>
+    );
+  }
 
   if (!currentUser) return null;
 

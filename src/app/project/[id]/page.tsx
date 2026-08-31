@@ -20,6 +20,7 @@ import {
 import { useDataStore } from "@/store/useDataStore";
 import ProductGallery from "@/components/ui/ProductGallery";
 import { categoryShortLabel } from "@/lib/category";
+import { isHttpUrl, prettyDomain, getAvatarUrl } from "@/lib/url";
 import { formatDate } from "@/lib/date";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect, useState } from "react";
@@ -108,7 +109,7 @@ export default function ProjectPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#1E293B] via-[#1e293b90] to-transparent opacity-90"></div>
 
           <div className="absolute bottom-0 left-0 p-8 w-full">
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
               <span className="bg-[#2D5A27] text-white text-xs font-mono px-3 py-1 border border-[#1E293B]">
                 PROYECTO MACRO
               </span>
@@ -172,7 +173,7 @@ export default function ProjectPage() {
                       {categoryShortLabel(product.categoryType)}
                     </div>
 
-                    <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24 flex items-center gap-2">
+                    <h4 className="text-xl font-bold text-[#1E293B] mb-2 pr-24 flex flex-wrap items-center gap-2 break-words">
                       {product.title}
                       {product.approvalStatus !== "ACTIVE" && (
                         <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded border border-yellow-300 uppercase tracking-wide">
@@ -180,7 +181,7 @@ export default function ProjectPage() {
                         </span>
                       )}
                     </h4>
-                    <p className="text-sm text-[#334155] mb-4 leading-relaxed">
+                    <p className="text-sm text-[#334155] mb-4 leading-relaxed break-words">
                       {product.description}
                     </p>
 
@@ -277,11 +278,38 @@ export default function ProjectPage() {
                     )}
 
                     {product.categoryType === "WRITING" && (
-                      <div className="mb-4 flex gap-3 items-center text-sm font-medium text-[#334155]">
-                        <span className="flex items-center">
-                          <FileText className="w-4 h-4 mr-1 text-purple-600" />{" "}
-                          {product.publicationSource || "Documento Académico"}
-                        </span>
+                      <div className="mb-4 flex flex-wrap gap-3 items-center text-sm font-medium text-[#334155]">
+                        {/* La fuente puede ser el nombre de la revista o un enlace.
+                            Si es una URL mostramos un botón con el dominio, nunca la
+                            dirección completa: rompía el ancho de la tarjeta. */}
+                        {isHttpUrl(product.publicationSource) ? (
+                          linksActivos ? (
+                            <a
+                              href={product.publicationSource}
+                              target="_blank"
+                              rel="noreferrer"
+                              title={product.publicationSource}
+                              className="text-xs bg-purple-600 text-white px-3 py-2 flex items-center gap-1.5 hover:bg-purple-700 transition max-w-full"
+                            >
+                              <FileText className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">
+                                Ver publicación en {prettyDomain(product.publicationSource!)}
+                              </span>
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          ) : (
+                            <span className="text-xs bg-gray-200 text-gray-500 px-3 py-2 flex items-center cursor-not-allowed border border-gray-300">
+                              <Lock className="w-3 h-3 mr-1.5" /> Publicación pendiente
+                            </span>
+                          )
+                        ) : (
+                          <span className="flex items-start min-w-0 break-words">
+                            <FileText className="w-4 h-4 mr-1 mt-0.5 text-purple-600 shrink-0" />
+                            <span className="min-w-0 break-words">
+                              {product.publicationSource || "Documento Académico"}
+                            </span>
+                          </span>
+                        )}
                         {product.documentUrl &&
                           (linksActivos ? (
                             <a
@@ -312,7 +340,10 @@ export default function ProjectPage() {
                             className="flex items-center bg-white border border-gray-200 px-2 py-1 text-xs"
                           >
                             <img
-                              src={part.memberPhotoUrl || undefined}
+                              src={part.memberPhotoUrl || getAvatarUrl(part.memberName)}
+                              onError={(e) => {
+                                e.currentTarget.src = getAvatarUrl(part.memberName);
+                              }}
                               alt=""
                               className="w-4 h-4 mr-2 border border-gray-400 object-cover"
                             />
@@ -348,9 +379,12 @@ export default function ProjectPage() {
                     className="bg-[#F8F9FA] border border-transparent p-3 flex items-center cursor-pointer hover:border-[#1E293B] hover:bg-white transition group block"
                   >
                     <img
-                      src={member.memberPhotoUrl || undefined}
+                      src={member.memberPhotoUrl || getAvatarUrl(member.memberName)}
                       alt={member.memberName}
-                      className="w-10 h-10 border border-[#1E293B] mr-3 object-cover bg-gray-200"
+                      className="w-10 h-10 border border-[#1E293B] mr-3 object-cover bg-gray-200 shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.src = getAvatarUrl(member.memberName);
+                      }}
                     />
                     <div className="flex flex-col">
                       <h4 className="font-bold text-sm text-[#1E293B] group-hover:text-[#F37021]">

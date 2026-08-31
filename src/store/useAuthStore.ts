@@ -14,6 +14,9 @@ interface AuthState {
   currentUser: CurrentUser | null;
   userRole: SystemRole | null;
   currentMember: Member | null;
+  // false hasta que se comprueba la sesión real contra el servidor. Evita
+  // expulsar al usuario mientras el estado todavía se está rehidratando.
+  authChecked: boolean;
   login: (email: string, pass: string) => Promise<boolean>;
   logout: () => Promise<void>;
   hydrate: () => Promise<void>;
@@ -26,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
       currentUser: null,
       userRole: null,
       currentMember: null,
+      authChecked: false,
 
       login: async (email, pass) => {
         try {
@@ -45,6 +49,7 @@ export const useAuthStore = create<AuthState>()(
             },
             userRole: member.systemRole,
             currentMember: member,
+            authChecked: true,
           });
           return true;
         } catch (error) {
@@ -59,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           // Aunque falle el servidor, limpiamos el estado local.
         }
-        set({ currentUser: null, userRole: null, currentMember: null });
+        set({ currentUser: null, userRole: null, currentMember: null, authChecked: true });
       },
 
       // Revalida la sesión contra la cookie httpOnly (fuente de verdad del
@@ -76,9 +81,10 @@ export const useAuthStore = create<AuthState>()(
             },
             userRole: member.systemRole,
             currentMember: member,
+            authChecked: true,
           });
         } catch {
-          set({ currentUser: null, userRole: null, currentMember: null });
+          set({ currentUser: null, userRole: null, currentMember: null, authChecked: true });
         }
       },
 
@@ -91,6 +97,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "pixel-auth-storage",
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        userRole: state.userRole,
+        currentMember: state.currentMember,
+      }),
     },
   ),
 );
