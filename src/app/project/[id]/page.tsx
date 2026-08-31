@@ -100,15 +100,18 @@ export default function ProjectPage() {
       )}
 
       <div className="bg-white pixel-border overflow-hidden mb-12">
-        <div className="w-full h-64 md:h-96 relative border-b-4 border-[#1E293B]">
+        {/* Altura mínima en vez de fija: con títulos largos la caja crece en
+            lugar de que el texto se desborde. La imagen pasa a posición
+            absoluta para seguir cubriendo todo el fondo. */}
+        <div className="w-full min-h-[16rem] md:min-h-[24rem] relative border-b-4 border-[#1E293B] flex">
           <img
             src={project.coverImageUrl || undefined}
             alt={project.title}
-            className="w-full h-full object-cover bg-gray-200"
+            className="absolute inset-0 w-full h-full object-cover bg-gray-200"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1E293B] via-[#1e293b90] to-transparent opacity-90"></div>
 
-          <div className="absolute bottom-0 left-0 p-8 w-full">
+          <div className="relative w-full p-5 sm:p-6 md:p-8 flex flex-col justify-end">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
               <span className="bg-[#2D5A27] text-white text-xs font-mono px-3 py-1 border border-[#1E293B]">
                 PROYECTO MACRO
@@ -122,7 +125,7 @@ export default function ProjectPage() {
                 <Calendar className="w-4 h-4 mr-1" /> {formatDate(project.startDate)} al {project.endDate ? formatDate(project.endDate) : "Presente"}
               </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight break-words">
               {project.title}
             </h1>
           </div>
