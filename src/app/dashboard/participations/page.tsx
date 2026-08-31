@@ -273,23 +273,19 @@ export default function ParticipationsPage() {
                   className="bg-[#F8F9FA] p-6 border-b-2 border-gray-200 cursor-pointer hover:bg-gray-50 transition"
                   onClick={() => toggleProject(project.id)}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="bg-[#F37021] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
-                          PROYECTO
-                        </span>
-                        <BadgeEstado estado={project.approvalStatus} />
-                      </div>
-                      <h3 className="text-xl font-bold text-[#1E293B] mb-2">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 max-w-3xl line-clamp-2">
-                        {project.objective}
-                      </p>
+                  {/* Badges y contador comparten la fila superior. Así el título
+                      y la descripción ocupan siempre el ancho completo de la
+                      tarjeta y nunca compiten por espacio con el contador. */}
+                  <div className="flex flex-wrap justify-between items-start gap-x-4 gap-y-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="bg-[#F37021] text-white text-[10px] font-mono px-2 py-1 inline-block border border-[#1E293B]">
+                        PROYECTO
+                      </span>
+                      <BadgeEstado estado={project.approvalStatus} />
                     </div>
-                    <div className="flex items-center gap-4 ml-4">
-                      <div className="text-right text-sm">
+
+                    <div className="flex items-center gap-3 min-w-0 ml-auto">
+                      <div className="text-right text-sm min-w-0">
                         <div className="text-gray-500 font-mono">
                           {userProducts.length} producto{userProducts.length !== 1 ? 's' : ''} donde participas
                         </div>
@@ -298,12 +294,19 @@ export default function ParticipationsPage() {
                         </div>
                       </div>
                       {isExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                        <ChevronUp className="w-5 h-5 text-gray-400 shrink-0" />
                       ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                        <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />
                       )}
                     </div>
                   </div>
+
+                  <h3 className="text-xl font-bold text-[#1E293B] mb-2 break-words">
+                    {project.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 max-w-3xl line-clamp-2">
+                    {project.objective}
+                  </p>
                 </div>
 
                 {isExpanded && (
