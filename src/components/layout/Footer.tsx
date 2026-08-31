@@ -50,7 +50,7 @@ export default function Footer() {
                   className="flex items-center cursor-pointer group text-white"
                 >
                   <img
-                    src="pixel_big.svg"
+                    src="/pixel_big.svg"
                     alt="logo"
                     className="h-16 text-white"
                   />

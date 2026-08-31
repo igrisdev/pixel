@@ -27,7 +27,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo (Redirige al inicio) */}
           <Link href="/" className="flex items-center cursor-pointer group">
-            <img src="pixel_normal.svg" alt="logo" className="h-10" />
+            <img src="/pixel_normal.svg" alt="logo" className="h-10" />
           </Link>
 
           {/* Links Centrales */}
