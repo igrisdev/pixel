@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Mail, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Lock, Mail, AlertCircle, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const { login } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -79,7 +80,7 @@ export default function LoginPage() {
               CORREO INSTITUCIONAL
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="email"
                 value={email}
@@ -97,16 +98,33 @@ export default function LoginPage() {
               CONTRASEÑA
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full pl-10 pr-4 py-3 bg-[#F8F9FA] border-2 border-[#1E293B] outline-none focus:border-[#F37021] text-[#334155] font-medium transition disabled:opacity-50"
+                className="w-full pl-10 pr-12 py-3 bg-[#F8F9FA] border-2 border-[#1E293B] outline-none focus:border-[#F37021] text-[#334155] font-medium transition disabled:opacity-50"
                 placeholder="••••••••"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                disabled={isLoading}
+                // tabIndex -1: al tabular se pasa del campo al botón de entrar,
+                // sin detenerse en este control auxiliar.
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F37021] transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
           </div>
 
