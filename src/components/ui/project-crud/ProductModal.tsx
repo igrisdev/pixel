@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { X, Calendar, FileCode, FileText, Folder, Loader2, MapPin, UserPlus, Users } from "lucide-react";
+import React, { useState } from "react";
+import { X, Calendar, Check, FileCode, FileText, Folder, Loader2, MapPin, Pencil, UserPlus, Users } from "lucide-react";
 import { CategoryType, Member } from "@/types";
 import { DraftParticipant, ProductFormData } from "./types";
 import FileUploadInput from "@/components/ui/FileUploadInput";
@@ -25,6 +25,7 @@ interface ProductModalProps {
   onDraftTeamRoleChange: (value: string) => void;
   onAddDraftParticipant: () => void;
   onRemoveDraftParticipant: (tempId: string) => void;
+  onChangeParticipantRole: (tempId: string, role: string) => void;
   onClose: () => void;
 }
 
@@ -44,9 +45,12 @@ export default function ProductModal({
   onDraftTeamRoleChange,
   onAddDraftParticipant,
   onRemoveDraftParticipant,
+  onChangeParticipantRole,
   onClose,
 }: ProductModalProps) {
   const isSaving = loadingAction === `save-prod-${projectId}`;
+  // Participante cuyo rol se está editando en línea.
+  const [editingRoleFor, setEditingRoleFor] = useState<string | null>(null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -332,29 +336,86 @@ export default function ProductModal({
                       alt={part.memberName}
                       className="w-8 h-8 mr-3 object-cover border border-[#1E293B] bg-white"
                     />
-                    <div>
+                    <div className="min-w-0">
                       <span className="font-bold text-[#1E293B] block">{part.memberName}</span>
-                      <span className="inline-flex flex-wrap items-center gap-1">
-                        <span className="text-xs text-[#2D5A27] font-mono font-bold bg-green-50 px-1 border border-green-200">
-                          {part.productRole}
-                        </span>
-                        {part.suggested && (
-                          <span className="text-[10px] text-[#F37021] font-mono font-bold bg-orange-50 px-1 border border-[#F37021]/40">
-                            SUGERIDO
+                      {editingRoleFor === part.tempId ? (
+                        <select
+                          autoFocus
+                          value={part.productRole}
+                          onChange={(e) => {
+                            onChangeParticipantRole(part.tempId, e.target.value);
+                            setEditingRoleFor(null);
+                          }}
+                          onBlur={() => setEditingRoleFor(null)}
+                          className="text-xs border-2 border-[#F37021] p-1 bg-white outline-none max-w-[13rem]"
+                        >
+                          {/* Conserva el rol actual aunque no esté en el catálogo
+                              de la categoría (p. ej. datos antiguos). */}
+                          {![
+                            ...rolesForCategory(productFormData.categoryType),
+                            ...CROSS_ROLES,
+                          ].includes(part.productRole) && (
+                            <option value={part.productRole}>{part.productRole}</option>
+                          )}
+                          <optgroup label={categoryRoleGroupLabel(productFormData.categoryType)}>
+                            {rolesForCategory(productFormData.categoryType).map((role) => (
+                              <option key={role} value={role}>
+                                {role}
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="Roles generales">
+                            {CROSS_ROLES.map((role) => (
+                              <option key={role} value={role}>
+                                {role}
+                              </option>
+                            ))}
+                          </optgroup>
+                        </select>
+                      ) : (
+                        <span className="inline-flex flex-wrap items-center gap-1">
+                          <span className="text-xs text-[#2D5A27] font-mono font-bold bg-green-50 px-1 border border-green-200">
+                            {part.productRole}
                           </span>
-                        )}
-                      </span>
+                          {part.suggested && (
+                            <span className="text-[10px] text-[#F37021] font-mono font-bold bg-orange-50 px-1 border border-[#F37021]/40">
+                              SUGERIDO
+                            </span>
+                          )}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveDraftParticipant(part.tempId)}
-                    disabled={loadingAction !== null}
-                    className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition cursor-pointer disabled:opacity-50"
-                    title="Remover participante"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingRoleFor(
+                          editingRoleFor === part.tempId ? null : part.tempId,
+                        )
+                      }
+                      disabled={loadingAction !== null}
+                      className="text-gray-400 hover:text-[#F37021] bg-white p-2 border border-gray-300 hover:border-[#F37021] transition cursor-pointer disabled:opacity-50"
+                      title={
+                        editingRoleFor === part.tempId ? "Terminar edición" : "Cambiar rol"
+                      }
+                    >
+                      {editingRoleFor === part.tempId ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <Pencil className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveDraftParticipant(part.tempId)}
+                      disabled={loadingAction !== null}
+                      className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition cursor-pointer disabled:opacity-50"
+                      title="Remover participante"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </li>
               ))}
               {draftParticipants.length === 0 && (

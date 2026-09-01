@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { Member, Competency, ProfessionalLink } from "@/types";
@@ -96,15 +97,6 @@ export async function POST(request: Request) {
     await attachSessionCookie(response, { userId: member.id, role: member.systemRole });
     return response;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `Error de autenticación: ${message}`
-            : "Error de autenticación",
-      },
-      { status: 500 }
-    );
+    return apiError(error, "Error de autenticación");
   }
 }

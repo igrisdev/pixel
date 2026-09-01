@@ -5,10 +5,16 @@ import { Users, Folder, FileCode, FileText, Calendar, ChevronDown, ChevronUp, Pl
 import toast from "react-hot-toast";
 import { useDataStore } from "@/store/useDataStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Project, AcademicProduct } from "@/types";
+import { Project, AcademicProduct, ProjectAccess, ProjectPayload } from "@/types";
 import BadgeEstado from "@/components/ui/BadgeEstado";
 import ProductModal from "@/components/ui/project-crud/ProductModal";
-import { DraftParticipant, ProductFormData } from "@/components/ui/project-crud/types";
+import ProjectMacroModal from "@/components/ui/project-crud/ProjectMacroModal";
+import {
+  DraftParticipant,
+  DraftProjectMember,
+  ProductFormData,
+  ProjectFormData,
+} from "@/components/ui/project-crud/types";
 import { suggestTeamFromProject } from "@/components/ui/project-crud/team-suggestions";
 import { categoryShortLabel } from "@/lib/category";
 import { DEFAULT_CREATOR_ROLE } from "@/lib/roles";
@@ -38,6 +44,7 @@ export default function ParticipationsPage() {
     loadMembers,
     addProductToProject,
     updateOwnProduct,
+    updateParticipatedProject,
   } = useDataStore();
   const { currentUser, currentMember } = useAuthStore();
   const [expandedProjects, setExpandedProjects] = useState<Set<number>>(new Set());
@@ -51,6 +58,100 @@ export default function ParticipationsPage() {
   const [draftTeamMemberId, setDraftTeamMemberId] = useState("");
   const [draftTeamRole, setDraftTeamRole] = useState("");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  // Edición del proyecto: disponible solo para quien tiene acceso de Líder.
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [projFormData, setProjFormData] = useState<ProjectFormData>({
+    title: "",
+    objective: "",
+    awards: "",
+    startDate: "",
+    endDate: "",
+    coverImageUrl: "",
+  });
+  const [projTeam, setProjTeam] = useState<DraftProjectMember[]>([]);
+  const [projDraftMemberId, setProjDraftMemberId] = useState("");
+  const [projDraftAccess, setProjDraftAccess] = useState<ProjectAccess>("COLLABORATOR");
+
+  const openEditProject = (project: Project) => {
+    setEditingProject(project);
+    setProjFormData({
+      title: project.title,
+      objective: project.objective,
+      awards: project.awards || "",
+      startDate: project.startDate ? project.startDate.split("T")[0] : "",
+      endDate: project.endDate ? project.endDate.split("T")[0] : "",
+      coverImageUrl: project.coverImageUrl || "",
+    });
+    setProjTeam(
+      (project.members || []).map((m) => ({
+        memberId: m.memberId,
+        memberName: m.memberName,
+        memberPhotoUrl: m.memberPhotoUrl,
+        access: m.access,
+      })),
+    );
+    setProjDraftMemberId("");
+    setProjDraftAccess("COLLABORATOR");
+  };
+
+  const closeEditProject = () => {
+    setEditingProject(null);
+    setProjTeam([]);
+  };
+
+  const addProjTeamMember = () => {
+    const member = members.find((m) => m.id === Number(projDraftMemberId));
+    if (!member) return;
+    setProjTeam((prev) => [
+      ...prev.filter((p) => p.memberId !== member.id),
+      {
+        memberId: member.id,
+        memberName: member.fullName,
+        memberPhotoUrl: member.photoUrl,
+        access: projDraftAccess,
+      },
+    ]);
+    setProjDraftMemberId("");
+    setProjDraftAccess("COLLABORATOR");
+  };
+
+  const removeProjTeamMember = (memberId: number) => {
+    // Un Líder no puede quitarse a sí mismo: perdería el acceso al proyecto.
+    if (memberId === currentUser?.id) return;
+    setProjTeam((prev) => prev.filter((p) => p.memberId !== memberId));
+  };
+
+  // Cambiar el nivel sin quitar y volver a añadir. Tampoco puede degradarse
+  // a sí mismo: dejaría de poder editar el proyecto.
+  const changeProjTeamAccess = (memberId: number, access: ProjectAccess) => {
+    if (memberId === currentUser?.id) return;
+    setProjTeam((prev) =>
+      prev.map((p) => (p.memberId === memberId ? { ...p, access } : p)),
+    );
+  };
+
+  const handleSaveProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !editingProject) return;
+
+    setLoadingAction("save-project");
+    try {
+      const payload: ProjectPayload = {
+        ...projFormData,
+        members: projTeam.map((m) => ({ memberId: m.memberId, access: m.access })),
+      };
+      await updateParticipatedProject(editingProject.id, payload, currentUser.id);
+      toast.success("Proyecto actualizado");
+      closeEditProject();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo actualizar el proyecto",
+      );
+    } finally {
+      setLoadingAction(null);
+    }
+  };
 
   useEffect(() => {
     if (!currentUser) return;
@@ -154,6 +255,13 @@ export default function ParticipationsPage() {
     // No permitimos remover al propio usuario del producto que está creando.
     if (tempId === `self-${currentUser?.id}`) return;
     setDraftParticipants((prev) => prev.filter((p) => p.tempId !== tempId));
+  };
+
+  // Corregir el rol de un participante ya añadido.
+  const handleChangeParticipantRole = (tempId: string, role: string) => {
+    setDraftParticipants((prev) =>
+      prev.map((p) => (p.tempId === tempId ? { ...p, productRole: role } : p)),
+    );
   };
 
   const handleSaveProduct = async (e: React.FormEvent, projectId: number) => {
@@ -263,6 +371,10 @@ export default function ParticipationsPage() {
           {projectsAsParticipant.map((project) => {
             const userProducts = (project.products || []).filter(isUserParticipantInProduct);
             const isExpanded = expandedProjects.has(project.id);
+            // Nivel de acceso propio dentro del equipo del proyecto.
+            const myAccess = (project.members || []).find(
+              (m) => m.memberId === currentUser?.id,
+            )?.access;
 
             return (
               <div
@@ -282,27 +394,33 @@ export default function ParticipationsPage() {
                         PROYECTO
                       </span>
                       <BadgeEstado estado={project.approvalStatus} />
-                      {(() => {
-                        // Nivel de acceso propio dentro del equipo del proyecto.
-                        const mine = (project.members || []).find(
-                          (m) => m.memberId === currentUser?.id,
-                        );
-                        if (!mine) return null;
-                        return (
-                          <span
-                            className={`text-[10px] font-mono font-bold px-2 py-1 inline-block border ${
-                              mine.access === "LEADER"
-                                ? "bg-orange-50 text-[#F37021] border-[#F37021]"
-                                : "bg-green-50 text-[#2D5A27] border-[#2D5A27]"
-                            }`}
-                          >
-                            {mine.access === "LEADER" ? "LÍDER" : "COLABORADOR"}
-                          </span>
-                        );
-                      })()}
+                      {myAccess && (
+                        <span
+                          className={`text-[10px] font-mono font-bold px-2 py-1 inline-block border ${
+                            myAccess === "LEADER"
+                              ? "bg-orange-50 text-[#F37021] border-[#F37021]"
+                              : "bg-green-50 text-[#2D5A27] border-[#2D5A27]"
+                          }`}
+                        >
+                          {myAccess === "LEADER" ? "LÍDER" : "COLABORADOR"}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3 min-w-0 ml-auto">
+                      {myAccess === "LEADER" && (
+                        <button
+                          onClick={(e) => {
+                            // Evita que el clic despliegue/colapse la tarjeta.
+                            e.stopPropagation();
+                            openEditProject(project);
+                          }}
+                          title="Editar proyecto"
+                          className="text-gray-500 hover:text-[#F37021] border border-gray-300 hover:border-[#F37021] bg-white p-2 transition cursor-pointer shrink-0"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      )}
                       <div className="text-right text-sm min-w-0">
                         <div className="text-gray-500 font-mono">
                           {userProducts.length} producto{userProducts.length !== 1 ? 's' : ''} donde participas
@@ -493,6 +611,30 @@ export default function ParticipationsPage() {
         </div>
       )}
 
+      {editingProject && (
+        <ProjectMacroModal
+          editProjId={editingProject.id}
+          loadingAction={loadingAction}
+          formData={projFormData}
+          onChange={setProjFormData}
+          onSubmit={handleSaveProject}
+          onClose={closeEditProject}
+          teamMembers={projTeam}
+          availableMembers={members.filter(
+            (m) =>
+              m.id !== editingProject.createdBy &&
+              !projTeam.some((t) => t.memberId === m.id),
+          )}
+          draftMemberId={projDraftMemberId}
+          draftAccess={projDraftAccess}
+          onDraftMemberIdChange={setProjDraftMemberId}
+          onDraftAccessChange={setProjDraftAccess}
+          onAddTeamMember={addProjTeamMember}
+          onRemoveTeamMember={removeProjTeamMember}
+          onChangeTeamMemberAccess={changeProjTeamAccess}
+        />
+      )}
+
       {activeProjectId !== null && (
         <ProductModal
           projectId={activeProjectId}
@@ -514,6 +656,7 @@ export default function ParticipationsPage() {
           onDraftTeamRoleChange={setDraftTeamRole}
           onAddDraftParticipant={handleAddDraftParticipant}
           onRemoveDraftParticipant={handleRemoveDraftParticipant}
+          onChangeParticipantRole={handleChangeParticipantRole}
           onClose={closeAddProduct}
         />
       )}

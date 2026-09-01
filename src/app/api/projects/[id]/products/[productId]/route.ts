@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
-import { createProductSchema, zodErrorMessage } from "@/lib/validations";
+import { createProductSchema } from "@/lib/validations";
 import { requireAuth } from "@/lib/auth";
 import { getProjectPermissions } from "@/lib/project-access";
 import type { CategoryType, ApprovalStatus } from "@/types";
@@ -150,20 +151,6 @@ export async function PUT(
 
     return NextResponse.json({ data: updated ? toProductResponse(updated) : null });
   } catch (error) {
-    const invalid = zodErrorMessage(error);
-    if (invalid) {
-      return NextResponse.json({ error: invalid }, { status: 400 });
-    }
-
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo actualizar el producto: ${message}`
-            : "No se pudo actualizar el producto",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo actualizar el producto");
   }
 }

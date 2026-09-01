@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Member, Competency, ProfessionalLink } from "@/types";
@@ -62,16 +63,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
 
     return NextResponse.json({ data: toMemberResponse(member) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo cargar el integrante: ${message}`
-            : "No se pudo cargar el integrante",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo cargar el integrante");
   }
 }
 
@@ -119,16 +111,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     return NextResponse.json({ data: toMemberResponse(member) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo actualizar el integrante: ${message}`
-            : "No se pudo actualizar el integrante",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo actualizar el integrante");
   }
 }
 
@@ -146,15 +129,6 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     return NextResponse.json({ data: { success: true } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo eliminar el integrante: ${message}`
-            : "No se pudo eliminar el integrante",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo eliminar el integrante");
   }
 }

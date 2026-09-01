@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createLinkSchema, updateLinkSchema } from "@/lib/validations";
 import { requireSelfOrAdmin } from "@/lib/auth";
@@ -24,11 +25,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     return NextResponse.json({ data: link });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      { error: process.env.NODE_ENV === "development" ? `No se pudo crear el enlace: ${message}` : "No se pudo crear el enlace" },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo crear el enlace");
   }
 }
 
@@ -53,11 +50,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     return NextResponse.json({ data: { success: true } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      { error: process.env.NODE_ENV === "development" ? `No se pudo eliminar el enlace: ${message}` : "No se pudo eliminar el enlace" },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo eliminar el enlace");
   }
 }
 
@@ -89,10 +82,6 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     return NextResponse.json({ data: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      { error: process.env.NODE_ENV === "development" ? `No se pudo actualizar el enlace: ${message}` : "No se pudo actualizar el enlace" },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo actualizar el enlace");
   }
 }

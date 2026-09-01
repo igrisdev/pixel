@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError, AppError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import { CategoryType, ApprovalStatus, Project, Participation, AcademicProduct, ProjectAccess } from "@/types";
@@ -218,16 +219,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
 
     return NextResponse.json({ data: toProjectResponse(project) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo cargar el proyecto: ${message}`
-            : "No se pudo cargar el proyecto",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo cargar el proyecto");
   }
 }
 
@@ -279,7 +271,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
       if (body.members) {
         if (!perms.canManageTeam) {
-          throw new Error("No puedes gestionar el equipo de este proyecto.");
+          throw new AppError("No puedes gestionar el equipo de este proyecto.", 403);
         }
         await syncProjectMembers(projectId, body.members);
       }
@@ -308,16 +300,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     return NextResponse.json({ data: toProjectResponse(updated) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo actualizar el proyecto: ${message}`
-            : "No se pudo actualizar el proyecto",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo actualizar el proyecto");
   }
 }
 
@@ -346,15 +329,6 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     return NextResponse.json({ data: { success: true } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo eliminar el proyecto: ${message}`
-            : "No se pudo eliminar el proyecto",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo eliminar el proyecto");
   }
 }

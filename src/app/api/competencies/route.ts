@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { Competency } from "@/types";
 import { CompetencyType } from "@/generated/client";
@@ -20,16 +21,7 @@ export async function GET() {
 
     return NextResponse.json({ data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudieron cargar las competencias: ${message}`
-            : "No se pudieron cargar las competencias",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudieron cargar las competencias");
   }
 }
 
@@ -57,15 +49,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo crear la competencia: ${message}`
-            : "No se pudo crear la competencia",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo crear la competencia");
   }
 }

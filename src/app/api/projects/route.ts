@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { ensureMemberExists } from "@/lib/member-provision";
 import type { CategoryType, ApprovalStatus, ProjectAccess } from "@/types";
@@ -111,16 +112,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: projects.map(toProjectResponse) });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudieron cargar los proyectos: ${message}`
-            : "No se pudieron cargar los proyectos",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudieron cargar los proyectos");
   }
 }
 
@@ -158,15 +150,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data: toProjectResponse(created) }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development"
-            ? `No se pudo crear el proyecto: ${message}`
-            : "No se pudo crear el proyecto",
-      },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudo crear el proyecto");
   }
 }

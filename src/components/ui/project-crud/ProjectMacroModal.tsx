@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { X, Loader2, UserPlus, Users } from "lucide-react";
+import React, { useState } from "react";
+import { X, Loader2, UserPlus, Users, Pencil, Check } from "lucide-react";
 import { ProjectFormData, DraftProjectMember } from "./types";
 import FileUploadInput from "@/components/ui/FileUploadInput";
 import { Member } from "@/types";
@@ -22,6 +22,7 @@ interface ProjectMacroModalProps {
   onDraftAccessChange: (value: "LEADER" | "COLLABORATOR") => void;
   onAddTeamMember: () => void;
   onRemoveTeamMember: (memberId: number) => void;
+  onChangeTeamMemberAccess: (memberId: number, access: "LEADER" | "COLLABORATOR") => void;
 }
 
 export default function ProjectMacroModal({
@@ -39,8 +40,11 @@ export default function ProjectMacroModal({
   onDraftAccessChange,
   onAddTeamMember,
   onRemoveTeamMember,
+  onChangeTeamMemberAccess,
 }: ProjectMacroModalProps) {
   const isSaving = loadingAction === "save-project";
+  // Fila del equipo cuyo nivel se está editando en línea.
+  const [editingAccessFor, setEditingAccessFor] = useState<number | null>(null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -157,26 +161,68 @@ export default function ProjectMacroModal({
                       <span className="font-bold text-[#1E293B] block truncate">
                         {m.memberName}
                       </span>
-                      <span
-                        className={`text-[10px] font-mono font-bold px-1 border ${
-                          m.access === "LEADER"
-                            ? "text-[#F37021] bg-orange-50 border-[#F37021]/40"
-                            : "text-[#2D5A27] bg-green-50 border-green-200"
-                        }`}
-                      >
-                        {m.access === "LEADER" ? "LÍDER" : "COLABORADOR"}
-                      </span>
+                      {editingAccessFor === m.memberId ? (
+                        <select
+                          autoFocus
+                          value={m.access}
+                          onChange={(e) => {
+                            onChangeTeamMemberAccess(
+                              m.memberId,
+                              e.target.value as "LEADER" | "COLLABORATOR",
+                            );
+                            setEditingAccessFor(null);
+                          }}
+                          onBlur={() => setEditingAccessFor(null)}
+                          className="text-xs border-2 border-[#F37021] p-1 bg-white outline-none"
+                        >
+                          <option value="COLLABORATOR">Colaborador</option>
+                          <option value="LEADER">Líder</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={`text-[10px] font-mono font-bold px-1 border ${
+                            m.access === "LEADER"
+                              ? "text-[#F37021] bg-orange-50 border-[#F37021]/40"
+                              : "text-[#2D5A27] bg-green-50 border-green-200"
+                          }`}
+                        >
+                          {m.access === "LEADER" ? "LÍDER" : "COLABORADOR"}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveTeamMember(m.memberId)}
-                    disabled={isSaving}
-                    className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition cursor-pointer disabled:opacity-50 shrink-0"
-                    title="Quitar del equipo"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingAccessFor(
+                          editingAccessFor === m.memberId ? null : m.memberId,
+                        )
+                      }
+                      disabled={isSaving}
+                      className="text-gray-400 hover:text-[#F37021] bg-white p-2 border border-gray-300 hover:border-[#F37021] transition cursor-pointer disabled:opacity-50"
+                      title={
+                        editingAccessFor === m.memberId
+                          ? "Terminar edición"
+                          : "Cambiar nivel de acceso"
+                      }
+                    >
+                      {editingAccessFor === m.memberId ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <Pencil className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveTeamMember(m.memberId)}
+                      disabled={isSaving}
+                      className="text-gray-400 hover:text-red-600 bg-white p-2 border border-gray-300 transition cursor-pointer disabled:opacity-50"
+                      title="Quitar del equipo"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </li>
               ))}
               {teamMembers.length === 0 && (

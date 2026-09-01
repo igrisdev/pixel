@@ -21,6 +21,14 @@ interface DataState {
   addProductToProject: (projectId: number, payload: CreateProductPayload) => Promise<void>;
   updateOwnProduct: (projectId: number, productId: number, payload: CreateProductPayload) => Promise<void>;
 
+  // Editar un proyecto desde "Mis Participaciones" (Líder): guarda y refresca
+  // la lista de participaciones, no la de proyectos propios.
+  updateParticipatedProject: (
+    id: number,
+    payload: ProjectPayload,
+    memberId: number,
+  ) => Promise<void>;
+
   addProject: (project: ProjectPayload) => Promise<void>;
   updateProject: (id: number, project: ProjectPayload) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
@@ -77,6 +85,12 @@ export const useDataStore = create<DataState>()(
       updateOwnProduct: async (projectId, productId, payload) => {
         await ApiRepository.updateOwnProduct(projectId, productId, payload);
         const projects = await ApiRepository.getProjectsByParticipation(payload.requesterId);
+        set({ participatedProjects: projects });
+      },
+
+      updateParticipatedProject: async (id, payload, memberId) => {
+        await ApiRepository.updateProject(id, payload);
+        const projects = await ApiRepository.getProjectsByParticipation(memberId);
         set({ participatedProjects: projects });
       },
 

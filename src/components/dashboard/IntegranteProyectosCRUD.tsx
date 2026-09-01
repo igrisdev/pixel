@@ -110,6 +110,13 @@ export default function IntegranteProyectosCRUD() {
     setProjTeam((prev) => prev.filter((p) => p.memberId !== memberId));
   };
 
+  // Cambiar el nivel sin tener que quitar y volver a añadir al integrante.
+  const changeProjTeamAccess = (memberId: number, access: ProjectAccess) => {
+    setProjTeam((prev) =>
+      prev.map((p) => (p.memberId === memberId ? { ...p, access } : p)),
+    );
+  };
+
   // Filtrar proyectos del usuario actual
   const misProyectos = projects.filter((p) => p.createdBy === currentUser?.id);
 
@@ -325,6 +332,13 @@ export default function IntegranteProyectosCRUD() {
     setDraftParticipants(draftParticipants.filter((p) => p.tempId !== tempId));
   };
 
+  // Corregir el rol de un participante ya añadido.
+  const handleChangeParticipantRole = (tempId: string, role: string) => {
+    setDraftParticipants((prev) =>
+      prev.map((p) => (p.tempId === tempId ? { ...p, productRole: role } : p)),
+    );
+  };
+
   const handleSaveProduct = async (e: React.FormEvent, projectId: number) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -498,6 +512,7 @@ await updateProject(projectId, {
           onDraftAccessChange={setProjDraftAccess}
           onAddTeamMember={addProjTeamMember}
           onRemoveTeamMember={removeProjTeamMember}
+          onChangeTeamMemberAccess={changeProjTeamAccess}
           onClose={() => {
             setIsAddingProj(false);
             setEditProjId(null);
@@ -607,6 +622,7 @@ await updateProject(projectId, {
                     onDraftTeamRoleChange={setDraftTeamRole}
                     onAddDraftParticipant={handleAddDraftParticipant}
                     onRemoveDraftParticipant={handleRemoveDraftParticipant}
+                    onChangeParticipantRole={handleChangeParticipantRole}
                     onClose={() => {
                       setActiveFormProjectId(null);
                       setDraftParticipants([]);

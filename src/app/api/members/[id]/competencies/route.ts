@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { updateCompetenciesSchema } from "@/lib/validations";
 import { requireSelfOrAdmin } from "@/lib/auth";
@@ -37,10 +38,6 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       })) || [],
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Error interno";
-    return NextResponse.json(
-      { error: process.env.NODE_ENV === "development" ? `No se pudieron actualizar las competencias: ${message}` : "No se pudieron actualizar las competencias" },
-      { status: 500 },
-    );
+    return apiError(error, "No se pudieron actualizar las competencias");
   }
 }
