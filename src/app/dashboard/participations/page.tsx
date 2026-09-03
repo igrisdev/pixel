@@ -490,11 +490,16 @@ export default function ParticipationsPage() {
                                 <BadgeEstado estado={product.approvalStatus} />
                               </div>
                               <div className="flex items-center gap-2">
-                                {product.createdBy === currentUser?.id && (
+                                {(product.createdBy === currentUser?.id ||
+                                  myAccess === "LEADER") && (
                                   <button
                                     onClick={() => openEditProduct(project, product)}
                                     className="text-gray-500 hover:text-[#F37021] border border-gray-300 hover:border-[#F37021] p-1 transition cursor-pointer"
-                                    title="Editar mi producto"
+                                    title={
+                                      product.createdBy === currentUser?.id
+                                        ? "Editar mi producto"
+                                        : "Editar producto (Líder)"
+                                    }
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>

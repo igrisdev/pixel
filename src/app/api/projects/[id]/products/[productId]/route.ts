@@ -89,9 +89,13 @@ export async function PUT(
       );
     }
 
-    // El creador siempre permanece como participante.
+    // El creador del producto siempre permanece como participante. Un Líder
+    // que edita un producto ajeno NO se auto-agrega al equipo.
     const participationsInput = [...(body.participations || [])];
-    if (!participationsInput.some((p) => p.memberId === requesterId)) {
+    if (
+      product.createdBy === requesterId &&
+      !participationsInput.some((p) => p.memberId === requesterId)
+    ) {
       participationsInput.unshift({
         memberId: requesterId,
         productRole: "Autor",
